@@ -1,15 +1,17 @@
 from unittest.mock import patch
-from sbws.globals import RESULT_VERSION
-from sbws.lib.resultdump import Result
-from sbws.lib.resultdump import ResultSuccess
-from sbws.lib.resultdump import ResultError
-from sbws.lib.resultdump import ResultErrorAuth
-from sbws.lib.resultdump import ResultErrorCircuit
-from sbws.lib.resultdump import ResultErrorStream
-from sbws.lib.resultdump import _ResultType
-from tests.unit.globals import monotonic_time
 
+from sbws.globals import RESULT_VERSION
 from sbws.lib.relaylist import Relay
+from sbws.lib.resultdump import (
+    Result,
+    ResultError,
+    ResultErrorAuth,
+    ResultErrorCircuit,
+    ResultErrorStream,
+    ResultSuccess,
+    _ResultType,
+)
+from tests.unit.globals import monotonic_time
 
 
 def test_Result(result):

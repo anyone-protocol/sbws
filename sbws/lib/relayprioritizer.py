@@ -1,12 +1,11 @@
-from decimal import Decimal
-from ..lib.resultdump import ResultDump
-from ..lib.resultdump import ResultError
-from ..lib.relaylist import RelayList
 import copy
-import time
 import logging
+import time
+from decimal import Decimal
 
 from ..globals import MAX_RECENT_PRIORITY_RELAY_COUNT
+from ..lib.relaylist import RelayList
+from ..lib.resultdump import ResultDump, ResultError
 from ..util import state, timestamps
 
 log = logging.getLogger(__name__)

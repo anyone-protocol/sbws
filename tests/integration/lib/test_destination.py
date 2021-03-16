@@ -1,8 +1,8 @@
 """Integration tests for destination.py"""
 import sbws.util.requests as requests_utils
 from sbws.lib.destination import (
-    DestinationList,
     Destination,
+    DestinationList,
     connect_to_destination_over_circuit,
 )
 

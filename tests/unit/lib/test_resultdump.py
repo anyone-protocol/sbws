@@ -9,8 +9,8 @@ from sbws.lib.resultdump import (
     ResultError,
     ResultErrorStream,
     ResultSuccess,
-    trim_results_ip_changed,
     load_result_file,
+    trim_results_ip_changed,
 )
 
 

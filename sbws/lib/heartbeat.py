@@ -6,7 +6,6 @@ import time
 
 from ..util.state import State
 
-
 log = logging.getLogger(__name__)
 
 

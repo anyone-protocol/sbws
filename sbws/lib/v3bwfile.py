@@ -9,34 +9,35 @@ import logging
 import math
 import os
 from itertools import combinations
-from statistics import median, mean
+from statistics import mean, median
+
 from stem.descriptor import parse_file
 
 from sbws import __version__
 from sbws.globals import (
-    SPEC_VERSION,
     BW_LINE_SIZE,
+    MAX_BW_DIFF_PERC,
+    MIN_REPORT,
+    PROP276_ROUND_DIG,
     SBWS_SCALE_CONSTANT,
-    TORFLOW_SCALING,
     SBWS_SCALING,
+    SPEC_VERSION,
     TORFLOW_BW_MARGIN,
     TORFLOW_OBS_LAST,
     TORFLOW_OBS_MEAN,
-    PROP276_ROUND_DIG,
-    MIN_REPORT,
-    MAX_BW_DIFF_PERC,
+    TORFLOW_SCALING,
 )
 from sbws.lib import scaling
 from sbws.lib.resultdump import ResultSuccess, _ResultType
 from sbws.util.filelock import DirectoryLock
-from sbws.util.timestamp import (
-    now_isodt_str,
-    unixts_to_isodt_str,
-    now_unixts,
-    isostr_to_dt_obj,
-    dt_obj_to_isodt_str,
-)
 from sbws.util.state import State
+from sbws.util.timestamp import (
+    dt_obj_to_isodt_str,
+    isostr_to_dt_obj,
+    now_isodt_str,
+    now_unixts,
+    unixts_to_isodt_str,
+)
 
 log = logging.getLogger(__name__)
 

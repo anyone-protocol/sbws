@@ -1,15 +1,12 @@
-import os
 import logging
+import os
 import platform
+from collections import OrderedDict
 
 from requests import __version__ as requests_version
 from stem import __version__ as stem_version
 
 from sbws import __version__
-
-
-from collections import OrderedDict
-
 
 log = logging.getLogger(__name__)
 

@@ -1,6 +1,14 @@
-from stem import CircuitExtensionFailed, InvalidRequest, ProtocolError, Timeout
-from stem import InvalidArguments, ControllerError, SocketClosed
 import logging
+
+from stem import (
+    CircuitExtensionFailed,
+    ControllerError,
+    InvalidArguments,
+    InvalidRequest,
+    ProtocolError,
+    SocketClosed,
+    Timeout,
+)
 
 log = logging.getLogger(__name__)
 

@@ -2,7 +2,7 @@
 import datetime
 import json
 
-from .timestamps import DateTimeSeq, DateTimeIntSeq
+from .timestamps import DateTimeIntSeq, DateTimeSeq
 
 
 class CustomEncoder(json.JSONEncoder):

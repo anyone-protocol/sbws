@@ -1,44 +1,42 @@
 """ Measure the relays. """
+import logging
+import os
 import queue
-
+import random
 import signal
 import sys
 import threading
+import time
 import traceback
 import uuid
-
+from argparse import ArgumentDefaultsHelpFormatter
 from multiprocessing.context import TimeoutError
+from multiprocessing.dummy import Pool
 
+import sbws.util.requests as requests_utils
+import sbws.util.stem as stem_utils
+from sbws.globals import HTTP_GET_HEADERS, TIMEOUT_MEASUREMENTS, fail_hard
+
+from .. import settings
 from ..lib.circuitbuilder import GapsCircuitBuilder as CB
-from ..lib.resultdump import ResultDump
-from ..lib.resultdump import (
-    ResultSuccess,
-    ResultErrorCircuit,
-    ResultErrorStream,
-    ResultErrorSecondRelay,
-    ResultError,
-    ResultErrorDestination,
-)
-from ..lib.relaylist import RelayList
-from ..lib.relayprioritizer import RelayPrioritizer
 from ..lib.destination import (
     DestinationList,
     connect_to_destination_over_circuit,
 )
-from ..util.timestamp import now_isodt_str
-from ..util.state import State
-from sbws.globals import fail_hard, HTTP_GET_HEADERS, TIMEOUT_MEASUREMENTS
-import sbws.util.stem as stem_utils
-import sbws.util.requests as requests_utils
-from argparse import ArgumentDefaultsHelpFormatter
-from multiprocessing.dummy import Pool
-import time
-import os
-import logging
-import random
-
-from .. import settings
 from ..lib.heartbeat import Heartbeat
+from ..lib.relaylist import RelayList
+from ..lib.relayprioritizer import RelayPrioritizer
+from ..lib.resultdump import (
+    ResultDump,
+    ResultError,
+    ResultErrorCircuit,
+    ResultErrorDestination,
+    ResultErrorSecondRelay,
+    ResultErrorStream,
+    ResultSuccess,
+)
+from ..util.state import State
+from ..util.timestamp import now_isodt_str
 
 rng = random.SystemRandom()
 log = logging.getLogger(__name__)

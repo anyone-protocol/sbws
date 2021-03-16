@@ -1,15 +1,13 @@
 """Common pytest configuration for unit and integration tests."""
-import pytest
 import os.path
 from unittest import mock
 
+import pytest
 from freezegun import freeze_time
 from stem import descriptor
 
 from sbws import settings
-from sbws.lib import relaylist
-from sbws.lib import relayprioritizer
-from sbws.lib import resultdump
+from sbws.lib import relaylist, relayprioritizer, resultdump
 from sbws.util.parser import create_parser
 
 

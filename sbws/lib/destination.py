@@ -2,21 +2,22 @@ import collections
 import datetime
 import logging
 import random
-import requests
 from urllib.parse import urlparse
+
+import requests
 from stem.control import EventType
 
-from sbws.globals import DESTINATION_VERIFY_CERTIFICATE
 import sbws.util.stem as stem_utils
+from sbws import settings
+from sbws.globals import DESTINATION_VERIFY_CERTIFICATE
+
 from ..globals import (
-    MAX_NUM_DESTINATION_FAILURES,
     DELTA_SECONDS_RETRY_DESTINATION,
+    FACTOR_INCREMENT_DESTINATION_RETRY,
+    MAX_NUM_DESTINATION_FAILURES,
     MAX_SECONDS_RETRY_DESTINATION,
     NUM_DESTINATION_ATTEMPTS_STORED,
-    FACTOR_INCREMENT_DESTINATION_RETRY,
 )
-from sbws import settings
-
 
 log = logging.getLogger(__name__)
 

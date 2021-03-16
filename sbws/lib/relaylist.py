@@ -1,17 +1,17 @@
 import copy
+import logging
+import random
 from datetime import datetime, timedelta
+from threading import Lock
 
+from stem import ControllerError, DescriptorUnavailable, Flag
 from stem.descriptor.router_status_entry import RouterStatusEntryV3
 from stem.descriptor.server_descriptor import ServerDescriptor
-from stem import Flag, DescriptorUnavailable, ControllerError
-import random
-import logging
-from threading import Lock
 
 from ..globals import (
     MAX_RECENT_CONSENSUS_COUNT,
-    MAX_RECENT_PRIORITY_RELAY_COUNT,
     MAX_RECENT_PRIORITY_LIST_COUNT,
+    MAX_RECENT_PRIORITY_RELAY_COUNT,
     MEASUREMENTS_PERIOD,
 )
 from ..util import timestamps

@@ -3,7 +3,7 @@ import os
 from statistics import mean
 
 from sbws.lib import scaling
-from sbws.lib.resultdump import load_result_file, ResultSuccess
+from sbws.lib.resultdump import ResultSuccess, load_result_file
 
 
 def test_bw_filt():

@@ -1,9 +1,8 @@
-from sbws.lib.resultdump import ResultDump
-from sbws.lib.resultdump import ResultSuccess, ResultErrorCircuit
-from sbws.lib.relayprioritizer import RelayPrioritizer
 from unittest.mock import patch
 
 from sbws import settings
+from sbws.lib.relayprioritizer import RelayPrioritizer
+from sbws.lib.resultdump import ResultDump, ResultErrorCircuit, ResultSuccess
 
 
 def static_time(value):

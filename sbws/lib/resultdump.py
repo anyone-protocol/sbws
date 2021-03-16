@@ -1,19 +1,18 @@
-import os
 import json
-import time
 import logging
-from glob import glob
-from threading import Thread
-from threading import RLock
-from queue import Queue
-from queue import Empty
-from datetime import datetime
-from datetime import timedelta
+import os
+import time
+from datetime import datetime, timedelta
 from enum import Enum
+from glob import glob
+from queue import Empty, Queue
+from threading import RLock, Thread
+
 from sbws.globals import RESULT_VERSION, fail_hard
-from sbws.util.filelock import DirectoryLock
-from sbws.util.json import CustomEncoder, CustomDecoder
 from sbws.lib.relaylist import Relay
+from sbws.util.filelock import DirectoryLock
+from sbws.util.json import CustomDecoder, CustomEncoder
+
 from .. import settings
 
 log = logging.getLogger(__name__)

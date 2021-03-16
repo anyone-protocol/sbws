@@ -4,29 +4,30 @@ import json
 import logging
 import math
 import os.path
-import pytest
 from unittest import mock
+
+import pytest
 
 from sbws import __version__ as version
 from sbws.globals import (
-    SPEC_VERSION,
-    SBWS_SCALING,
-    TORFLOW_SCALING,
     MIN_REPORT,
-    TORFLOW_ROUND_DIG,
     PROP276_ROUND_DIG,
+    SBWS_SCALING,
+    SPEC_VERSION,
+    TORFLOW_ROUND_DIG,
+    TORFLOW_SCALING,
 )
-from sbws.lib.resultdump import Result, load_result_file, ResultSuccess
+from sbws.lib.resultdump import Result, ResultSuccess, load_result_file
 from sbws.lib.v3bwfile import (
+    HEADER_RECENT_MEASUREMENTS_EXCLUDED_KEYS,
+    KEYVALUE_SEP_V1,
+    LINE_SEP,
+    TERMINATOR,
+    V3BWFile,
     V3BWHeader,
     V3BWLine,
-    TERMINATOR,
-    LINE_SEP,
-    KEYVALUE_SEP_V1,
     num_results_of_type,
-    V3BWFile,
     round_sig_dig,
-    HEADER_RECENT_MEASUREMENTS_EXCLUDED_KEYS,
 )
 from sbws.util.state import CustomDecoder
 from sbws.util.timestamp import now_fname, now_isodt_str, now_unixts

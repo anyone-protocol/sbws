@@ -1,5 +1,6 @@
 """Unit tests for heartbeat"""
 import logging
+
 import pytest
 
 from sbws.lib import heartbeat

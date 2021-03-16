@@ -1,6 +1,7 @@
 """Integration tests for requests."""
-import requests
 import uuid
+
+import requests
 
 from sbws import settings
 from sbws.util import requests as requests_utils
