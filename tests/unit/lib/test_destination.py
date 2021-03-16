@@ -16,7 +16,7 @@ def test_destination_is_functional():
         (MAX_SECONDS_RETRY_DESTINATION / 2) + 2
     )
 
-    d = destination.Destination('unexistenturl', 0, False)
+    d = destination.Destination("unexistenturl", 0, False)
     assert d.is_functional()
 
     # Fail 3 consecutive times

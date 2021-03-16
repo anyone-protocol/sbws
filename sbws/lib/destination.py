@@ -13,8 +13,8 @@ from ..globals import (
     DELTA_SECONDS_RETRY_DESTINATION,
     MAX_SECONDS_RETRY_DESTINATION,
     NUM_DESTINATION_ATTEMPTS_STORED,
-    FACTOR_INCREMENT_DESTINATION_RETRY
-    )
+    FACTOR_INCREMENT_DESTINATION_RETRY,
+)
 from sbws import settings
 
 
@@ -24,46 +24,47 @@ log = logging.getLogger(__name__)
 # Duplicate some code from DestinationList.from_config,
 # it should be refactored.
 def parse_destinations_countries(conf):
-    """Returns the destinations' country as string separated by comma.
-
-    """
+    """Returns the destinations' country as string separated by comma."""
     destinations_countries = []
-    for key in conf['destinations'].keys():
+    for key in conf["destinations"].keys():
         # Not a destination key
-        if key in ['usability_test_interval']:
+        if key in ["usability_test_interval"]:
             continue
         # The destination is not enabled
-        if not conf['destinations'].getboolean(key):
+        if not conf["destinations"].getboolean(key):
             continue
-        destination_section = 'destinations.{}'.format(key)
-        destination_country = conf[destination_section].get('country', None)
+        destination_section = "destinations.{}".format(key)
+        destination_country = conf[destination_section].get("country", None)
         destinations_countries.append(destination_country)
-    return ','.join(destinations_countries)
+    return ",".join(destinations_countries)
 
 
 def _parse_verify_option(conf_section):
-    if 'verify' not in conf_section:
+    if "verify" not in conf_section:
         return DESTINATION_VERIFY_CERTIFICATE
     try:
-        verify = conf_section.getboolean('verify')
+        verify = conf_section.getboolean("verify")
     except ValueError:
         log.warning(
-            'Currently sbws only supports verify=true/false, not a CA bundle '
-            'file. We think %s is not a bool, and thus must be a CA bundle '
-            'file. This is supposed to be allowed by the Python Requests '
-            'library, but pastly couldn\'t get it to work in his afternoon '
-            'of testing. So we will allow this, but expect Requests to throw '
-            'SSLError exceptions later. Have fun!', conf_section['verify'])
-        return conf_section['verify']
+            "Currently sbws only supports verify=true/false, not a CA bundle "
+            "file. We think %s is not a bool, and thus must be a CA bundle "
+            "file. This is supposed to be allowed by the Python Requests "
+            "library, but pastly couldn't get it to work in his afternoon "
+            "of testing. So we will allow this, but expect Requests to throw "
+            "SSLError exceptions later. Have fun!",
+            conf_section["verify"],
+        )
+        return conf_section["verify"]
     if not verify:
         # disable urllib3 warning: InsecureRequestWarning
         import urllib3
+
         urllib3.disable_warnings()
     return verify
 
 
 def connect_to_destination_over_circuit(dest, circ_id, session, cont, max_dl):
-    '''
+    """
     Connect to **dest* over the given **circ_id** using the given Requests
     **session**. Make sure the destination seems usable. Return True and a
     dictionary of helpful information if we connected and the destination is
@@ -98,13 +99,13 @@ def connect_to_destination_over_circuit(dest, circ_id, session, cont, max_dl):
     :param cont Controller: them Stem library controller controlling Tor
     :returns: True and a dictionary if everything is in order and measurements
         should commence.  False and an error string otherwise.
-    '''
+    """
     assert isinstance(dest, Destination)
     log.debug("Connecting to destination over circuit.")
     # Do not start if sbws is stopping
     if settings.end_event.is_set():
         return False, "Shutting down."
-    error_prefix = 'When sending HTTP HEAD to {}, '.format(dest.url)
+    error_prefix = "When sending HTTP HEAD to {}, ".format(dest.url)
     with stem_utils.stream_building_lock:
         listener = stem_utils.attach_stream_to_circuit_listener(cont, circ_id)
         stem_utils.add_event_listener(cont, listener, EventType.STREAM)
@@ -112,41 +113,56 @@ def connect_to_destination_over_circuit(dest, circ_id, session, cont, max_dl):
             head = session.head(dest.url, verify=dest.verify)
         except requests.exceptions.RequestException as e:
             dest.add_failure()
-            return False, 'Could not connect to {} over circ {} {}: {}'.format(
-                dest.url, circ_id, stem_utils.circuit_str(cont, circ_id), e)
+            return False, "Could not connect to {} over circ {} {}: {}".format(
+                dest.url, circ_id, stem_utils.circuit_str(cont, circ_id), e
+            )
         finally:
             stem_utils.remove_event_listener(cont, listener)
     if head.status_code != requests.codes.ok:
         dest.add_failure()
-        return False, error_prefix + 'we expected HTTP code '\
-            '{} not {}'.format(requests.codes.ok, head.status_code)
-    if 'content-length' not in head.headers:
+        return (
+            False,
+            error_prefix + "we expected HTTP code "
+            "{} not {}".format(requests.codes.ok, head.status_code),
+        )
+    if "content-length" not in head.headers:
         dest.add_failure()
-        return False, error_prefix + 'we expect the header Content-Length '\
-            'to exist in the response'
-    content_length = int(head.headers['content-length'])
+        return (
+            False,
+            error_prefix + "we expect the header Content-Length "
+            "to exist in the response",
+        )
+    content_length = int(head.headers["content-length"])
     if max_dl > content_length:
         dest.add_failure()
-        return False, error_prefix + 'our maximum configured download size '\
-            'is {} but the content is only {}'.format(max_dl, content_length)
-    log.debug('Connected to %s over circuit %s', dest.url, circ_id)
+        return (
+            False,
+            error_prefix + "our maximum configured download size "
+            "is {} but the content is only {}".format(max_dl, content_length),
+        )
+    log.debug("Connected to %s over circuit %s", dest.url, circ_id)
     # Any failure connecting to the destination will call add_failure,
     # It can not be set at the start, to be able to know whether it is
     # failing consecutive times.
     dest.add_success()
-    return True, {'content_length': content_length}
+    return True, {"content_length": content_length}
 
 
 class Destination:
-    """Web server from which data is downloaded to measure bandwidth.
-    """
+    """Web server from which data is downloaded to measure bandwidth."""
+
     # NOTE: max_dl and verify should be optional and have defaults
-    def __init__(self, url, max_dl, verify,
-                 max_num_failures=MAX_NUM_DESTINATION_FAILURES,
-                 delta_seconds_retry=DELTA_SECONDS_RETRY_DESTINATION,
-                 max_seconds_between_retries=MAX_SECONDS_RETRY_DESTINATION,
-                 num_attempts_stored=NUM_DESTINATION_ATTEMPTS_STORED,
-                 factor_increment_retry=FACTOR_INCREMENT_DESTINATION_RETRY):
+    def __init__(
+        self,
+        url,
+        max_dl,
+        verify,
+        max_num_failures=MAX_NUM_DESTINATION_FAILURES,
+        delta_seconds_retry=DELTA_SECONDS_RETRY_DESTINATION,
+        max_seconds_between_retries=MAX_SECONDS_RETRY_DESTINATION,
+        num_attempts_stored=NUM_DESTINATION_ATTEMPTS_STORED,
+        factor_increment_retry=FACTOR_INCREMENT_DESTINATION_RETRY,
+    ):
         """Initalizes the Web server from which the data is downloaded.
 
         :param str url: Web server data URL to download.
@@ -178,8 +194,12 @@ class Destination:
         # Store tuples of timestamp and whether the destination succed or not
         # (succed, 1, failed, 0).
         # Initialize it as if it never failed.
-        self._attempts = collections.deque([(datetime.datetime.utcnow(), 1), ],
-                                           maxlen=self._num_attempts_stored)
+        self._attempts = collections.deque(
+            [
+                (datetime.datetime.utcnow(), 1),
+            ],
+            maxlen=self._num_attempts_stored,
+        )
         self._factor = factor_increment_retry
 
     def _last_attempts(self, n=None):
@@ -187,8 +207,9 @@ class Destination:
         # deque does not accept slices,
         # a new deque is returned with the last n items
         # (or less if there were less).
-        return collections.deque(self._attempts,
-                                 maxlen=(n or self._max_num_failures))
+        return collections.deque(
+            self._attempts, maxlen=(n or self._max_num_failures)
+        )
 
     def _are_last_attempts_failures(self, n=None):
         """
@@ -197,8 +218,9 @@ class Destination:
         """
         # Count the number that there was a failure when used
         n = n if n else self._max_num_failures
-        return ([i[1] for i in self._last_attempts(n)].count(0)
-                >= self._max_num_failures)
+        return [i[1] for i in self._last_attempts(n)].count(
+            0
+        ) >= self._max_num_failures
 
     def _increment_time_to_retry(self, factor=None):
         """
@@ -207,12 +229,18 @@ class Destination:
         self._delta_seconds_retry *= factor or self._factor
         if self._delta_seconds_retry > self._max_seconds_between_retries:
             self._delta_seconds_retry = self._max_seconds_between_retries
-            log.debug("Incremented the time to try destination %s past the "
-                      "limit, capping it at %s hours.",
-                      self.url, self._delta_seconds_retry / 60 / 60)
+            log.debug(
+                "Incremented the time to try destination %s past the "
+                "limit, capping it at %s hours.",
+                self.url,
+                self._delta_seconds_retry / 60 / 60,
+            )
         else:
-            log.debug("Incremented the time to try destination %s to %s "
-                      "hours.", self.url, self._delta_seconds_retry / 60 / 60)
+            log.debug(
+                "Incremented the time to try destination %s to %s " "hours.",
+                self.url,
+                self._delta_seconds_retry / 60 / 60,
+            )
 
     def _get_last_try_in_seconds_ago(self):
         """
@@ -227,8 +255,7 @@ class Destination:
         Return True if the last time it was used it was ``n`` seconds ago.
         """
         # If the last attempt is older than _delta_seconds_retry, try again
-        return (self._get_last_try_in_seconds_ago() >
-                self._delta_seconds_retry)
+        return self._get_last_try_in_seconds_ago() > self._delta_seconds_retry
 
     def is_functional(self):
         """Whether connections to a destination are failing or not.
@@ -252,27 +279,35 @@ class Destination:
         if self._are_last_attempts_failures():
             # The log here will appear in all the the queued relays and
             # threads.
-            log.debug("The last %s times the destination %s failed. "
-                      "It last ran %s seconds ago. "
-                      "Disabled for %s seconds.",
-                      self._max_num_failures, self.url,
-                      self._get_last_try_in_seconds_ago(),
-                      self._delta_seconds_retry)
-            log.warning("The last %s times a destination failed. "
-                        "It last ran %s seconds ago. "
-                        "Disabled for %s seconds."
-                        "Please, add more destinations or increment the "
-                        "number of maximum number of consecutive failures "
-                        "in the configuration.",
-                        self._max_num_failures,
-                        self._get_last_try_in_seconds_ago(),
-                        self._delta_seconds_retry)
+            log.debug(
+                "The last %s times the destination %s failed. "
+                "It last ran %s seconds ago. "
+                "Disabled for %s seconds.",
+                self._max_num_failures,
+                self.url,
+                self._get_last_try_in_seconds_ago(),
+                self._delta_seconds_retry,
+            )
+            log.warning(
+                "The last %s times a destination failed. "
+                "It last ran %s seconds ago. "
+                "Disabled for %s seconds."
+                "Please, add more destinations or increment the "
+                "number of maximum number of consecutive failures "
+                "in the configuration.",
+                self._max_num_failures,
+                self._get_last_try_in_seconds_ago(),
+                self._delta_seconds_retry,
+            )
             # It was not used for a while and the last time it was used
             # was long ago, then try again
             if self._is_last_try_old_enough():
-                log.debug("The destination %s was not tried for %s seconds, "
-                          "it is going to by tried again.", self.url,
-                          self._get_last_try_in_seconds_ago())
+                log.debug(
+                    "The destination %s was not tried for %s seconds, "
+                    "it is going to by tried again.",
+                    self.url,
+                    self._get_last_try_in_seconds_ago(),
+                )
                 # Set the next time to retry higher, in case this attempt fails
                 self._increment_time_to_retry()
                 return True
@@ -305,26 +340,28 @@ class Destination:
         p = self._url.port
         scheme = self._url.scheme
         if p is None:
-            if scheme == 'http':
+            if scheme == "http":
                 p = 80
-            elif scheme == 'https':
+            elif scheme == "https":
                 p = 443
             else:
-                assert None, 'Unreachable. Unknown scheme {}'.format(scheme)
+                assert None, "Unreachable. Unknown scheme {}".format(scheme)
         assert p is not None
         return p
 
     @staticmethod
     def from_config(conf_section, max_dl, number_threads):
-        assert 'url' in conf_section
-        url = conf_section['url']
+        assert "url" in conf_section
+        url = conf_section["url"]
         verify = _parse_verify_option(conf_section)
         try:
             # Because one a destination fails, all the threads that are using
             # it at that moment will fail too, multiply by the number of
             # threads.
-            max_num_failures = (conf_section.getint('max_num_failures')
-                                or MAX_NUM_DESTINATION_FAILURES)
+            max_num_failures = (
+                conf_section.getint("max_num_failures")
+                or MAX_NUM_DESTINATION_FAILURES
+            )
         except ValueError:
             # If the operator did not setup the number, set to the default.
             max_num_failures = MAX_NUM_DESTINATION_FAILURES
@@ -350,36 +387,45 @@ class DestinationList:
 
     @staticmethod
     def from_config(conf, circuit_builder, relay_list, controller):
-        assert 'destinations' in conf
-        section = conf['destinations']
+        assert "destinations" in conf
+        section = conf["destinations"]
         dests = []
         for key in section.keys():
-            if key in ['usability_test_interval']:
+            if key in ["usability_test_interval"]:
                 continue
             if not section.getboolean(key):
-                log.debug('%s is disabled; not loading it', key)
+                log.debug("%s is disabled; not loading it", key)
                 continue
-            dest_sec = 'destinations.{}'.format(key)
+            dest_sec = "destinations.{}".format(key)
             assert dest_sec in conf  # validate_config should require this
-            log.debug('Loading info for destination %s', key)
-            dests.append(Destination.from_config(
-                conf[dest_sec],
-                # Multiply by the number of threads since all the threads will
-                # fail at the same time.
-                conf.getint('scanner', 'max_download_size'),
-                conf.getint('scanner', 'measurement_threads')))
+            log.debug("Loading info for destination %s", key)
+            dests.append(
+                Destination.from_config(
+                    conf[dest_sec],
+                    # Multiply by the number of threads since all the threads will
+                    # fail at the same time.
+                    conf.getint("scanner", "max_download_size"),
+                    conf.getint("scanner", "measurement_threads"),
+                )
+            )
         if len(dests) < 1:
-            msg = 'No enabled destinations in config. Please see '\
-                'docs/source/man_sbws.ini.rst" or "man 5 sbws.ini" ' \
-                'for help adding and enabling destinations.'
+            msg = (
+                "No enabled destinations in config. Please see "
+                'docs/source/man_sbws.ini.rst" or "man 5 sbws.ini" '
+                "for help adding and enabling destinations."
+            )
             return None, msg
-        return DestinationList(conf, dests, circuit_builder, relay_list,
-                               controller), ''
+        return (
+            DestinationList(
+                conf, dests, circuit_builder, relay_list, controller
+            ),
+            "",
+        )
 
     def next(self):
-        '''
+        """
         Returns the next destination that should be used in a measurement
-        '''
+        """
         # Do not perform usability tests since a destination is already proven
         # usable or not in every measurement, and it should depend on a X
         # number of failures.

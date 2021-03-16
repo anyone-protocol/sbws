@@ -10,12 +10,12 @@ from sbws.util.state import State
 def test_total_measured_percent(conf, caplog):
     state = State(conf["paths"]["state_fname"])
     state["recent_priority_list"] = [1, 2, 3]
-    hbeat = heartbeat.Heartbeat(conf.getpath('paths', 'state_fname'))
+    hbeat = heartbeat.Heartbeat(conf.getpath("paths", "state_fname"))
 
-    hbeat.register_consensus_fprs(['A', 'B', 'C'])
+    hbeat.register_consensus_fprs(["A", "B", "C"])
 
-    hbeat.register_measured_fpr('A')
-    hbeat.register_measured_fpr('B')
+    hbeat.register_measured_fpr("A")
+    hbeat.register_measured_fpr("B")
 
     caplog.set_level(logging.INFO)
 

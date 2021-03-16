@@ -1,5 +1,6 @@
 from ._version import get_versions
-__version__ = get_versions()['version']
+
+__version__ = get_versions()["version"]
 del get_versions
 
 import threading  # noqa
@@ -19,6 +20,7 @@ class Settings:
       should be initialized here.
 
     """
+
     def __init__(self):
         # update this dict from globals (but only for ALL_CAPS settings)
         for setting in dir(globals):
@@ -27,9 +29,9 @@ class Settings:
         self.end_event = threading.Event()
 
     def init_http_headers(self, nickname, uuid, tor_version):
-        self.HTTP_HEADERS['Tor-Bandwidth-Scanner-Nickname'] = nickname
-        self.HTTP_HEADERS['Tor-Bandwidth-Scanner-UUID'] = uuid
-        self.HTTP_HEADERS['User-Agent'] += tor_version
+        self.HTTP_HEADERS["Tor-Bandwidth-Scanner-Nickname"] = nickname
+        self.HTTP_HEADERS["Tor-Bandwidth-Scanner-UUID"] = uuid
+        self.HTTP_HEADERS["User-Agent"] += tor_version
 
     def set_end_event(self):
         self.end_event.set()

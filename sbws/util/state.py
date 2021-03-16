@@ -49,12 +49,12 @@ class State:
         if not os.path.exists(self._fname):
             return {}
         with FileLock(self._fname):
-            with open(self._fname, 'rt') as fd:
+            with open(self._fname, "rt") as fd:
                 return json.load(fd, cls=CustomDecoder)
 
     def _write(self):
         with FileLock(self._fname):
-            with open(self._fname, 'wt') as fd:
+            with open(self._fname, "wt") as fd:
                 return json.dump(self._state, fd, indent=4, cls=CustomEncoder)
 
     def __len__(self):

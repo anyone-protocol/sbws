@@ -7,45 +7,47 @@ import logging
 
 
 def test_stats_initted(sbwshome_empty, args, conf, caplog):
-    '''
+    """
     An initialized but rather empty .sbws directory should fail about missing
     ~/.sbws/datadir
-    '''
+    """
     try:
         sbws.core.stats.main(args, conf)
     except SystemExit as e:
         assert e.code == 1
     else:
-        assert None, 'Should have failed'
-    assert '{}/datadir does not exist'.format(
-        os.path.abspath(sbwshome_empty)) == caplog.records[-1].getMessage()
+        assert None, "Should have failed"
+    assert (
+        "{}/datadir does not exist".format(os.path.abspath(sbwshome_empty))
+        == caplog.records[-1].getMessage()
+    )
 
 
-def test_stats_stale_result(args, conf, caplog,
-                            sbwshome_success_result):
-    '''
+def test_stats_stale_result(args, conf, caplog, sbwshome_success_result):
+    """
     An initialized .sbws directory with no fresh results should say so and
     exit cleanly
-    '''
+    """
     caplog.set_level(logging.DEBUG)
     sbws.core.stats.main(args, conf)
-    assert 'No fresh results' == caplog.records[-1].getMessage()
+    assert "No fresh results" == caplog.records[-1].getMessage()
 
 
-@patch('time.time')
-def test_stats_fresh_result(time_mock, sbwshome_error_result, args, conf,
-                            capsys, caplog):
-    '''
+@patch("time.time")
+def test_stats_fresh_result(
+    time_mock, sbwshome_error_result, args, conf, capsys, caplog
+):
+    """
     An initialized .sbws directory with a fresh error result should have some
     boring stats and exit cleanly
-    '''
+    """
     args.error_types = False
     start = 1529232278
     time_mock.side_effect = monotonic_time(start=start)
     sbws.core.stats.main(args, conf)
     captured = capsys.readouterr()
-    lines = captured.out.strip().split('\n')
-    assert '1 relays have recent results' in lines[0]
+    lines = captured.out.strip().split("\n")
+    assert "1 relays have recent results" in lines[0]
     # FIXME
     # needed_output_lines = [
     #     '1 relays have recent results',
@@ -64,20 +66,21 @@ def test_stats_fresh_result(time_mock, sbwshome_error_result, args, conf,
     #     assert needed_line in lines
 
 
-@patch('time.time')
-def test_stats_fresh_results(time_mock, sbwshome_success_result_two_relays,
-                             args, conf, capsys, caplog):
-    '''
+@patch("time.time")
+def test_stats_fresh_results(
+    time_mock, sbwshome_success_result_two_relays, args, conf, capsys, caplog
+):
+    """
     An initialized .sbws directory with a fresh error and fresh success should
     have some exciting stats and exit cleanly
-    '''
+    """
     caplog.set_level(logging.DEBUG)
     start = 1529232278
     time_mock.side_effect = monotonic_time(start=start)
     sbws.core.stats.main(args, conf)
     captured = capsys.readouterr()
-    lines = captured.out.strip().split('\n')
-    assert '1 relays have recent results' in lines[0]
+    lines = captured.out.strip().split("\n")
+    assert "1 relays have recent results" in lines[0]
     # FIXME
     # needed_output_lines = [
     #     '1 relays have recent results',

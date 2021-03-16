@@ -10,7 +10,7 @@ from sbws.lib.resultdump import (
     ResultErrorStream,
     ResultSuccess,
     trim_results_ip_changed,
-    load_result_file
+    load_result_file,
 )
 
 
@@ -20,34 +20,43 @@ def test_trim_results_ip_changed_defaults(resultdict_ip_not_changed):
 
 
 def test_trim_results_ip_changed_on_changed_ipv4_changed(
-        resultdict_ip_changed, resultdict_ip_changed_trimmed):
-    results_dict = trim_results_ip_changed(resultdict_ip_changed,
-                                           on_changed_ipv4=True)
+    resultdict_ip_changed, resultdict_ip_changed_trimmed
+):
+    results_dict = trim_results_ip_changed(
+        resultdict_ip_changed, on_changed_ipv4=True
+    )
     assert resultdict_ip_changed_trimmed == results_dict
 
 
 def test_trim_results_ip_changed_on_changed_ipv4_no_changed(
-        resultdict_ip_not_changed):
-    results_dict = trim_results_ip_changed(resultdict_ip_not_changed,
-                                           on_changed_ipv4=True)
+    resultdict_ip_not_changed,
+):
+    results_dict = trim_results_ip_changed(
+        resultdict_ip_not_changed, on_changed_ipv4=True
+    )
     assert resultdict_ip_not_changed == results_dict
 
 
-def test_trim_results_ip_changed_on_changed_ipv6(caplog,
-                                                 resultdict_ip_not_changed):
-    results_dict = trim_results_ip_changed(resultdict_ip_not_changed,
-                                           on_changed_ipv6=True)
+def test_trim_results_ip_changed_on_changed_ipv6(
+    caplog, resultdict_ip_not_changed
+):
+    results_dict = trim_results_ip_changed(
+        resultdict_ip_not_changed, on_changed_ipv6=True
+    )
     assert resultdict_ip_not_changed == results_dict
     # There might be other logs from other threads.
     with caplog.at_level(logging.WARNING):
-        assert 'Reseting bandwidth results when IPv6 changes, ' \
-            'is not yet implemented.\n' in caplog.text
+        assert (
+            "Reseting bandwidth results when IPv6 changes, "
+            "is not yet implemented.\n" in caplog.text
+        )
 
 
 def test_resultdump(
     rd, args, conf_results, controller, router_status, server_descriptor
 ):
     from sbws import settings
+
     relay = Relay(
         router_status.fingerprint,
         controller,
@@ -57,7 +66,12 @@ def test_resultdump(
     relay.increment_relay_recent_priority_list()
     relay.increment_relay_recent_measurement_attempt()
     r = ResultSuccess(
-        [], 2000, relay, ["A", "B"], "http://localhost/bw", "scanner_nick",
+        [],
+        2000,
+        relay,
+        ["A", "B"],
+        "http://localhost/bw",
+        "scanner_nick",
     )
     # Storing the result with `rd.queue.put` will not store the result to disk
     # because the thread is not spawned with pytest.
@@ -69,7 +83,10 @@ def test_resultdump(
     assert 1 == len(results[0].relay_recent_priority_list)
     # Store a second result for the sme relay
     r = ResultError(
-        relay, ["A", "B"], "http://localhost/bw", "scanner_nick",
+        relay,
+        ["A", "B"],
+        "http://localhost/bw",
+        "scanner_nick",
     )
     rd.store_result(r)
     assert 2 == len(results)

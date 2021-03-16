@@ -14,7 +14,9 @@ from sbws.globals import (
 )
 from sbws.lib.v3bwfile import HEADER_INT_KEYS, BWLINE_KEYS_V1_4
 
-logging.basicConfig(level=logging.INFO,)
+logging.basicConfig(
+    level=logging.INFO,
+)
 logger = logging.getLogger(__name__)
 
 
