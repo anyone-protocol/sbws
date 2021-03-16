@@ -1,8 +1,8 @@
 include *.md
 include *.rst
-include *.ini
-recursive-include docs *
-prune docs/build
+recursive-include docs Makefile make.bat
+recursive-include sbws *.ini
 recursive-include tests *
 recursive-exclude **/__pycache__ *
-include versioneer.py
+recursive-exclude * *.py[co]
+prune docs/build
