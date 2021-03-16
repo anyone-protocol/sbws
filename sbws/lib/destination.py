@@ -403,8 +403,8 @@ class DestinationList:
             dests.append(
                 Destination.from_config(
                     conf[dest_sec],
-                    # Multiply by the number of threads since all the threads will
-                    # fail at the same time.
+                    # Multiply by the number of threads since all the threads
+                    # will fail at the same time.
                     conf.getint("scanner", "max_download_size"),
                     conf.getint("scanner", "measurement_threads"),
                 )
