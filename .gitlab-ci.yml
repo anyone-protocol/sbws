@@ -113,12 +113,7 @@ python38:
     - apt install -yqq dvipng
   image: $BASE_IMAGE
   script:
-  - tox -e inst
-  - tox -e setup
-  - tox -e py38
-  - tox -e integration
-  - tox -e lint
-  - tox -e doc
+  - tox
 
 python39:
   variables:
