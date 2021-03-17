@@ -400,8 +400,7 @@ class Result:
             "scanner": self.scanner,
             "version": self.version,
             "relay_in_recent_consensus": self.relay_in_recent_consensus,
-            "relay_recent_measurement_attempt":
-                self.relay_recent_measurement_attempt,
+            "relay_recent_measurement_attempt": self.relay_recent_measurement_attempt,  # noqa
             "relay_recent_priority_list": self.relay_recent_priority_list,
         }
 
@@ -507,11 +506,7 @@ class ResultError(Result):
 
     def to_dict(self):
         d = super().to_dict()
-        d.update(
-            {
-                "msg": self.msg,
-            }
-        )
+        d.update({"msg": self.msg})
         return d
 
 
@@ -831,8 +826,7 @@ class ResultSuccess(Result):
                 "relay_burst_bandwidth": self.relay_burst_bandwidth,
                 "relay_observed_bandwidth": self.relay_observed_bandwidth,
                 "consensus_bandwidth": self.consensus_bandwidth,
-                "consensus_bandwidth_is_unmeasured":
-                    self.consensus_bandwidth_is_unmeasured,
+                "consensus_bandwidth_is_unmeasured": self.consensus_bandwidth_is_unmeasured,  # noqa
             }
         )
         return d
