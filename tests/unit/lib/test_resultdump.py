@@ -47,7 +47,7 @@ def test_trim_results_ip_changed_on_changed_ipv6(
     # There might be other logs from other threads.
     with caplog.at_level(logging.WARNING):
         assert (
-            "Reseting bandwidth results when IPv6 changes, "
+            "Resetting bandwidth results when IPv6 changes, "
             "is not yet implemented.\n" in caplog.text
         )
 

@@ -4,7 +4,7 @@ from datetime import datetime
 # When datetime is imported as a class (`from datetime import datetime`) it can
 # not be mocked because it is a built-in type. It can only be mocked when
 # imported as module.
-# freezegun is able to mock any datetime object, it also allows comparations.
+# freezegun is able to mock any datetime object, it also allows comparisons.
 from freezegun import freeze_time
 
 from sbws.lib.relaylist import Relay, RelayList

@@ -51,7 +51,7 @@ def _result_type_per_relay(data, result_type):
 
 
 def _get_box_plot_values(iterable):
-    """Reutrn the min, q1, med, q1, and max of the input list or iterable.
+    """Return the min, q1, med, q1, and max of the input list or iterable.
     This function is NOT perfect, and I think that's fine for basic statistical
     needs. Instead of median, it will return low or high median. Same for q1
     and q3."""

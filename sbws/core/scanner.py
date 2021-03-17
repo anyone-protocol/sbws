@@ -355,7 +355,7 @@ def measure_relay(args, conf, destinations, cb, rl, relay):
             return [
                 ResultError(relay, [], "", our_nick, msg=reason),
             ]
-    # Pick a destionation
+    # Pick a destination
     dest = destinations.next()
     # When there're no any functional destinations.
     if not dest:
@@ -686,7 +686,7 @@ def main_loop(
     the ``Result`` from the queue and write it to disk, so this doesn't block
     the measurement threads.
 
-    If there was an exception not catched by ``measure_relay``, it will call
+    If there was an exception not caught by ``measure_relay``, it will call
     instead ``result_putter_error``, which logs the error and complete
     immediately.
 
@@ -774,7 +774,7 @@ def wait_for_results(num_relays_to_measure, pending_results):
 
     While there are relays being measured, just log the progress
     and sleep :const:`~sbws.globals.TIMEOUT_MEASUREMENTS` (3mins),
-    which is aproximately the time it can take to measure a relay in
+    which is approximately the time it can take to measure a relay in
     the worst case.
 
     When there has not been any relay measured in ``TIMEOUT_MEASUREMENTS``
@@ -914,7 +914,7 @@ def run_speedtest(args, conf):
     except KeyboardInterrupt:
         log.info("Interrupted by the user.")
         stop_threads(signal.SIGINT, None)
-    # Any exception not catched at this point would make the scanner stall.
+    # Any exception not caught at this point would make the scanner stall.
     # Log it and exit gracefully.
     except Exception as e:
         log.critical(FILLUP_TICKET_MSG)

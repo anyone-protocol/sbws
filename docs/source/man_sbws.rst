@@ -75,7 +75,7 @@ In the following list, the first path is the default location when running
 **sbws** as a system service.
 
 **$HOME/.sbws.ini** or **/etc/sbws/sbws.ini**
-   Location where **sbws** searchs for a custom configuration file, when the
+   Location where **sbws** searches for a custom configuration file, when the
    option **--config** is not provided.
 
 **$HOME/.sbws** or **/var/lib/sbws**

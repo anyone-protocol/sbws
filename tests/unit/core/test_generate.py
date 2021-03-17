@@ -14,7 +14,7 @@ def test_gen_parser_arg_round_digs():
     parent_parser = argparse.ArgumentParser(prog="sbws")
     subparsers = parent_parser.add_subparsers(help="generate help")
     parser_generate = gen_parser(subparsers)
-    # Explicitely set empty arguments, otherwise pytest will use pytest
+    # Explicitly set empty arguments, otherwise pytest will use pytest
     # arguments
     args = parser_generate.parse_args([])
     assert args.round_digs == PROP276_ROUND_DIG
@@ -29,6 +29,6 @@ def test_gen_parser_arg_round_digs():
     # or use the short version
     args = parser_generate.parse_args(["-r", str(TORFLOW_ROUND_DIG)])
     assert args.round_digs == TORFLOW_ROUND_DIG
-    # or use round-digs explicitely
+    # or use round-digs explicitly
     args = parser_generate.parse_args(["--round-digs", str(PROP276_ROUND_DIG)])
     assert args.round_digs == PROP276_ROUND_DIG

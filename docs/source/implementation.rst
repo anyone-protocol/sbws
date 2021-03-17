@@ -10,7 +10,7 @@ re-implement the feature:
 
 Possible advantages using other software:
 
-- zero maintainance
+- zero maintenance
 - not reinventing the wheel
 
 Possible disadvantages using other software:
@@ -36,10 +36,10 @@ A first solution would be to obtain the git revision at runtime, but:
   the git revision of that other repository.
 
 So next solution was to obtain the git revision at build/install time.
-To achive this, an script should be called from the installer or at runtime
+To achieve this, an script should be called from the installer or at runtime
 whenever `__version__` needs to be read.
 
-While it could be implemented by us, there're two external tools that achive
+While it could be implemented by us, there're two external tools that achieve
 this.
 
 setuptools_scm
@@ -102,7 +102,7 @@ Changing Bandwidth file monitoring KeyValues
 --------------------------------------------
 
 In version 1.1.0 we added KeyValues call ``recent_X_count`` and
-``relay_X_count`` which implied to modify serveral parts of the code.
+``relay_X_count`` which implied to modify several parts of the code.
 
 We only stored numbers for simpliciy, but then the value of this numbers
 accumulate over the time and there is no way to know to which number decrease
@@ -159,7 +159,7 @@ will be correct after 5 days and they have been wrong for long time.
 
 Additionally ``recent_measurement_failure_count`` will be negative, since it's
 calculated as ``recent_measurement_attempt_count`` minus all the results.
-While the total number of results in the last 5 days is corrrect, the number of
+While the total number of results in the last 5 days is correct, the number of
 the attempts won't be until 5 days have pass.
 
 Disadvantages

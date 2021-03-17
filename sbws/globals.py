@@ -33,7 +33,7 @@ TORRC_STARTING_POINT = {
     "SafeLogging": "0",
     "LogTimeGranularity": "1",
     "ProtocolWarnings": "1",
-    # To be able to responde to MaxAdvertisedBandwidth as soon as possible.
+    # To be able to respond to MaxAdvertisedBandwidth as soon as possible.
     # If ``FetchDirInfoExtraEarly` is set, but not
     # `FetchDirInfoEarly`, Tor will throw this error:
     # `FetchDirInfoExtraEarly requires that you also set FetchDirInfoEarly`
@@ -52,7 +52,7 @@ TORRC_RUNTIME_OPTIONS = {
     # so do not let Tor to build them.
     "__DisablePredictedCircuits": "1",
     # The scanner attach the streams to the circuit itself,
-    # so do not let Tor to attache them.
+    # so do not let Tor to attach them.
     "__LeaveStreamsUnattached": "1",
 }
 # Options that can be set at runtime and can fail with some Tor versions

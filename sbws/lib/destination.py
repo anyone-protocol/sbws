@@ -164,7 +164,7 @@ class Destination:
         num_attempts_stored=NUM_DESTINATION_ATTEMPTS_STORED,
         factor_increment_retry=FACTOR_INCREMENT_DESTINATION_RETRY,
     ):
-        """Initalizes the Web server from which the data is downloaded.
+        """Initializes the Web server from which the data is downloaded.
 
         :param str url: Web server data URL to download.
         :param int max_dl: Maximum size of the the data to download.
@@ -192,8 +192,8 @@ class Destination:
         self._max_seconds_between_retries = max_seconds_between_retries
         # Using a deque (FIFO) to do not grow forever and
         # to do not have to remove old attempts.
-        # Store tuples of timestamp and whether the destination succed or not
-        # (succed, 1, failed, 0).
+        # Store tuples of timestamp and whether the destination succeed or not
+        # (succeed, 1, failed, 0).
         # Initialize it as if it never failed.
         self._attempts = collections.deque(
             [
@@ -268,7 +268,7 @@ class Destination:
         And False otherwise.
 
         When the destination is tried again after the consecutive failures,
-        the time to try again is incremented and resetted as soon as the
+        the time to try again is incremented and reset as soon as the
         destination does not fail.
         """
         # NOTE: does a destination fail because several threads are using

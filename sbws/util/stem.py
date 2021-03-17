@@ -296,7 +296,7 @@ def get_socks_info(controller):
     except SocketClosed as e:
         if not settings.end_event.is_set():
             log.debug(e)
-    # This might need to return the eception if this happen in other cases
+    # This might need to return the exception if this happen in other cases
     # than when stopping the scanner.
     except ControllerError as e:
         log.debug(e)
@@ -359,7 +359,7 @@ def is_torrc_starting_point_set(tor_controller):
         value_set = tor_controller.get_conf(k)
         if v != value_set:
             log.exception(
-                "Uncorrectly configured %s, should be %s, is %s",
+                "Incorrectly configured %s, should be %s, is %s",
                 k,
                 v,
                 value_set,

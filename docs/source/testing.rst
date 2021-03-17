@@ -3,7 +3,7 @@
 Installing tests dependencies and running tests
 ==================================================
 
-To run the tests, extra Python depenencies are needed:
+To run the tests, extra Python dependencies are needed:
 
 - Flake8_
 - tox_

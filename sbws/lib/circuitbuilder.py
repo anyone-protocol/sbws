@@ -96,7 +96,7 @@ class CircuitBuilder:
 
 
 # In a future refactor, remove this class, since sbws chooses the relays to
-# build the circuit, the relays are not just choosen as random as this class
+# build the circuit, the relays are not just chosen as random as this class
 # does.
 class GapsCircuitBuilder(CircuitBuilder):
     """Same as ``CircuitBuilder`` but implements build_circuit."""

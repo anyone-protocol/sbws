@@ -11,7 +11,7 @@ Disk space requirements
 v3bw files: the maximum space required is ~{mb_bw} MB, after {d_bw} days.
 result files: the maximum space required is ~{mb_results} MB, after {d_r} days.
 tor directory: the space required is ~{mb_tor} MB.
-code and depenencies: the space required is ~{mb_code} MB
+code and dependencies: the space required is ~{mb_code} MB
 Total disk space required is: ~{mb_total} MB
 """
 
@@ -28,7 +28,7 @@ def sbws_required_disk_space(conf):
     size_v3bw_file = 7500 * 220
     # default crontab configuration will run genenerate every hour
     num_v3bw_files_day = 24
-    # ~1000 is the length of a line when the result is successfull
+    # ~1000 is the length of a line when the result is successful
     # ~4550 is the number of lines of the biggest result file
     size_result_file = 4550 * 1000
     num_result_files_day = 1
@@ -66,7 +66,7 @@ def sbws_required_disk_space(conf):
     text_dict["mb_results"] = round(results_max_space_after_delete / 1000 ** 2)
     text_dict["d_r"] = results_delete_after_days
     # not counted rotated files and assuming that when it is not rotated the
-    # size will be aproximately 10MiB
+    # size will be approximately 10MiB
     space_log_files = 0
     if conf.getboolean("logging", "to_file"):
         size_log_file = conf.getint("logging", "to_file_max_bytes")

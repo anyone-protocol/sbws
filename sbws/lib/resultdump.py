@@ -130,7 +130,7 @@ def trim_results_ip_changed(
         return new_results_dict
     if on_changed_ipv6 is True:
         log.warning(
-            "Reseting bandwidth results when IPv6 changes,"
+            "Resetting bandwidth results when IPv6 changes,"
             " is not yet implemented."
         )
     return result_dict
@@ -258,7 +258,7 @@ class Result:
             """
             Initializes a ``Result.Relay``.
 
-            .. note:: in a future refactor the attributes should be dinamic
+            .. note:: in a future refactor the attributes should be dynamic
                to easy adding/removing them.
                They are shared by  :class:`~sbws.lib.relaylist.Relay` and
                :class:`~sbws.lib.v3bwfile.V3BWLine` and there should not be
@@ -283,7 +283,8 @@ class Result:
 
     def __init__(self, relay, circ, dest_url, scanner_nick, t=None):
         """
-        Initilizes the measurement and the relay with all the relay attributes.
+        Initializes the measurement and the relay with all the relay
+        attributes.
         """
         self._relay = Result.Relay(
             relay.fingerprint,
@@ -351,7 +352,7 @@ class Result:
 
     @property
     def relay_recent_measurement_attempt(self):
-        """Returns the relay recent measurements attemps.
+        """Returns the relay recent measurements attempts.
 
         It is initialized in :class:`~sbws.lib.relaylist.Relay` and
         incremented in :func:`~sbws.core.scanner.main_loop`.
@@ -614,7 +615,7 @@ class ResultErrorSecondRelay(ResultError):
       the second relay is an exit without `bad` flag and can exit to port 443.
     - If the relay to measure is an exit, the second relay is not an exit.
 
-    It is instanciated in :func:`~sbws.core.scanner.measure_relay`.
+    It is instantiated in :func:`~sbws.core.scanner.measure_relay`.
 
     .. note:: this duplicates code and add more tech-debt,
        since it's the same as the other
@@ -666,7 +667,7 @@ class ResultErrorDestination(ResultError):
     """
     Error when there is not a working destination Web Server.
 
-    It is instanciated in :func:`~sbws.core.scanner.measure_relay`.
+    It is instantiated in :func:`~sbws.core.scanner.measure_relay`.
 
     .. note:: this duplicates code and add more tech-debt,
        since it's the same as the other

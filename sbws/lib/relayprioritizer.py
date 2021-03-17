@@ -100,7 +100,7 @@ class RelayPrioritizer:
         those measurements.
 
         :param bool prioritize_result_error: whether prioritize or not
-            measurements that did not succed.
+            measurements that did not succeed.
         :param bool return_fraction: whether to return only a fraction of the
             relays seen in the network or return all.
 
@@ -177,7 +177,7 @@ class RelayPrioritizer:
             # In a future refactor, a new attribute should not be created,
             # then no need to remove it.
             del relay.priority
-            # Increment the number of times a realy was "prioritized" to be
+            # Increment the number of times a really was "prioritized" to be
             # measured.
             relay.increment_relay_recent_priority_list()
             yield relay

@@ -369,7 +369,7 @@ def test_torflow_scale(mock_consensus, datadir, tmpdir, conf):
     results = load_result_file(str(datadir.join("results.txt")))
     # Since v1.1.0, it'll write bw=1 if the minimum percent of measured relays
     # wasn't reached. Therefore mock the consensus number.
-    # Because the consensus number is mocked, it'll try to read the sate path.
+    # Because the consensus number is mocked, it'll try to read the state path.
     # Obtain it from conf, so that the root directory exists.
     v3bwfile = V3BWFile.from_results(
         results,

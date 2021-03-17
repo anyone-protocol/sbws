@@ -26,7 +26,7 @@ by a :term:`directory authority` to report relays’ bandwidth in its vote.
 
 .. image:: ./images/dirauths_bwauths.png
 
-Intialization
+Initialization
 --------------
 
 .. At some point it should be able to get environment variables

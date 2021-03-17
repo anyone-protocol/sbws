@@ -57,7 +57,7 @@ def test_destination_is_functional():
     d.add_success()
     assert not d._are_last_attempts_failures()
     assert d.is_functional()
-    # And the delta to try is resetted
+    # And the delta to try is reset
     assert not d._is_last_try_old_enough()
 
     # When the delta time to retry a destination increase too much,

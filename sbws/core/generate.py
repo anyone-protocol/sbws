@@ -121,7 +121,7 @@ def gen_parser(sub):
         "--min-num",
         default=NUM_MIN_RESULTS,
         type=int,
-        help="Mininum number of a results to consider them.",
+        help="Minimum number of a results to consider them.",
     )
     return p
 

@@ -23,15 +23,15 @@ Each relay bandwidth measurements are selected in the following way:
 
 #. At least two bandwidth measurements (``Result`` s) MUST have been obtained
    within an arbitrary number of seconds (currently one day).
-   If they are not, the relay MUST NOT be included in the Bandwith File.
-#. The measurements than are are older than an arbitrary number of senconds
+   If they are not, the relay MUST NOT be included in the Bandwidth File.
+#. The measurements than are are older than an arbitrary number of seconds
    in the past MUST be discarded.
    Currently this number is the same as ``data_period`` (5 days) when not
    scaling as Torflow and 28 days when scaling as Torflow.
 
 If the number of relays to include in the Bandwidth File are less than
 a percententage (currently 60%) than the number of relays in the consensus,
-additional Header Lines MUST be added (see XXX) to the Bandwith File and the
+additional Header Lines MUST be added (see XXX) to the Bandwidth File and the
 relays SHOULD NOT be included.
 
 .. image:: ./images/activity_aggr_file.svg

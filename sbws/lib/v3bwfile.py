@@ -56,7 +56,7 @@ HEADER_KEYS_V1_1_ORDERED = ["version"]
 # They can also be pass as an argument to `Header` to overwrite default values,
 # what is done in unit tests.
 # `latest bandwidth` is special cause it gets its value from timestamp, which
-# is not a KeyValue, but it's always pass as an agument.
+# is not a KeyValue, but it's always pass as an argument.
 # It could be separaed in other list, but so far there is no need, cause:
 # 1. when it's pass to the Header to initialize it, it's just ignored.
 # 2. when the file is created, it's took into account.
@@ -175,7 +175,7 @@ LINE_TERMINATOR = TERMINATOR + LINE_SEP
 
 # KeyValue separator in Bandwidth Lines
 BWLINE_KEYVALUES_SEP_V1 = " "
-# not inclding in the files the extra bws for now
+# not including in the files the extra bws for now
 BWLINE_KEYS_V0 = ["node_id", "bw"]
 BWLINE_KEYS_V1_1 = [
     "master_key_ed25519",
@@ -590,7 +590,7 @@ class V3BWHeader(object):
         return len(self.__str__().split(LINE_SEP))
 
     def add_stats(self, **kwargs):
-        # Using kwargs because attributes might chage.
+        # Using kwargs because attributes might change.
         [
             setattr(self, k, str(v))
             for k, v in kwargs.items()
@@ -958,7 +958,7 @@ class V3BWLine(object):
 
     @staticmethod
     def rtt_from_results(results):
-        # convert from miliseconds to seconds
+        # convert from milliseconds to seconds
         rtts = [(round(rtt * 1000)) for r in results for rtt in r.rtts]
         rtt = round(median(rtts)) if rtts else None
         return rtt

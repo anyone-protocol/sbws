@@ -20,7 +20,7 @@ Glossary
 
    generator
         Term to refer to the tool that generates the
-        :term:`bandwidth list file` s. Often used as a synomym for
+        :term:`bandwidth list file` s. Often used as a synonym for
         :term:`scanner`.
 
    bandwidth list file
@@ -44,6 +44,6 @@ Glossary
 
    destination
         The term used by ``sbws`` to refer to a Web server where the
-        :term:`scanner` request files to perform the bandwith measurements.
+        :term:`scanner` request files to perform the bandwidth measurements.
 
 .. [#] https://metrics.torproject.org/glossary.html

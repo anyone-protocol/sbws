@@ -79,7 +79,7 @@ def test_state_iter(tmpdir):
 
 
 def test_two_instances(tmpdir):
-    """Test that 2 different intances don't overwrite each other"""
+    """Test that 2 different instances don't overwrite each other"""
     s1 = State(os.path.join(str(tmpdir), "state.dat"))
     s2 = State(os.path.join(str(tmpdir), "state.dat"))
     s1["x"] = "foo"
