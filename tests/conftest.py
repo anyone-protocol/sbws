@@ -1,19 +1,17 @@
 """Common pytest configuration for unit and integration tests."""
-import pytest
 import os.path
 from unittest import mock
 
+import pytest
 from freezegun import freeze_time
 from stem import descriptor
 
 from sbws import settings
-from sbws.lib import relaylist
-from sbws.lib import relayprioritizer
-from sbws.lib import resultdump
+from sbws.lib import relaylist, relayprioritizer, resultdump
 from sbws.util.parser import create_parser
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def parser():
     return create_parser()
 
@@ -21,6 +19,7 @@ def parser():
 @pytest.fixture()
 def datadir(request):
     """get, read, open test files from the tests relative "data" directory."""
+
     class D:
         def __init__(self, basepath):
             self.basepath = basepath
@@ -38,6 +37,7 @@ def datadir(request):
         def readlines(self, name):
             with self.open(name, "r") as f:
                 return f.readlines()
+
     return D(request.fspath.dirpath("data"))
 
 
@@ -46,7 +46,10 @@ def root_data_path():
     """Path to the data dir in the tests root, for both unit and integration
     tests.
     """
-    return os.path.join(os.path.dirname(os.path.abspath(__file__)), "data",)
+    return os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        "data",
+    )
 
 
 @pytest.fixture(scope="session")
@@ -119,14 +122,14 @@ def router_status(server_descriptor, router_statuses):
 
 # Because of the function scoped `args` in `tests.unit.conftest`, this has to
 # be function scoped too.
-@pytest.fixture(scope='function')
+@pytest.fixture(scope="function")
 def relay_list(args, conf, controller):
     """Returns a RelayList containing the Relays in the controller"""
     with freeze_time("2020-02-29 10:00:00"):
         return relaylist.RelayList(args, conf, controller)
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope="function")
 def result_dump(args, conf):
     """Returns a ResultDump without Results"""
     # To stop the thread that would be waiting for new results

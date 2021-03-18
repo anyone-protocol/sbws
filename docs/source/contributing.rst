@@ -111,11 +111,11 @@ New features should add a corresponding documentation in /docs.
 An editor compatible with `EditorConfig <https://editorconfig.org/>`_ will
 help you to follow the general formatting code style.
 
-Timestamps must be in UTC. It is prefered to use ``datetime`` objects or
+Timestamps must be in UTC. It is preferred to use ``datetime`` objects or
 Unix timestamps. Timestamps read by the user should be always formatted in
 `ISO 8601 <https://en.wikipedia.org/wiki/ISO_8601>`_
 
-Functional style is prefered:
+Functional style is preferred:
 
 - use list comprenhensions lambda, map, reduce
 - avoid reasigigning variables, instead create new ones
@@ -148,7 +148,7 @@ and possibly the bugfix version.
 The commit message should contain ``Closes: #bugnumber``.
 
 From version 1.0.2 we started to prefix the summary with the subpackage or
-component, though we have not standarized the words to use, eg: ``scanner``,
+component, though we have not standardized the words to use, eg: ``scanner``,
 ``generate``, ``v3bwfile``, ``relaylist``, ``doc``, ``test``, ``CI``.
 
 From version 1.0.3, we also started to prefix the summary with ``new``,
@@ -156,7 +156,7 @@ From version 1.0.3, we also started to prefix the summary with ``new``,
 sections in the CHANGELOG.
 
 From version 1.1.0 we started to use the words ``new``, ``chg`` and ``fix``,
-not in the sense `gitchangelog`_ use them, but to match sematic versioning
+not in the sense `gitchangelog`_ use them, but to match semantic versioning
 changes major, minor and patch.
 
 Try to make each commit a logically separate changes.::
@@ -313,7 +313,7 @@ Example commit message
       between, but conventions vary here
 
 
-.. rubric:: External eferences
+.. rubric:: External references
 
 .. [DIST] https://git-scm.com/book/en/v2/Distributed-Git-Contributing-to-a-Project
 .. [MERG] https://www.atlassian.com/git/tutorials/merging-vs-rebasing

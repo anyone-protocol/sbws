@@ -8,14 +8,14 @@ def test_launch_and_okay(persistent_launch_tor):
 
 def test_set_torrc_runtime_option_succesful(persistent_launch_tor):
     controller = persistent_launch_tor
-    runtime_options = controller.get_conf_map(['__LeaveStreamsUnattached'])
-    assert runtime_options == {'__LeaveStreamsUnattached': ['1']}
+    runtime_options = controller.get_conf_map(["__LeaveStreamsUnattached"])
+    assert runtime_options == {"__LeaveStreamsUnattached": ["1"]}
 
 
 def test_set_torrc_runtime_invalidrequest_option_fail(persistent_launch_tor):
     controller = persistent_launch_tor
     try:
-        controller.set_conf('ControlSocket', '/tmp/dummy')
+        controller.set_conf("ControlSocket", "/tmp/dummy")
     except stem_utils.InvalidRequest as e:
         assert "Unable to set option" in e.message
 
@@ -23,6 +23,6 @@ def test_set_torrc_runtime_invalidrequest_option_fail(persistent_launch_tor):
 def test_set_torrc_options_can_fail_option_fail(persistent_launch_tor):
     controller = persistent_launch_tor
     try:
-        controller.set_conf('BadOption', '0')
+        controller.set_conf("BadOption", "0")
     except stem_utils.InvalidArguments as e:
         assert "Unknown option" in e.message

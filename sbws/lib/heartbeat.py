@@ -6,7 +6,6 @@ import time
 
 from ..util.state import State
 
-
 log = logging.getLogger(__name__)
 
 
@@ -45,25 +44,28 @@ class Heartbeat(object):
         Log the percentage, the number of relays measured and not measured,
         the number of loops and the time elapsed since it started measuring.
         """
-        loops_count = self.state_dict.count('recent_priority_list')
+        loops_count = self.state_dict.count("recent_priority_list")
 
         not_measured_fp_set = self.consensus_fp_set.difference(
             self.measured_fp_set
-            )
+        )
         main_loop_tdelta = (time.monotonic() - self.main_loop_tstart) / 60
         new_measured_percent = round(
             len(self.measured_fp_set) / len(self.consensus_fp_set) * 100
-            )
+        )
 
         log.info("Run %s main loops.", loops_count)
-        log.info("Measured in total %s (%s%%) unique relays in %s minutes",
-                 len(self.measured_fp_set), new_measured_percent,
-                 main_loop_tdelta)
+        log.info(
+            "Measured in total %s (%s%%) unique relays in %s minutes",
+            len(self.measured_fp_set),
+            new_measured_percent,
+            main_loop_tdelta,
+        )
         log.info("%s relays still not measured.", len(not_measured_fp_set))
 
         # The case when it is equal will only happen when all the relays
         # have been measured.
-        if (new_measured_percent <= self.previous_measurement_percent):
+        if new_measured_percent <= self.previous_measurement_percent:
             log.warning("There is no progress measuring new unique relays.")
 
         self.previous_measurement_percent = new_measured_percent

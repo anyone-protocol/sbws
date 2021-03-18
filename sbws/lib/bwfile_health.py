@@ -5,16 +5,15 @@ import logging
 
 from stem import descriptor
 
-from sbws.globals import (
-    PERIOD_DAYS,
-    FRACTION_RELAYS,
-    MAX_RECENT_PRIORITY_RELAY_COUNT,  # 48000
-    MAX_RECENT_PRIORITY_LIST_COUNT,  # 120
-    MAX_RECENT_CONSENSUS_COUNT,  # 120
-)
-from sbws.lib.v3bwfile import HEADER_INT_KEYS, BWLINE_KEYS_V1_4
+from sbws.globals import MAX_RECENT_CONSENSUS_COUNT  # 120
+from sbws.globals import MAX_RECENT_PRIORITY_LIST_COUNT  # 120
+from sbws.globals import MAX_RECENT_PRIORITY_RELAY_COUNT  # 48000
+from sbws.globals import FRACTION_RELAYS, PERIOD_DAYS
+from sbws.lib.v3bwfile import BWLINE_KEYS_V1_4, HEADER_INT_KEYS
 
-logging.basicConfig(level=logging.INFO,)
+logging.basicConfig(
+    level=logging.INFO,
+)
 logger = logging.getLogger(__name__)
 
 

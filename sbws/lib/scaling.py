@@ -6,8 +6,7 @@ from sbws.util.stem import rs_relay_type
 
 def bw_measurements_from_results(results):
     return [
-        dl['amount'] / dl['duration']
-        for r in results for dl in r.downloads
+        dl["amount"] / dl["duration"] for r in results for dl in r.downloads
     ]
 
 

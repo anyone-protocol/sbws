@@ -3,13 +3,16 @@ import os
 from statistics import mean
 
 from sbws.lib import scaling
-from sbws.lib.resultdump import load_result_file, ResultSuccess
+from sbws.lib.resultdump import ResultSuccess, load_result_file
 
 
 def test_bw_filt():
     bw_measurements = [
-        96700.00922329757, 70311.63051659254, 45531.743347556374,
-        38913.97025485627, 55656.332364676025
+        96700.00922329757,
+        70311.63051659254,
+        45531.743347556374,
+        38913.97025485627,
+        55656.332364676025,
     ]
     fb = scaling.bw_filt(bw_measurements)
     # This is greater than the mean, that is 61422.73714139576
@@ -59,11 +62,11 @@ def test_bw_filt_from_results(root_data_path):
             bw_filts[fp] = (mu, muf)
     for fp, values in bw_filts.items():
         assert bw_filts[fp][0] <= bw_filts[fp][1]
-    assert 5526756 == bw_filts['117A456C911114076BEB4E757AC48B16CC0CCC5F'][0]
-    assert 5643086 == bw_filts['117A456C911114076BEB4E757AC48B16CC0CCC5F'][1]
-    assert 5664965 == bw_filts['693F73187624BE760AAD2A12C5ED89DB1DE044F5'][0]
-    assert 5774274 == bw_filts['693F73187624BE760AAD2A12C5ED89DB1DE044F5'][1]
-    assert 5508279 == bw_filts['270A861ABED22EC2B625198BCCD7B2B9DBFFC93C'][0]
-    assert 5583737 == bw_filts['270A861ABED22EC2B625198BCCD7B2B9DBFFC93C'][1]
-    assert 5379911 == bw_filts['E894C65997F8EC96558B554176EEEA39C6A43EF6'][0]
-    assert 5485088 == bw_filts['E894C65997F8EC96558B554176EEEA39C6A43EF6'][1]
+    assert 5526756 == bw_filts["117A456C911114076BEB4E757AC48B16CC0CCC5F"][0]
+    assert 5643086 == bw_filts["117A456C911114076BEB4E757AC48B16CC0CCC5F"][1]
+    assert 5664965 == bw_filts["693F73187624BE760AAD2A12C5ED89DB1DE044F5"][0]
+    assert 5774274 == bw_filts["693F73187624BE760AAD2A12C5ED89DB1DE044F5"][1]
+    assert 5508279 == bw_filts["270A861ABED22EC2B625198BCCD7B2B9DBFFC93C"][0]
+    assert 5583737 == bw_filts["270A861ABED22EC2B625198BCCD7B2B9DBFFC93C"][1]
+    assert 5379911 == bw_filts["E894C65997F8EC96558B554176EEEA39C6A43EF6"][0]
+    assert 5485088 == bw_filts["E894C65997F8EC96558B554176EEEA39C6A43EF6"][1]

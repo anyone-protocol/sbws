@@ -1,5 +1,5 @@
 #!/bin/bash
-# Instead of exiting inmmediately when any of this commands fail,
+# Instead of exiting immediately when any of this commands fail,
 # the scanner, generate and coverage lines could continue and store there was
 # an error on that command. It's just simpler with `-e`.
 set -ex
@@ -12,6 +12,7 @@ wget -O/dev/null http://127.0.0.1:28888/sbws.bin
 sbws -c tests/integration/sbws_testnet.ini scanner
 sbws -c tests/integration/sbws_testnet.ini generate
 # Run integration tests
-coverage run -a --rcfile=.coveragerc --source=sbws -m pytest -s tests/integration -vv
+python -m coverage run --append --module pytest -svv tests/integration
+
 sbws -c tests/integration/sbws_testnet.ini cleanup
 tests/integration/stop_chutney.sh

@@ -4,7 +4,7 @@ from datetime import datetime
 # When datetime is imported as a class (`from datetime import datetime`) it can
 # not be mocked because it is a built-in type. It can only be mocked when
 # imported as module.
-# freezegun is able to mock any datetime object, it also allows comparations.
+# freezegun is able to mock any datetime object, it also allows comparisons.
 from freezegun import freeze_time
 
 from sbws.lib.relaylist import Relay, RelayList
@@ -21,7 +21,7 @@ def test_init_relays(
     Additionally, make sure the calculated min bw for the second hop for
     exit/non-exit relays is correct, too.
     """
-    state = State(conf['paths']['state_fpath'])
+    state = State(conf["paths"]["state_fpath"])
     # There is no need to mock datetime to update the consensus, since the
     # actual date will be always later.
     # But it's needed to have the correct list of timestamps both for RelayList
@@ -81,7 +81,7 @@ def test_increment_recent_measurement_attempt(args, conf, controller):
     And instead it only counts the number of attempts in the last days.
     It also tests that the state file is updated correctly.
     """
-    state = State(conf['paths']['state_fpath'])
+    state = State(conf["paths"]["state_fpath"])
     with freeze_time("2020-02-29 10:00:00"):
         relay_list = RelayList(args, conf, controller=controller, state=state)
     # The initial count is 0 and the state does not have that key.

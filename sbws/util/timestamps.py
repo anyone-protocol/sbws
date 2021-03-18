@@ -6,8 +6,8 @@ Optionally update also a state file.
 # Workarounds to store datetimes for objects because they are not compossed
 # by other objects nor stored in a database with a creation datetime.
 import collections
-from datetime import datetime, timedelta
 import logging
+from datetime import datetime, timedelta
 
 from sbws.util.timestamp import is_old
 

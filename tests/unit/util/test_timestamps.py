@@ -3,10 +3,7 @@
 from datetime import datetime, timedelta
 
 from sbws.util.state import State
-from sbws.util.timestamps import (
-    DateTimeSeq,
-    DateTimeIntSeq,
-)
+from sbws.util.timestamps import DateTimeIntSeq, DateTimeSeq
 
 
 def test_update_datetime_seq(conf):

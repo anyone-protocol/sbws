@@ -7,21 +7,15 @@ root = true
 
 [*]
 indent_style = space
-# this remove EOF new line with some editors
-# insert_final_newline = true
+insert_final_newline = true
 trim_trailing_whitespace = true
 end_of_line = lf
 charset = utf-8
 max_line_length = 79
+indent_size = 2
 
 [*.py]
 indent_size = 4
 
 [Makefile]
 indent_style = tab
-
-[*.ini]
-indent_size = 4
-
-[*.yml]
-indent_size = 2

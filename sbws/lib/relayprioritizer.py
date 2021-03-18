@@ -1,12 +1,11 @@
-from decimal import Decimal
-from ..lib.resultdump import ResultDump
-from ..lib.resultdump import ResultError
-from ..lib.relaylist import RelayList
 import copy
-import time
 import logging
+import time
+from decimal import Decimal
 
 from ..globals import MAX_RECENT_PRIORITY_RELAY_COUNT
+from ..lib.relaylist import RelayList
+from ..lib.resultdump import ResultDump, ResultError
 from ..util import state, timestamps
 
 log = logging.getLogger(__name__)
@@ -16,21 +15,27 @@ class RelayPrioritizer:
     def __init__(self, args, conf, relay_list, result_dump):
         assert isinstance(relay_list, RelayList)
         assert isinstance(result_dump, ResultDump)
-        self.fresh_seconds = conf.getint('general', 'data_period')*24*60*60
+        self.fresh_seconds = (
+            conf.getint("general", "data_period") * 24 * 60 * 60
+        )
         self.relay_list = relay_list
         self.result_dump = result_dump
         self.measure_authorities = conf.getboolean(
-            'relayprioritizer', 'measure_authorities')
-        self.min_to_return = conf.getint('relayprioritizer', 'min_relays')
+            "relayprioritizer", "measure_authorities"
+        )
+        self.min_to_return = conf.getint("relayprioritizer", "min_relays")
         self.fraction_to_return = conf.getfloat(
-            'relayprioritizer', 'fraction_relays')
-        self._state = state.State(conf.getpath('paths', 'state_fname'))
+            "relayprioritizer", "fraction_relays"
+        )
+        self._state = state.State(conf.getpath("paths", "state_fname"))
         self._recent_priority_list = timestamps.DateTimeSeq(
             [], 120, self._state, "recent_priority_list"
         )
         self._recent_priority_relay = timestamps.DateTimeIntSeq(
-            [],  MAX_RECENT_PRIORITY_RELAY_COUNT, self._state,
-            "recent_priority_relay"
+            [],
+            MAX_RECENT_PRIORITY_RELAY_COUNT,
+            self._state,
+            "recent_priority_relay",
         )
 
     def increment_recent_priority_list(self):
@@ -59,8 +64,9 @@ class RelayPrioritizer:
     def recent_priority_relay_count(self):
         return len(self._recent_priority_relay)
 
-    def best_priority(self, prioritize_result_error=False,
-                      return_fraction=True):
+    def best_priority(
+        self, prioritize_result_error=False, return_fraction=True
+    ):
         """Yields a new ordered list of relays to be measured next.
 
         The relays that were measured farther away in the past,
@@ -94,7 +100,7 @@ class RelayPrioritizer:
         those measurements.
 
         :param bool prioritize_result_error: whether prioritize or not
-            measurements that did not succed.
+            measurements that did not succeed.
         :param bool return_fraction: whether to return only a fraction of the
             relays seen in the network or return all.
 
@@ -122,8 +128,10 @@ class RelayPrioritizer:
                 # Calculate freshness as the remaining time until this result
                 # is no longer valid
                 freshness = result.time - oldest_allowed
-                if isinstance(result, ResultError) \
-                        and prioritize_result_error is True:
+                if (
+                    isinstance(result, ResultError)
+                    and prioritize_result_error is True
+                ):
                     # log.debug('Cutting freshness for a %s result by %d%% for'
                     #           ' %s', result.type.value,
                     #           result.freshness_reduction_factor * 100,
@@ -133,7 +141,9 @@ class RelayPrioritizer:
                     # depending on the type of error.
                     # In a future refactor, create these values on an algorithm
                     # or create constants.
-                    freshness *= max(1.0-result.freshness_reduction_factor, 0)
+                    freshness *= max(
+                        1.0 - result.freshness_reduction_factor, 0
+                    )
                 priority += freshness
             # In a future refactor, do not create a new attribute
             relay.priority = priority
@@ -143,12 +153,13 @@ class RelayPrioritizer:
 
         fn_tstop = Decimal(time.time())
         fn_tdelta = (fn_tstop - fn_tstart) * 1000
-        log.info('Spent %f msecs calculating relay best priority', fn_tdelta)
+        log.info("Spent %f msecs calculating relay best priority", fn_tdelta)
 
         # Return a fraction of relays in the network if return_fraction is
         # True, otherwise return all.
-        cutoff = max(int(len(relays) * self.fraction_to_return),
-                     self.min_to_return)
+        cutoff = max(
+            int(len(relays) * self.fraction_to_return), self.min_to_return
+        )
         upper_limit = cutoff if return_fraction else len(relays)
         # NOTE: these two are blocking, write to disk
         # Increment the number of times ``best_priority`` has been run.
@@ -158,12 +169,15 @@ class RelayPrioritizer:
         # than the number of relays in the network, use the length of the list.
         self.increment_recent_priority_relay(len(relays[0:upper_limit]))
         for relay in relays[0:upper_limit]:
-            log.debug('Returning next relay %s with priority %f',
-                      relay.nickname, relay.priority)
+            log.debug(
+                "Returning next relay %s with priority %f",
+                relay.nickname,
+                relay.priority,
+            )
             # In a future refactor, a new attribute should not be created,
             # then no need to remove it.
-            del(relay.priority)
-            # Increment the number of times a realy was "prioritized" to be
+            del relay.priority
+            # Increment the number of times a really was "prioritized" to be
             # measured.
             relay.increment_relay_recent_priority_list()
             yield relay

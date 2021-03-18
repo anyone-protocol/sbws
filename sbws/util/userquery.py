@@ -1,6 +1,6 @@
 # Based on https://stackoverflow.com/a/3041990
-def query_yes_no(question, default='yes'):
-    '''
+def query_yes_no(question, default="yes"):
+    """
     Ask a yes/no question via input() and return the user's answer.
 
     :param str question: Prompt given to the user.
@@ -9,25 +9,26 @@ def query_yes_no(question, default='yes'):
         ``None`` (meaning an answer is required from the user).
     :returns: ``True`` if we ended up with a 'yes' answer, otherwise
         ``False``.
-    '''
-    valid = {'yes': True, 'y': True, 'ye': True, 'no': False, 'n': False}
+    """
+    valid = {"yes": True, "y": True, "ye": True, "no": False, "n": False}
     if default is None:
-        prompt = ' [y/n] '
-    elif default == 'yes':
-        prompt = ' [Y/n] '
-    elif default == 'no':
-        prompt = ' [y/N] '
+        prompt = " [y/n] "
+    elif default == "yes":
+        prompt = " [Y/n] "
+    elif default == "no":
+        prompt = " [y/N] "
     else:
         raise ValueError('invalid default answer: "%s"' % default)
     prompt = question + prompt
     first_loop = True
     while True:
         choice = input(prompt).lower()
-        if default is not None and choice == '':
+        if default is not None and choice == "":
             return valid[default]
         elif choice in valid:
             return valid[choice]
         elif first_loop:
-            prompt = 'Please respond with "yes" or "no" (or y or n).\n' +\
-                prompt
+            prompt = (
+                'Please respond with "yes" or "no" (or y or n).\n' + prompt
+            )
             first_loop = False

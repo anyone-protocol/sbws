@@ -1,30 +1,29 @@
-import os
 import json
-import time
 import logging
-from glob import glob
-from threading import Thread
-from threading import RLock
-from queue import Queue
-from queue import Empty
-from datetime import datetime
-from datetime import timedelta
+import os
+import time
+from datetime import datetime, timedelta
 from enum import Enum
+from glob import glob
+from queue import Empty, Queue
+from threading import RLock, Thread
+
 from sbws.globals import RESULT_VERSION, fail_hard
-from sbws.util.filelock import DirectoryLock
-from sbws.util.json import CustomEncoder, CustomDecoder
 from sbws.lib.relaylist import Relay
+from sbws.util.filelock import DirectoryLock
+from sbws.util.json import CustomDecoder, CustomEncoder
+
 from .. import settings
 
 log = logging.getLogger(__name__)
 
 
 def merge_result_dicts(d1, d2):
-    '''
+    """
     Given two dictionaries that contain Result data, merge them.  Result
     dictionaries have keys of relay fingerprints and values of lists of results
     for those relays.
-    '''
+    """
     for key in d2:
         if key not in d1:
             d1[key] = []
@@ -33,16 +32,16 @@ def merge_result_dicts(d1, d2):
 
 
 def load_result_file(fname, success_only=False):
-    ''' Reads in all lines from the given file, and parses them into Result
+    """Reads in all lines from the given file, and parses them into Result
     structures (or subclasses of Result). Optionally only keeps ResultSuccess.
     Returns all kept Results as a result dictionary. This function does not
-    care about the age of the results '''
+    care about the age of the results"""
     assert os.path.isfile(fname)
     d = {}
     num_total = 0
     num_ignored = 0
     with DirectoryLock(os.path.dirname(fname)):
-        with open(fname, 'rt') as fd:
+        with open(fname, "rt") as fd:
             for line in fd:
                 num_total += 1
                 try:
@@ -50,7 +49,7 @@ def load_result_file(fname, success_only=False):
                         json.loads(line.strip(), cls=CustomDecoder)
                     )
                 except json.decoder.JSONDecodeError:
-                    log.warning('Could not decode result %s', line.strip())
+                    log.warning("Could not decode result %s", line.strip())
                     r = None
                 if r is None:
                     num_ignored += 1
@@ -62,19 +61,22 @@ def load_result_file(fname, success_only=False):
                     d[fp] = []
                 d[fp].append(r)
     num_kept = sum([len(d[fp]) for fp in d])
-    log.debug('Keeping %d/%d read lines from %s', num_kept, num_total, fname)
+    log.debug("Keeping %d/%d read lines from %s", num_kept, num_total, fname)
     if num_ignored > 0:
-        log.warning('Had to ignore %d results due to not knowing how to '
-                    'parse them.', num_ignored)
+        log.warning(
+            "Had to ignore %d results due to not knowing how to "
+            "parse them.",
+            num_ignored,
+        )
     return d
 
 
 def trim_results(fresh_days, result_dict):
-    ''' Given a result dictionary, remove all Results that are no longer valid
-    and return the new dictionary '''
+    """Given a result dictionary, remove all Results that are no longer valid
+    and return the new dictionary"""
     assert isinstance(fresh_days, int)
     assert isinstance(result_dict, dict)
-    data_period = fresh_days * 24*60*60
+    data_period = fresh_days * 24 * 60 * 60
     oldest_allowed = time.time() - data_period
     out_results = {}
     for fp in result_dict:
@@ -85,12 +87,13 @@ def trim_results(fresh_days, result_dict):
                 out_results[fp].append(result)
     num_in = sum([len(result_dict[fp]) for fp in result_dict])
     num_out = sum([len(out_results[fp]) for fp in out_results])
-    log.debug('Keeping %d/%d results after removing old ones', num_out, num_in)
+    log.debug("Keeping %d/%d results after removing old ones", num_out, num_in)
     return out_results
 
 
-def trim_results_ip_changed(result_dict, on_changed_ipv4=False,
-                            on_changed_ipv6=False):
+def trim_results_ip_changed(
+    result_dict, on_changed_ipv4=False, on_changed_ipv6=False
+):
     """When there are results for the same relay with different IPs,
     create a new results' dictionary without that relay's results using an
     older IP.
@@ -116,24 +119,33 @@ def trim_results_ip_changed(result_dict, on_changed_ipv4=False,
                 # a relay that change address
                 ordered_results = sorted(results, key=lambda r: r.time)
                 latest_address = ordered_results[-1].address
-                last_ip_results = [result for result in results
-                                   if result.address == latest_address]
+                last_ip_results = [
+                    result
+                    for result in results
+                    if result.address == latest_address
+                ]
                 new_results_dict[fp] = last_ip_results
             else:
                 new_results_dict[fp] = results
         return new_results_dict
     if on_changed_ipv6 is True:
-        log.warning("Reseting bandwidth results when IPv6 changes,"
-                    " is not yet implemented.")
+        log.warning(
+            "Resetting bandwidth results when IPv6 changes,"
+            " is not yet implemented."
+        )
     return result_dict
 
 
-def load_recent_results_in_datadir(fresh_days, datadir, success_only=False,
-                                   on_changed_ipv4=False,
-                                   on_changed_ipv6=False):
-    ''' Given a data directory, read all results files in it that could have
+def load_recent_results_in_datadir(
+    fresh_days,
+    datadir,
+    success_only=False,
+    on_changed_ipv4=False,
+    on_changed_ipv6=False,
+):
+    """Given a data directory, read all results files in it that could have
     results in them that are still valid. Trim them, and return the valid
-    Results as a list '''
+    Results as a list"""
     assert isinstance(fresh_days, int)
     assert os.path.isdir(datadir)
     # Inform the results are being loaded, since it takes some seconds.
@@ -148,41 +160,47 @@ def load_recent_results_in_datadir(fresh_days, datadir, success_only=False,
         # So instead settle on finding files in the datadir and one
         # subdirectory below the datadir that fit the form of YYYY-MM-DD*.txt
         d = working_day.date()
-        patterns = [os.path.join(datadir, '{}*.txt'.format(d)),
-                    os.path.join(datadir, '*', '{}*.txt'.format(d))]
+        patterns = [
+            os.path.join(datadir, "{}*.txt".format(d)),
+            os.path.join(datadir, "*", "{}*.txt".format(d)),
+        ]
         for pattern in patterns:
             for fname in glob(pattern):
                 new_results = load_result_file(
-                    fname, success_only=success_only)
+                    fname, success_only=success_only
+                )
                 results = merge_result_dicts(results, new_results)
         working_day += timedelta(days=1)
     results = trim_results(fresh_days, results)
     # in time fresh days is possible that a relay changed ip,
     # if that's the case, keep only the results for the last ip
-    results = trim_results_ip_changed(results, on_changed_ipv4,
-                                      on_changed_ipv6)
+    results = trim_results_ip_changed(
+        results, on_changed_ipv4, on_changed_ipv6
+    )
     num_res = sum([len(results[fp]) for fp in results])
     if num_res == 0:
-        log.warning('Results files that are valid not found. '
-                    'Probably sbws scanner was not run first or '
-                    'it ran more than %d days ago or '
-                    'it was using a different datadir than %s.', data_period,
-                    datadir)
+        log.warning(
+            "Results files that are valid not found. "
+            "Probably sbws scanner was not run first or "
+            "it ran more than %d days ago or "
+            "it was using a different datadir than %s.",
+            data_period,
+            datadir,
+        )
     return results
 
 
 def write_result_to_datadir(result, datadir):
-    ''' Can be called from any thread '''
+    """ Can be called from any thread """
     assert isinstance(result, Result)
     assert os.path.isdir(datadir)
     dt = datetime.utcfromtimestamp(result.time)
-    ext = '.txt'
-    result_fname = os.path.join(
-        datadir, '{}{}'.format(dt.date(), ext))
+    ext = ".txt"
+    result_fname = os.path.join(datadir, "{}{}".format(dt.date(), ext))
     with DirectoryLock(datadir):
-        log.debug('Writing a result to %s', result_fname)
-        with open(result_fname, 'at') as fd:
-            fd.write('{}\n'.format(str(result)))
+        log.debug("Writing a result to %s", result_fname)
+        with open(result_fname, "at") as fd:
+            fd.write("{}\n".format(str(result)))
 
 
 class _StrEnum(str, Enum):
@@ -190,17 +208,17 @@ class _StrEnum(str, Enum):
 
 
 class _ResultType(_StrEnum):
-    Success = 'success'
-    Error = 'error-misc'
-    ErrorCircuit = 'error-circ'
-    ErrorStream = 'error-stream'
-    ErrorAuth = 'error-auth'
+    Success = "success"
+    Error = "error-misc"
+    ErrorCircuit = "error-circ"
+    ErrorStream = "error-stream"
+    ErrorAuth = "error-auth"
     # When it can not be found a second relay suitable to measure a relay.
     # It is used in ``ResultErrorSecondRelay``.
-    ErrorSecondRelay = 'error-second-relay'
+    ErrorSecondRelay = "error-second-relay"
     # When there is not a working destination Web Server.
     # It is used in ``ResultErrorDestionation``.
-    ErrorDestination = 'error-destination'
+    ErrorDestination = "error-destination"
 
 
 class Result:
@@ -219,19 +237,28 @@ class Result:
            measurements and a measurement has a relay,
            instead of every measurement re-implementing ``Relay``.
         """
-        def __init__(self, fingerprint, nickname, address, master_key_ed25519,
-                     average_bandwidth=None, burst_bandwidth=None,
-                     observed_bandwidth=None, consensus_bandwidth=None,
-                     consensus_bandwidth_is_unmeasured=None,
-                     # Counters to be stored by relay and not per measurement,
-                     # since the measurements might fail.
-                     relay_in_recent_consensus=None,
-                     relay_recent_measurement_attempt=None,
-                     relay_recent_priority_list=None):
+
+        def __init__(
+            self,
+            fingerprint,
+            nickname,
+            address,
+            master_key_ed25519,
+            average_bandwidth=None,
+            burst_bandwidth=None,
+            observed_bandwidth=None,
+            consensus_bandwidth=None,
+            consensus_bandwidth_is_unmeasured=None,
+            # Counters to be stored by relay and not per measurement,
+            # since the measurements might fail.
+            relay_in_recent_consensus=None,
+            relay_recent_measurement_attempt=None,
+            relay_recent_priority_list=None,
+        ):
             """
             Initializes a ``Result.Relay``.
 
-            .. note:: in a future refactor the attributes should be dinamic
+            .. note:: in a future refactor the attributes should be dynamic
                to easy adding/removing them.
                They are shared by  :class:`~sbws.lib.relaylist.Relay` and
                :class:`~sbws.lib.v3bwfile.V3BWLine` and there should not be
@@ -245,22 +272,25 @@ class Result:
             self.burst_bandwidth = burst_bandwidth
             self.observed_bandwidth = observed_bandwidth
             self.consensus_bandwidth = consensus_bandwidth
-            self.consensus_bandwidth_is_unmeasured = \
+            self.consensus_bandwidth_is_unmeasured = (
                 consensus_bandwidth_is_unmeasured
-            self.relay_in_recent_consensus = \
-                relay_in_recent_consensus
-            self.relay_recent_measurement_attempt = \
+            )
+            self.relay_in_recent_consensus = relay_in_recent_consensus
+            self.relay_recent_measurement_attempt = (
                 relay_recent_measurement_attempt
-            self.relay_recent_priority_list = \
-                relay_recent_priority_list
+            )
+            self.relay_recent_priority_list = relay_recent_priority_list
 
     def __init__(self, relay, circ, dest_url, scanner_nick, t=None):
         """
-        Initilizes the measurement and the relay with all the relay attributes.
+        Initializes the measurement and the relay with all the relay
+        attributes.
         """
         self._relay = Result.Relay(
-            relay.fingerprint, relay.nickname,
-            relay.address, relay.master_key_ed25519,
+            relay.fingerprint,
+            relay.nickname,
+            relay.address,
+            relay.master_key_ed25519,
             relay.average_bandwidth,
             relay.burst_bandwidth,
             relay.observed_bandwidth,
@@ -268,8 +298,8 @@ class Result:
             relay.consensus_bandwidth_is_unmeasured,
             relay.relay_in_recent_consensus,
             relay.relay_recent_measurement_attempt,
-            relay.relay_recent_priority_list
-            )
+            relay.relay_recent_priority_list,
+        )
         self._circ = circ
         self._dest_url = dest_url
         self._scanner = scanner_nick
@@ -322,7 +352,7 @@ class Result:
 
     @property
     def relay_recent_measurement_attempt(self):
-        """Returns the relay recent measurements attemps.
+        """Returns the relay recent measurements attempts.
 
         It is initialized in :class:`~sbws.lib.relaylist.Relay` and
         incremented in :func:`~sbws.core.scanner.main_loop`.
@@ -360,22 +390,19 @@ class Result:
 
     def to_dict(self):
         return {
-            'fingerprint': self.fingerprint,
-            'nickname': self.nickname,
-            'address': self.address,
-            'master_key_ed25519': self.master_key_ed25519,
-            'circ': self.circ,
-            'dest_url': self.dest_url,
-            'time': self.time,
-            'type': self.type,
-            'scanner': self.scanner,
-            'version': self.version,
-            'relay_in_recent_consensus':
-                self.relay_in_recent_consensus,
-            'relay_recent_measurement_attempt':
-                self.relay_recent_measurement_attempt,
-            'relay_recent_priority_list':
-                self.relay_recent_priority_list,
+            "fingerprint": self.fingerprint,
+            "nickname": self.nickname,
+            "address": self.address,
+            "master_key_ed25519": self.master_key_ed25519,
+            "circ": self.circ,
+            "dest_url": self.dest_url,
+            "time": self.time,
+            "type": self.type,
+            "scanner": self.scanner,
+            "version": self.version,
+            "relay_in_recent_consensus": self.relay_in_recent_consensus,
+            "relay_recent_measurement_attempt": self.relay_recent_measurement_attempt,  # noqa
+            "relay_recent_priority_list": self.relay_recent_priority_list,
         }
 
     @staticmethod
@@ -395,27 +422,28 @@ class Result:
 
            ``version`` is not being used and should be removed.
         """
-        assert 'version' in d
-        if d['version'] != RESULT_VERSION:
+        assert "version" in d
+        if d["version"] != RESULT_VERSION:
             return None
-        assert 'type' in d
-        if d['type'] == _ResultType.Success.value:
+        assert "type" in d
+        if d["type"] == _ResultType.Success.value:
             return ResultSuccess.from_dict(d)
-        elif d['type'] == _ResultType.Error.value:
+        elif d["type"] == _ResultType.Error.value:
             return ResultError.from_dict(d)
-        elif d['type'] == _ResultType.ErrorCircuit.value:
+        elif d["type"] == _ResultType.ErrorCircuit.value:
             return ResultErrorCircuit.from_dict(d)
-        elif d['type'] == _ResultType.ErrorStream.value:
+        elif d["type"] == _ResultType.ErrorStream.value:
             return ResultErrorStream.from_dict(d)
-        elif d['type'] == _ResultType.ErrorAuth.value:
+        elif d["type"] == _ResultType.ErrorAuth.value:
             return ResultErrorAuth.from_dict(d)
-        elif d['type'] == _ResultType.ErrorSecondRelay.value:
+        elif d["type"] == _ResultType.ErrorSecondRelay.value:
             return ResultErrorSecondRelay.from_dict(d)
-        elif d['type'] == _ResultType.ErrorDestination.value:
+        elif d["type"] == _ResultType.ErrorDestination.value:
             return ResultErrorDestination.from_dict(d)
         else:
             raise NotImplementedError(
-                'Unknown result type {}'.format(d['type']))
+                "Unknown result type {}".format(d["type"])
+            )
 
     def __str__(self):
         return json.dumps(self.to_dict(), cls=CustomEncoder)
@@ -432,7 +460,7 @@ class ResultError(Result):
 
     @property
     def freshness_reduction_factor(self):
-        '''
+        """
         When the RelayPrioritizer encounters this Result, how much should it
         adjust its freshness? (See RelayPrioritizer.best_priority() for more
         information about "freshness")
@@ -444,7 +472,7 @@ class ResultError(Result):
         The value 0.5 was chosen somewhat arbitrarily, but a few weeks of live
         network testing verifies that sbws is still able to perform useful
         measurements in a reasonable amount of time.
-        '''
+        """
         return 0.5
 
     @property
@@ -456,23 +484,30 @@ class ResultError(Result):
         assert isinstance(d, dict)
         return ResultError(
             Result.Relay(
-                d['fingerprint'], d['nickname'], d['address'],
-                d['master_key_ed25519'],
-                relay_in_recent_consensus=  # noqa
-                    d.get('relay_in_recent_consensus', None),  # noqa
-                relay_recent_measurement_attempt=  # noqa
-                    d.get('relay_recent_measurement_attempt', None),  # noqa
-                relay_recent_priority_list=  # noqa
-                    d.get('relay_recent_priority_list', None),  # noqa
-                ),
-            d['circ'], d['dest_url'], d['scanner'],
-            msg=d['msg'], t=d['time'])
+                d["fingerprint"],
+                d["nickname"],
+                d["address"],
+                d["master_key_ed25519"],
+                relay_in_recent_consensus=d.get(  # noqa
+                    "relay_in_recent_consensus", None
+                ),  # noqa
+                relay_recent_measurement_attempt=d.get(  # noqa
+                    "relay_recent_measurement_attempt", None
+                ),  # noqa
+                relay_recent_priority_list=d.get(  # noqa
+                    "relay_recent_priority_list", None
+                ),  # noqa
+            ),
+            d["circ"],
+            d["dest_url"],
+            d["scanner"],
+            msg=d["msg"],
+            t=d["time"],
+        )
 
     def to_dict(self):
         d = super().to_dict()
-        d.update({
-            'msg': self.msg,
-        })
+        d.update({"msg": self.msg})
         return d
 
 
@@ -486,7 +521,7 @@ class ResultErrorCircuit(ResultError):
 
     @property
     def freshness_reduction_factor(self):
-        '''
+        """
         There are a few instances when it isn't the relay's fault that the
         circuit failed to get built. Maybe someday we'll try detecting whose
         fault it most likely was and subclassing ResultErrorCircuit. But for
@@ -496,7 +531,7 @@ class ResultErrorCircuit(ResultError):
         A (hopefully very very rare) example of when a circuit would fail to
         get built is when the sbws client machine suddenly loses Internet
         access.
-        '''
+        """
         return 0.6
 
     @staticmethod
@@ -504,17 +539,26 @@ class ResultErrorCircuit(ResultError):
         assert isinstance(d, dict)
         return ResultErrorCircuit(
             Result.Relay(
-                d['fingerprint'], d['nickname'], d['address'],
-                d['master_key_ed25519'],
-                relay_in_recent_consensus=  # noqa
-                    d.get('relay_in_recent_consensus', None),  # noqa
-                relay_recent_measurement_attempt=  # noqa
-                    d.get('relay_recent_measurement_attempt', None),  # noqa
-                relay_recent_priority_list=  # noqa
-                    d.get('relay_recent_priority_list', None),  # noqa
-                ),
-            d['circ'], d['dest_url'], d['scanner'],
-            msg=d['msg'], t=d['time'])
+                d["fingerprint"],
+                d["nickname"],
+                d["address"],
+                d["master_key_ed25519"],
+                relay_in_recent_consensus=d.get(  # noqa
+                    "relay_in_recent_consensus", None
+                ),  # noqa
+                relay_recent_measurement_attempt=d.get(  # noqa
+                    "relay_recent_measurement_attempt", None
+                ),  # noqa
+                relay_recent_priority_list=d.get(  # noqa
+                    "relay_recent_priority_list", None
+                ),  # noqa
+            ),
+            d["circ"],
+            d["dest_url"],
+            d["scanner"],
+            msg=d["msg"],
+            t=d["time"],
+        )
 
     def to_dict(self):
         d = super().to_dict()
@@ -534,17 +578,26 @@ class ResultErrorStream(ResultError):
         assert isinstance(d, dict)
         return ResultErrorStream(
             Result.Relay(
-                d['fingerprint'], d['nickname'], d['address'],
-                d['master_key_ed25519'],
-                relay_in_recent_consensus=  # noqa
-                    d.get('relay_in_recent_consensus', None),  # noqa
-                relay_recent_measurement_attempt=  # noqa
-                    d.get('relay_recent_measurement_attempt', None),  # noqa
-                relay_recent_priority_list=  # noqa
-                    d.get('relay_recent_priority_list', None),  # noqa
-                ),
-            d['circ'], d['dest_url'], d['scanner'],
-            msg=d['msg'], t=d['time'])
+                d["fingerprint"],
+                d["nickname"],
+                d["address"],
+                d["master_key_ed25519"],
+                relay_in_recent_consensus=d.get(  # noqa
+                    "relay_in_recent_consensus", None
+                ),  # noqa
+                relay_recent_measurement_attempt=d.get(  # noqa
+                    "relay_recent_measurement_attempt", None
+                ),  # noqa
+                relay_recent_priority_list=d.get(  # noqa
+                    "relay_recent_priority_list", None
+                ),  # noqa
+            ),
+            d["circ"],
+            d["dest_url"],
+            d["scanner"],
+            msg=d["msg"],
+            t=d["time"],
+        )
 
     def to_dict(self):
         d = super().to_dict()
@@ -562,7 +615,7 @@ class ResultErrorSecondRelay(ResultError):
       the second relay is an exit without `bad` flag and can exit to port 443.
     - If the relay to measure is an exit, the second relay is not an exit.
 
-    It is instanciated in :func:`~sbws.core.scanner.measure_relay`.
+    It is instantiated in :func:`~sbws.core.scanner.measure_relay`.
 
     .. note:: this duplicates code and add more tech-debt,
        since it's the same as the other
@@ -571,6 +624,7 @@ class ResultErrorSecondRelay(ResultError):
        In a future refactor, there should be only one ``ResultError`` class
        and assign the type in the ``scanner`` module.
     """
+
     def __init__(self, *a, **kw):
         super().__init__(*a, **kw)
 
@@ -583,17 +637,26 @@ class ResultErrorSecondRelay(ResultError):
         assert isinstance(d, dict)
         return ResultErrorSecondRelay(
             Result.Relay(
-                d['fingerprint'], d['nickname'], d['address'],
-                d['master_key_ed25519'],
-                relay_in_recent_consensus=  # noqa
-                    d.get('relay_in_recent_consensus', None),  # noqa
-                relay_recent_measurement_attempt=  # noqa
-                    d.get('relay_recent_measurement_attempt', None),  # noqa
-                relay_recent_priority_list=  # noqa
-                    d.get('relay_recent_priority_list', None),  # noqa
-                ),
-            d['circ'], d['dest_url'], d['scanner'],
-            msg=d['msg'], t=d['time'])
+                d["fingerprint"],
+                d["nickname"],
+                d["address"],
+                d["master_key_ed25519"],
+                relay_in_recent_consensus=d.get(  # noqa
+                    "relay_in_recent_consensus", None
+                ),  # noqa
+                relay_recent_measurement_attempt=d.get(  # noqa
+                    "relay_recent_measurement_attempt", None
+                ),  # noqa
+                relay_recent_priority_list=d.get(  # noqa
+                    "relay_recent_priority_list", None
+                ),  # noqa
+            ),
+            d["circ"],
+            d["dest_url"],
+            d["scanner"],
+            msg=d["msg"],
+            t=d["time"],
+        )
 
     def to_dict(self):
         d = super().to_dict()
@@ -604,7 +667,7 @@ class ResultErrorDestination(ResultError):
     """
     Error when there is not a working destination Web Server.
 
-    It is instanciated in :func:`~sbws.core.scanner.measure_relay`.
+    It is instantiated in :func:`~sbws.core.scanner.measure_relay`.
 
     .. note:: this duplicates code and add more tech-debt,
        since it's the same as the other
@@ -613,6 +676,7 @@ class ResultErrorDestination(ResultError):
        In a future refactor, there should be only one ``ResultError`` class
        and assign the type in the ``scanner`` module.
     """
+
     def __init__(self, *a, **kw):
         super().__init__(*a, **kw)
 
@@ -625,17 +689,26 @@ class ResultErrorDestination(ResultError):
         assert isinstance(d, dict)
         return ResultErrorSecondRelay(
             Result.Relay(
-                d['fingerprint'], d['nickname'], d['address'],
-                d['master_key_ed25519'],
-                d['circ'], d['dest_url'], d['scanner'],
-                relay_in_recent_consensus=  # noqa
-                    d.get('relay_in_recent_consensus', None),  # noqa
-                relay_recent_measurement_attempt=  # noqa
-                    d.get('relay_recent_measurement_attempt', None),  # noqa
-                relay_recent_priority_list=  # noqa
-                    d.get('relay_recent_priority_list', None),  # noqa
-                ),
-            msg=d['msg'], t=d['time'])
+                d["fingerprint"],
+                d["nickname"],
+                d["address"],
+                d["master_key_ed25519"],
+                d["circ"],
+                d["dest_url"],
+                d["scanner"],
+                relay_in_recent_consensus=d.get(  # noqa
+                    "relay_in_recent_consensus", None
+                ),  # noqa
+                relay_recent_measurement_attempt=d.get(  # noqa
+                    "relay_recent_measurement_attempt", None
+                ),  # noqa
+                relay_recent_priority_list=d.get(  # noqa
+                    "relay_recent_priority_list", None
+                ),  # noqa
+            ),
+            msg=d["msg"],
+            t=d["time"],
+        )
 
     def to_dict(self):
         d = super().to_dict()
@@ -652,7 +725,7 @@ class ResultErrorAuth(ResultError):
 
     @property
     def freshness_reduction_factor(self):
-        '''
+        """
         Override the default ResultError.freshness_reduction_factor because a
         ResultErrorAuth is most likely not the measured relay's fault, so we
         shouldn't hurt its priority as much. A higher reduction factor means a
@@ -660,7 +733,7 @@ class ResultErrorAuth(ResultError):
         priority better.
 
         The value 0.9 was chosen somewhat arbitrarily.
-        '''
+        """
         return 0.9
 
     @staticmethod
@@ -668,17 +741,26 @@ class ResultErrorAuth(ResultError):
         assert isinstance(d, dict)
         return ResultErrorAuth(
             Result.Relay(
-                d['fingerprint'], d['nickname'], d['address'],
-                d['master_key_ed25519'],
-                relay_in_recent_consensus=  # noqa
-                    d.get('relay_in_recent_consensus', None),  # noqa
-                relay_recent_measurement_attempt=  # noqa
-                    d.get('relay_recent_measurement_attempt', None),  # noqa
-                relay_recent_priority_list=  # noqa
-                    d.get('relay_recent_priority_list', None),  # noqa
-                ),
-            d['circ'], d['dest_url'], d['scanner'],
-            msg=d['msg'], t=d['time'])
+                d["fingerprint"],
+                d["nickname"],
+                d["address"],
+                d["master_key_ed25519"],
+                relay_in_recent_consensus=d.get(  # noqa
+                    "relay_in_recent_consensus", None
+                ),  # noqa
+                relay_recent_measurement_attempt=d.get(  # noqa
+                    "relay_recent_measurement_attempt", None
+                ),  # noqa
+                relay_recent_priority_list=d.get(  # noqa
+                    "relay_recent_priority_list", None
+                ),  # noqa
+            ),
+            d["circ"],
+            d["dest_url"],
+            d["scanner"],
+            msg=d["msg"],
+            t=d["time"],
+        )
 
     def to_dict(self):
         d = super().to_dict()
@@ -707,46 +789,59 @@ class ResultSuccess(Result):
     def from_dict(d):
         assert isinstance(d, dict)
         return ResultSuccess(
-            d['rtts'] or [], d['downloads'],
+            d["rtts"] or [],
+            d["downloads"],
             Result.Relay(
-                d['fingerprint'], d['nickname'], d['address'],
-                d['master_key_ed25519'], d['relay_average_bandwidth'],
-                d.get('relay_burst_bandwidth'), d['relay_observed_bandwidth'],
-                d.get('consensus_bandwidth'),
-                d.get('consensus_bandwidth_is_unmeasured'),
-                relay_in_recent_consensus=  # noqa
-                    d.get('relay_in_recent_consensus', None),  # noqa
-                relay_recent_measurement_attempt=  # noqa
-                    d.get('relay_recent_measurement_attempt', None),  # noqa
-                relay_recent_priority_list=  # noqa
-                    d.get('relay_recent_priority_list', None),  # noqa
-                ),
-            d['circ'], d['dest_url'], d['scanner'],
-            t=d['time'])
+                d["fingerprint"],
+                d["nickname"],
+                d["address"],
+                d["master_key_ed25519"],
+                d["relay_average_bandwidth"],
+                d.get("relay_burst_bandwidth"),
+                d["relay_observed_bandwidth"],
+                d.get("consensus_bandwidth"),
+                d.get("consensus_bandwidth_is_unmeasured"),
+                relay_in_recent_consensus=d.get(  # noqa
+                    "relay_in_recent_consensus", None
+                ),  # noqa
+                relay_recent_measurement_attempt=d.get(  # noqa
+                    "relay_recent_measurement_attempt", None
+                ),  # noqa
+                relay_recent_priority_list=d.get(  # noqa
+                    "relay_recent_priority_list", None
+                ),  # noqa
+            ),
+            d["circ"],
+            d["dest_url"],
+            d["scanner"],
+            t=d["time"],
+        )
 
     def to_dict(self):
         d = super().to_dict()
-        d.update({
-            'rtts': self.rtts,
-            'downloads': self.downloads,
-            'relay_average_bandwidth': self.relay_average_bandwidth,
-            'relay_burst_bandwidth': self.relay_burst_bandwidth,
-            'relay_observed_bandwidth': self.relay_observed_bandwidth,
-            'consensus_bandwidth': self.consensus_bandwidth,
-            'consensus_bandwidth_is_unmeasured':
-                self.consensus_bandwidth_is_unmeasured,
-        })
+        d.update(
+            {
+                "rtts": self.rtts,
+                "downloads": self.downloads,
+                "relay_average_bandwidth": self.relay_average_bandwidth,
+                "relay_burst_bandwidth": self.relay_burst_bandwidth,
+                "relay_observed_bandwidth": self.relay_observed_bandwidth,
+                "consensus_bandwidth": self.consensus_bandwidth,
+                "consensus_bandwidth_is_unmeasured": self.consensus_bandwidth_is_unmeasured,  # noqa
+            }
+        )
         return d
 
 
 class ResultDump:
-    ''' Runs the enter() method in a new thread and collects new Results on its
-    queue. Writes them to daily result files in the data directory '''
+    """Runs the enter() method in a new thread and collects new Results on its
+    queue. Writes them to daily result files in the data directory"""
+
     def __init__(self, args, conf):
-        assert os.path.isdir(conf.getpath('paths', 'datadir'))
+        assert os.path.isdir(conf.getpath("paths", "datadir"))
         self.conf = conf
-        self.fresh_days = conf.getint('general', 'data_period')
-        self.datadir = conf.getpath('paths', 'datadir')
+        self.fresh_days = conf.getint("general", "data_period")
+        self.datadir = conf.getpath("paths", "datadir")
         self.data = {}
         self.data_lock = RLock()
         self.thread = Thread(target=self.enter)
@@ -757,7 +852,7 @@ class ResultDump:
             fail_hard(e)
 
     def store_result(self, result):
-        ''' Call from ResultDump thread '''
+        """ Call from ResultDump thread """
         assert isinstance(result, Result)
         with self.data_lock:
             fp = result.fingerprint
@@ -771,27 +866,42 @@ class ResultDump:
             # file.
 
     def handle_result(self, result):
-        ''' Call from ResultDump thread. If we are shutting down, ignores
-        ResultError* types '''
+        """Call from ResultDump thread. If we are shutting down, ignores
+        ResultError* types"""
         assert isinstance(result, Result)
         fp = result.fingerprint
         nick = result.nickname
         if isinstance(result, ResultError) and settings.end_event.is_set():
-            log.debug('Ignoring %s for %s %s because we are shutting down',
-                      type(result).__name__, nick, fp)
+            log.debug(
+                "Ignoring %s for %s %s because we are shutting down",
+                type(result).__name__,
+                nick,
+                fp,
+            )
             return
         self.store_result(result)
         write_result_to_datadir(result, self.datadir)
         if result.type == "success":
-            msg = "Success measuring {} ({}) via circuit {} and " \
-                  "destination {}".format(
-                    result.fingerprint, result.nickname, result.circ,
-                    result.dest_url)
+            msg = (
+                "Success measuring {} ({}) via circuit {} and "
+                "destination {}".format(
+                    result.fingerprint,
+                    result.nickname,
+                    result.circ,
+                    result.dest_url,
+                )
+            )
         else:
-            msg = "Error measuring {} ({}) via circuit {} and " \
-                  "destination {}: {}".format(
-                    result.fingerprint, result.nickname, result.circ,
-                    result.dest_url, result.msg)
+            msg = (
+                "Error measuring {} ({}) via circuit {} and "
+                "destination {}: {}".format(
+                    result.fingerprint,
+                    result.nickname,
+                    result.circ,
+                    result.dest_url,
+                    result.msg,
+                )
+            )
         # The result doesn't store the exit policies, so it can't be logged
         # whether it was an exit.
         if result.circ:
@@ -799,8 +909,10 @@ class ResultDump:
             msg += ". As exit." if as_exit else ". As entry."
         # When the error is that there are not more functional destinations.
         if result.type == "error-destination":
-            log.warning("Shutting down because there are not functional "
-                        "destinations.")
+            log.warning(
+                "Shutting down because there are not functional "
+                "destinations."
+            )
             # NOTE: Because this is executed in a thread, stop_threads can not
             # be call from here, it has to be call from the main thread.
             # Instead set the singleton end event, that will call stop_threads
@@ -830,7 +942,8 @@ class ResultDump:
         """
         with self.data_lock:
             self.data = load_recent_results_in_datadir(
-                self.fresh_days, self.datadir)
+                self.fresh_days, self.datadir
+            )
         while not (settings.end_event.is_set() and self.queue.empty()):
             try:
                 event = self.queue.get(timeout=1)
@@ -838,7 +951,7 @@ class ResultDump:
                 continue
             data = event
             if data is None:
-                log.debug('Got None in ResultDump')
+                log.debug("Got None in ResultDump")
                 continue
             elif isinstance(data, list):
                 for r in data:
@@ -847,9 +960,12 @@ class ResultDump:
             elif isinstance(data, Result):
                 self.handle_result(data)
             else:
-                log.warning('The only thing we should ever receive in the '
-                            'result thread is a Result or list of Results. '
-                            'Ignoring %s', type(data))
+                log.warning(
+                    "The only thing we should ever receive in the "
+                    "result thread is a Result or list of Results. "
+                    "Ignoring %s",
+                    type(data),
+                )
 
     def results_for_relay(self, relay):
         assert isinstance(relay, Relay)
