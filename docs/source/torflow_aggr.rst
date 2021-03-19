@@ -203,18 +203,6 @@ From Torflow's `README.spec.txt`_ (section 1.6)::
 In the code, `SQLSupport.py`_, ``strm_bw`` is ``sbw`` and
 ``filt_bw`` is ``filt_sbws``::
 
-      for s in rs.router.streams:
-        if isinstance(s, ClosedStream):
-          tot_bytes += s.tot_bytes()
-          tot_duration += s.end_time - s.start_time
-          tot_bw += s.bandwidth()
-          s_cnt += 1
-      # FIXME: Hrmm.. do we want to do weighted avg or pure avg here?
-      # If files are all the same size, it shouldn't matter..
-      if s_cnt > 0:
-        rs.sbw = tot_bw/s_cnt
-      else: rs.sbw = None
-
     for rs in RouterStats.query.filter(stats_clause).\
           options(eagerload_all('router.streams.circuit.routers')).all():
       tot_sbw = 0
@@ -235,19 +223,6 @@ In the code, `SQLSupport.py`_, ``strm_bw`` is ``sbw`` and
 
     if sbw_cnt: rs.filt_sbw = tot_sbw/sbw_cnt
     else: rs.filt_sbw = None
-
-When it is written to the file, it seem to write "None" string when
-``filt_sbw`` or ``strm_bw`` are None. That would give an exception when
-calculating the network average. So it never happen?::
-
-    def cvt(a,b,c=1):
-      if type(a) == float: return int(round(a/c,b))
-      elif type(a) == int: return a
-      elif type(a) == type(None): return "None"
-      else: return type(a)
-
-    f.write(" strm_bw="+str(cvt(s.sbw,0)))
-    f.write(" filt_bw="+str(cvt(s.filt_sbw,0)))
 
 This is also expressed in pseudocode in the `bandwidth file spec`_, section B.4
 step 1.
@@ -278,13 +253,22 @@ In Torflow's `aggregate.py`_ code::
       true_circ_avg[cl] = sum(map(lambda n: (1.0-n.circ_fail_rate),
                             c_nodes))/float(len(c_nodes))
 
-The following code seems to be used only to log::
+The following code it's actually used later to set the ``filt_avg`` and
+``strm_avg`` for each class::
 
     filt_avg = sum(map(lambda n: n.filt_bw, nodes.itervalues()))/float(len(nodes))
     strm_avg = sum(map(lambda n: n.strm_bw, nodes.itervalues()))/float(len(nodes))
 
-So it seems the ``filt_avg`` and ``strm_avg`` are calculated by class in both
-the cases with PID control and without PID control.
+Because ``cs_junk.group_by_class`` is False, it runs::
+
+      for cl in ["Guard+Exit", "Guard", "Exit", "Middle"]:
+        true_filt_avg[cl] = filt_avg
+        true_strm_avg[cl] = strm_avg
+        true_circ_avg[cl] = circ_avg
+        pid_tgt_avg[cl] = pid_avg
+
+So ``filt_avg`` and ``strm_avg`` are calculated **not** by class in either case,
+with and without PID control.
 
 Calling ``bwstrm`` to ``strm_avg`` and ``bwfilt`` to ``fitl_avg``, without
 taking into account the different types of nodes::

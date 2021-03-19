@@ -16,13 +16,6 @@ to each other for that relay, like sbws does :ref:`filtering-measurements`.
 
 However this is currently disabled in sbws.
 
-Network stream and filtered bandwidth
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Torflow calculates the network stream and filtered averages by type of relay
-:ref:`stream-and-filtered-bandwidth-for-all-relays`, while sbws is not taking
-into account the type of relay :ref:`scaling-the-bandwidth-measurements`.
-
 Values from the previous Bandwidth File
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
