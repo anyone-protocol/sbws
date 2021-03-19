@@ -1068,12 +1068,6 @@ class V3BWLine(object):
             )
         return bw_line_str
 
-    def set_relay_type(self, relay_type):
-        self.relay_type = relay_type
-
-    def del_relay_type(self):
-        delattr(self, "relay_type")
-
 
 class V3BWFile(object):
     """
@@ -1354,11 +1348,12 @@ class V3BWFile(object):
         """
         log.info("Calculating relays' bandwidth using Torflow method.")
         bw_lines_tf = copy.deepcopy(bw_lines)
-        mu_type, muf_type = scaling.network_means_by_relay_type(
-            bw_lines_tf, router_statuses_d
-        )
-        log.debug("mu %s", mu_type)
-        log.debug("muf %s", muf_type)
+        # mean (Torflow's strm_avg)
+        mu = mean([l.bw_mean for l in bw_lines])
+        # filtered mean (Torflow's filt_avg)
+        muf = mean([l.bw_filt for l in bw_lines])
+        log.debug("mu %s", mu)
+        log.debug("muf %s", muf)
 
         # Torflow's ``tot_net_bw``, sum of the scaled bandwidth for the relays
         # that are in the last consensus
@@ -1423,12 +1418,10 @@ class V3BWFile(object):
                 continue
 
             # Torflow's scaling
-            # relay_type is set in `network_means_by_relay_type` in the lines
-            # above
-            ratio_stream = l.bw_mean / mu_type[l.relay_type]
-            ratio_stream_filtered = l.bw_filt / muf_type[l.relay_type]
-            l.del_relay_type()
+            ratio_stream = l.bw_mean / mu
+            ratio_stream_filtered = l.bw_filt / muf
             ratio = max(ratio_stream, ratio_stream_filtered)
+
             # Assign it to an attribute, so it's not lost before capping and
             # rounding
             l.bw = ratio * min_bandwidth
