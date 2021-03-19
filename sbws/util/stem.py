@@ -7,7 +7,6 @@ import socks
 import stem.process
 from stem import (
     ControllerError,
-    Flag,
     InvalidArguments,
     InvalidRequest,
     OperationFailed,
@@ -21,13 +20,9 @@ from stem.control import Controller, Listener
 
 from sbws import settings
 from sbws.globals import (
-    GE,
     TORRC_OPTIONS_CAN_FAIL,
     TORRC_RUNTIME_OPTIONS,
     TORRC_STARTING_POINT,
-    E,
-    G,
-    M,
     fail_hard,
 )
 
@@ -368,21 +363,3 @@ def is_torrc_starting_point_set(tor_controller):
     if not bad_options:
         log.info("Tor is correctly configured to work with sbws.")
     return bad_options
-
-
-def rs_relay_type(rs):
-    # In torflow, the equivalent to the bw_lines is initialized to "", so when
-    # the relay is not in the previous consensus and it is not known which
-    # flags it has, it would return "Medium", as it's the fail case in
-    # Node.node_class().
-    # It is not known if it is a bug, or a desired side effect that they relays
-    # not in the consensus will end up in the Middle class
-    if not rs:
-        return M
-    if Flag.EXIT in rs.flags and Flag.GUARD in rs.flags:
-        return GE
-    if Flag.GUARD in rs.flags:
-        return G
-    if Flag.EXIT in rs.flags:
-        return E
-    return M
