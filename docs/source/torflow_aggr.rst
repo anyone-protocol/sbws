@@ -305,7 +305,7 @@ In Torflow's `aggregate.py`_ code::
 
 So::
 
-  n.ratio = max(sbw_ratio, n.fbw_ratio)
+  n.ratio = max(n.sbw_ratio, n.fbw_ratio)
 
 This is also expressed in pseudocode in the `bandwidth file spec`_, section B.4
 step 2 and 3.
@@ -329,7 +329,7 @@ So::
 
     n.new_bw = (
         min(bandwidth-avg, bandwidth-observed) or 1 \
-        * max(bwstrm_i / bwstrm, bwfilt_i / bwfilt_i)
+        * max(bwstrm_i / bwstrm, bwfilt_i / bwfilt)
     )
 
 This is also expressed in pseudocode in the `bandwidth file spec`_, section B.4
