@@ -41,12 +41,15 @@ import sys
 try:
     import semantic_version
 except ImportError:
-    print("Please, install semantic_version")
+    print(
+        "Please, install semantic_version: "
+        "`apt install python3-semantic-version` or "
+        "`pip install semantic_version`")
     sys.exit(1)
 try:
     import gitchangelog  # noqa
 except ImportError:
-    print("Please, install gitchangelog")
+    print("Please, install gitchangelog: `pip install gitchangelog`")
     sys.exit(1)
 
 import sbws
