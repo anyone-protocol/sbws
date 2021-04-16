@@ -6,7 +6,6 @@ Installing and building the documentation
 To build the documentation, extra Python dependencies are needed:
 
 - Sphinx_
-- recommonmark_
 - Pylint_ (only to update the diagrams)
 
 To install them from ``sbws``::
@@ -43,7 +42,7 @@ They are included in most distributions. In Debian install them running::
 
 
 .. _Sphinx: https://www.sphinx-doc.org
-.. _recommonmark: https://recommonmark.readthedocs.io/
 .. _Pylint: https://www.pylint.org/
 .. _Tex: https://www.tug.org/texlive/acquire.html
 .. _dvipng: https://www.nongnu.org/dvipng/
+
