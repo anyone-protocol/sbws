@@ -77,7 +77,7 @@ python37tormaster:
   variables:
     BASE_IMAGE: python:3.7
     RELEASE: tor-nightly-master-buster
-    TOR: tor=0.4.6*
+    TOR: tor=0.4.7*
   image: $BASE_IMAGE
   script:
   - tox -e py37
