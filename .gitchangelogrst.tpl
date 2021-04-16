@@ -19,15 +19,11 @@ ${section["label"]}
 ${"~" * len(section["label"])}
 % endif
 % for commit in section["commits"]:
-<%
-subject = "%s [%s]" % (commit["subject"], ", ".join(commit["authors"]))
-entry = indent('\n'.join(textwrap.wrap(subject)),
-                       first="- ").strip()
+<% c = commit["subject"]
+if commit["body"]:
+  c += "\n" + commit["body"].replace("\n\n", "\n")
+entry = indent(c, first="- ").strip()
 %>${entry}
-
-% if commit["body"]:
-${indent(commit["body"])}
-% endif
 % endfor
 % endfor
 
