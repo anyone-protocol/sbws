@@ -23,10 +23,10 @@ authorities on the public Tor network. Please do not run this software
 on the public Tor network unless you are one of the Tor bandwidth
 authorities, to avoid creating unnecessary traffic.
 
-**ADVICE**: It is recommended to read this documentation at `Read the
-Docs <https://sbws.rtfd.io>`__. In `Tor Project
-Gitlab <https://gitlab.torproject.org/tpo/network-health/sbws>`__ (tpo
-Gitlab) some links won’t be properly rendered. It can also be read after
+**ADVICE**: It is recommended to read this documentation at
+https://tpo.pages.torproject.net/network-health/sbws.
+At https://gitlab.torproject.org/tpo/network-health/sbws
+some links won’t be properly rendered. It can also be read after
 installing the Debian package ``sbws-doc`` in ``/usr/share/doc/sbws`` or
 after building it locally as explained in
 ``./docs/source/documenting.rst``.
@@ -54,7 +54,7 @@ Documentation
 -------------
 
 More extensive documentation can be found in the ``./docs`` directory,
-and online at `sbws.rtfd.io <https://sbws.readthedocs.io>`__.
+and online at https://tpo.pages.torproject.net/network-health/sbws.
 
 License
 -------

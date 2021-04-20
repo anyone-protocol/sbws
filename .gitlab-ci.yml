@@ -148,3 +148,13 @@ release_job:
     ref: "$CI_COMMIT_TAG"
     milestones:
       - "sbws: 1.1.x-final"
+
+pages:
+  stage: deploy
+  before_script:
+    - pip install .[doc]
+  script:
+    - cd docs && sphinx-build source ../public
+  artifacts:
+    paths:
+      - public
