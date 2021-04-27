@@ -3,6 +3,19 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+.. raw:: html
+
+  <script type="text/javascript">
+  if (String(window.location).indexOf("readthedocs") !== -1) {
+    window.alert('The documentation has moved, redirecting...');
+    window.location.replace('https://tpo.pages.torproject.net/network-health/sbws');
+  }
+  </script>
+  <noscript>
+    NOTE: documentation has moved from https://sbws.readthedocs.org to
+    https://tpo.pages.torproject.net/network-health/sbws
+  </noscript>
+
 Welcome to Simple Bandwidth Scanner's documentation!
 ====================================================
 

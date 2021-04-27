@@ -230,7 +230,7 @@ Any other path to the configuration file can be specified using the
 SEE ALSO
 ---------
 
-**sbws** (1), https://sbws.readthedocs.org.
+**sbws** (1), https://tpo.pages.torproject.net/network-health/sbws.
 
 BUGS
 ----
