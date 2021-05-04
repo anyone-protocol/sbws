@@ -191,7 +191,7 @@ def load_recent_results_in_datadir(
 
 
 def write_result_to_datadir(result, datadir):
-    """ Can be called from any thread """
+    """Can be called from any thread"""
     assert isinstance(result, Result)
     assert os.path.isdir(datadir)
     dt = datetime.utcfromtimestamp(result.time)
@@ -852,7 +852,7 @@ class ResultDump:
             fail_hard(e)
 
     def store_result(self, result):
-        """ Call from ResultDump thread """
+        """Call from ResultDump thread"""
         assert isinstance(result, Result)
         with self.data_lock:
             fp = result.fingerprint

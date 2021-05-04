@@ -52,7 +52,6 @@ def sbwshome_dir(sbwshome_empty):
 
 @pytest.fixture(scope="session")
 def test_config_path(tmpdir):
-    """"""
     config = tmpdir.join(".sbws.ini")
     return config
 
