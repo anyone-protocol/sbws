@@ -14,14 +14,14 @@
 # 3.6 EOL 2021-12-23 PEP 494
 
 variables:
-    BASE_IMAGE: python:3.8
-    RELEASE: tor-nightly-master-buster
-    # Without version, the default available in the Debian repository will be
-    # installed.
-    # Specifying which version starts with will install the highest that start
-    # with that version.
-    TOR: tor=*
-    PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  BASE_IMAGE: python:3.8
+  RELEASE: tor-nightly-master-buster
+  # Without version, the default available in the Debian repository will be
+  # installed.
+  # Specifying which version starts with will install the highest that start
+  # with that version.
+  TOR: tor/tor-nightly-master-buster
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
 
 cache:
   paths:
@@ -50,14 +50,14 @@ python36:
     BASE_IMAGE: python:3.6
   image: $BASE_IMAGE
   script:
-  - tox -e py36
-  - tox -e integration
+    - tox -e py36
+    - tox -e integration
 
 python37tor035:
   variables:
     BASE_IMAGE: python:3.7
     RELEASE: tor-nightly-0.3.5.x-buster
-    TOR: tor=0.3.5*
+    TOR: tor/tor-nightly-0.3.5.x-buster
   image: $BASE_IMAGE
   script:
     - tox -e py37
@@ -67,31 +67,39 @@ python37tor045:
   variables:
     BASE_IMAGE: python:3.7
     RELEASE: tor-nightly-0.4.5.x-buster
-    TOR: tor=0.4.5*
+    TOR: tor/tor-nightly-0.4.5.x-buster
   image: $BASE_IMAGE
   script:
-  - tox -e py37
-  - tox -e integration
+    - tox -e py37
+    - tox -e integration
+
+python37tor046:
+  variables:
+    BASE_IMAGE: python:3.7
+    RELEASE: tor-nightly-0.4.6.x-buster
+    TOR: tor/tor-nightly-0.4.6.x-buster
+  image: $BASE_IMAGE
+  script:
+    - tox -e py37
+    - tox -e integration
 
 python37tormaster:
   variables:
     BASE_IMAGE: python:3.7
-    RELEASE: tor-nightly-master-buster
-    TOR: tor=0.4.7*
   image: $BASE_IMAGE
   script:
-  - tox -e py37
-  - tox -e integration
+    - tox -e py37
+    - tox -e integration
 
 python37torstable:
   variables:
     BASE_IMAGE: python:3.7
     RELEASE: buster
-    TOR: tor
+    TOR: tor/buster
   image: $BASE_IMAGE
   script:
-  - tox -e py37
-  - tox -e integration
+    - tox -e py37
+    - tox -e integration
 
 python38:
   # This will overwrite the default before_script, so need to repeat the
@@ -113,23 +121,23 @@ python38:
     - apt install -yqq dvipng
   image: $BASE_IMAGE
   script:
-  - tox
+    - tox
 
 python39:
   variables:
     BASE_IMAGE: python:3.9
   image: $BASE_IMAGE
   script:
-  - tox -e py39
-  - tox -e integration
+    - tox -e py39
+    - tox -e integration
 
 python310:
   variables:
     BASE_IMAGE: python:3.10-rc-buster
   image: $BASE_IMAGE
   script:
-  - tox -e py310
-  - tox -e integration
+    - tox -e py310
+    - tox -e integration
   allow_failure: true
 
 release_job:
