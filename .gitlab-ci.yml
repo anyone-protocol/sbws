@@ -20,7 +20,7 @@ variables:
   # installed.
   # Specifying which version starts with will install the highest that start
   # with that version.
-  TOR: tor=*
+  TOR: tor/tor-nightly-master-buster
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
 
 cache:
@@ -57,7 +57,7 @@ python37tor035:
   variables:
     BASE_IMAGE: python:3.7
     RELEASE: tor-nightly-0.3.5.x-buster
-    TOR: tor=0.3.5*
+    TOR: tor/tor-nightly-0.3.5.x-buster
   image: $BASE_IMAGE
   script:
     - tox -e py37
@@ -67,7 +67,7 @@ python37tor045:
   variables:
     BASE_IMAGE: python:3.7
     RELEASE: tor-nightly-0.4.5.x-buster
-    TOR: tor=0.4.5*
+    TOR: tor/tor-nightly-0.4.5.x-buster
   image: $BASE_IMAGE
   script:
     - tox -e py37
