@@ -73,11 +73,19 @@ python37tor045:
     - tox -e py37
     - tox -e integration
 
+python37tor046:
+  variables:
+    BASE_IMAGE: python:3.7
+    RELEASE: tor-nightly-0.4.6.x-buster
+    TOR: tor/tor-nightly-0.4.6.x-buster
+  image: $BASE_IMAGE
+  script:
+    - tox -e py37
+    - tox -e integration
+
 python37tormaster:
   variables:
     BASE_IMAGE: python:3.7
-    RELEASE: tor-nightly-master-buster
-    TOR: tor=0.4.7*
   image: $BASE_IMAGE
   script:
     - tox -e py37
