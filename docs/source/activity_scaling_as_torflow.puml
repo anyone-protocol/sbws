@@ -10,11 +10,10 @@ start
 while (for l in bw_lines?)
     :bw_obs;
     :desc_bw = min(desc_bw_obs, l.desc_bw_bur, l.desc_bw_avg);
-    :min_bandwidth = min(desc_bw, l.consensus_bandwidth);
     :ratio_stream = l.bw_mean / mu;
     :ratio_stream_filtered = l.bw_filt / muf;
     :ratio = max(ratio_stream, ratio_stream_filtered);
-    :l.bw = ratio * min_bandwidth;
+    :l.bw = ratio * desc_bw;
     if (router_statuses_d?) then (yes)
         if (l.node_id in router_statuses_d?) then (yes)
             :sum_bw += l.bw;
