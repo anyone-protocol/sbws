@@ -426,7 +426,7 @@ def test_torflow_scale_no_desc_bw_obs(datadir, conf, caplog):
     results = load_result_file(str(datadir.join("results_no_desc_bw_obs.txt")))
     caplog.set_level(logging.DEBUG)
     v3bwfile = V3BWFile.from_results(results, "", "", state_fpath)
-    assert v3bwfile.bw_lines[0].bw == 30
+    assert v3bwfile.bw_lines[0].bw == 1
 
 
 def test_torflow_scale_no_desc_bw_avg_obs(datadir, conf, caplog):
@@ -436,7 +436,7 @@ def test_torflow_scale_no_desc_bw_avg_obs(datadir, conf, caplog):
     )
     caplog.set_level(logging.DEBUG)
     v3bwfile = V3BWFile.from_results(results, "", "", state_fpath)
-    assert v3bwfile.bw_lines[0].bw == 30
+    assert v3bwfile.bw_lines[0].bw == 1
 
 
 def test_torflow_scale_no_consensus_bw(datadir, conf, caplog):

@@ -1,6 +1,6 @@
 @startuml
 
-title Activity diagram sbws results exclussion and aggregation (V3BWLine.from_results)
+title Activity diagram sbws results exclusion and aggregation (V3BWLine.from_results)
 
 start
 :success_results;
@@ -19,13 +19,13 @@ if (not results_recent?) then (yes)
     stop
 endif
 if (node_id in router_statuses_d?) then (yes)
-    :consensus_bandwidth;
+    :consensus_bandwidth from router statuses;
 else (no)
-    :consensus_bandwidth;
+    :consensus_bandwidth from results;
 endif
 :obs_last;
-if (obs_last is None and consensus_bandwidth is None?) then (yes)
-    :return(cls(node_id, 1), "no_consensus_no_observed_bw");
+if (obs_last is None?) then (yes)
+    :return(cls(node_id, 1), "no_observed_bw");
     stop
 endif
 :bw;

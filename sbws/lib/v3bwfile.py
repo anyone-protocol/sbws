@@ -840,12 +840,12 @@ class V3BWLine(object):
         # If there is no last observed bandwidth, there won't be mean either.
         desc_bw_obs_last = cls.desc_bw_obs_last_from_results(results_recent)
 
-        # Exclude also relays without consensus bandwidth nor observed
-        # bandwidth, since they can't be scaled
-        if desc_bw_obs_last is None and consensus_bandwidth is None:
+        # Exclude also relays without observed bandwidth, since they can't be
+        # scaled
+        if desc_bw_obs_last is None:
             # This reason is not counted, not added in the file, but it will
             # have vote = 0
-            return (cls(node_id, 1), "no_consensus_no_observed_bw")
+            return (cls(node_id, 1), "no_observed_bw")
 
         # For any line not excluded, do not include vote and unmeasured
         # KeyValues
@@ -1379,10 +1379,6 @@ class V3BWFile(object):
             # Generators SHOULD NOT limit measured bandwidths based on
             # descriptors' bandwidth-observed, because that penalises new
             # relays.
-            # See https://gitlab.torproject.org/tpo/core/tor/-/issues/8494
-            # If the observed bandwidth is None, it is not possible to
-            # calculate the minimum with the other descriptors.
-            # Only in this case, take the consensus bandwidth.
             # In the case that descriptor average or burst are None,
             # ignore them since it must be a bug in ``Resultdump``, already
             # logged in x_bw/bandwidth_x_from_results, but scale.
@@ -1399,22 +1395,8 @@ class V3BWFile(object):
                         desc_bw = min(desc_bw_obs, l.desc_bw_avg)
                     else:
                         desc_bw = desc_bw_obs
-                # If the relay is unmeasured and consensus bandwidth is None or
-                # 0, use the descriptor bandwidth
-                if (
-                    l.consensus_bandwidth_is_unmeasured
-                    or not l.consensus_bandwidth
-                ):
-                    min_bandwidth = desc_bw_obs
-                else:
-                    min_bandwidth = min(desc_bw, l.consensus_bandwidth)
-            elif l.consensus_bandwidth is not None:
-                min_bandwidth = l.consensus_bandwidth
             else:
-                log.warning(
-                    "Can not scale relay missing descriptor and"
-                    " consensus bandwidth."
-                )
+                log.warning("Can not scale relay missing descriptor.")
                 continue
 
             # Torflow's scaling
@@ -1424,7 +1406,7 @@ class V3BWFile(object):
 
             # Assign it to an attribute, so it's not lost before capping and
             # rounding
-            l.bw = ratio * min_bandwidth
+            l.bw = ratio * desc_bw
 
             # If the consensus is available, sum only the bw for the relays
             # that are in the consensus
