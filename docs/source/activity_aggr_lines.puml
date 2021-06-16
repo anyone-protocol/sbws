@@ -1,6 +1,6 @@
 @startuml
 
-title Activity diagram sbws results exclussion and aggregation (V3BWLine.from_results)
+title Activity diagram sbws results exclusion and aggregation (V3BWLine.from_results)
 
 start
 :success_results;
