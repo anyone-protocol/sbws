@@ -1,4 +1,5 @@
 """ Measure the relays. """
+import concurrent.futures
 import logging
 import os
 import queue
@@ -10,17 +11,10 @@ import time
 import traceback
 import uuid
 from argparse import ArgumentDefaultsHelpFormatter
-from multiprocessing.context import TimeoutError
-from multiprocessing.dummy import Pool
 
 import sbws.util.requests as requests_utils
 import sbws.util.stem as stem_utils
-from sbws.globals import (
-    HTTP_GET_HEADERS,
-    SOCKET_TIMEOUT,
-    TIMEOUT_MEASUREMENTS,
-    fail_hard,
-)
+from sbws.globals import HTTP_GET_HEADERS, SOCKET_TIMEOUT, fail_hard
 
 from .. import settings
 from ..lib.circuitbuilder import GapsCircuitBuilder as CB
@@ -47,7 +41,6 @@ rng = random.SystemRandom()
 log = logging.getLogger(__name__)
 # Declare the objects that manage the threads global so that sbws can exit
 # gracefully at any time.
-pool = None
 rd = None
 controller = None
 
@@ -58,13 +51,10 @@ traceback."""
 
 
 def stop_threads(signal, frame, exit_code=0):
-    global rd, pool
+    global rd
     log.debug("Stopping sbws.")
     # Avoid new threads to start.
     settings.set_end_event()
-    # Stop Pool threads
-    pool.close()
-    pool.join()
     # Stop ResultDump thread
     rd.thread.join()
     # Stop Tor thread
@@ -609,51 +599,48 @@ def _next_expected_amount(
     return expected_amount
 
 
-def result_putter(result_dump):
-    """Create a function that takes a single argument -- the measurement
-    result -- and return that function so it can be used by someone else"""
-
-    def closure(measurement_result):
-        # Since result_dump thread is calling queue.get() every second,
-        # the queue should be full for only 1 second.
-        # This call blocks at maximum timeout seconds.
-        try:
-            result_dump.queue.put(measurement_result, timeout=3)
-        except queue.Full:
-            # The result would be lost, the scanner will continue working.
-            log.warning(
-                "The queue with measurements is full, when adding %s.\n"
-                "It is possible that the thread that get them to "
-                "write them to the disk (ResultDump.enter) is stalled.",
-                measurement_result,
-            )
-
-    return closure
-
-
-def result_putter_error(target):
-    """Create a function that takes a single argument -- an error from a
-    measurement -- and return that function so it can be used by someone else
-    """
-
-    def closure(object):
-        if settings.end_event.is_set():
-            return
-        # The only object that can be here if there is not any uncatched
-        # exception is stem.SocketClosed when stopping sbws
-        # An exception here means that the worker thread finished.
-        log.warning(FILLUP_TICKET_MSG)
-        # To print the traceback that happened in the thread, not here in
-        # the main process.
+def result_putter(result_dump, measurement):
+    # Since result_dump thread is calling queue.get() every second,
+    # the queue should be full for only 1 second.
+    # This call blocks at maximum timeout seconds.
+    try:
+        result_dump.queue.put(measurement, timeout=3)
+    except queue.Full:
+        # The result would be lost, the scanner will continue working.
         log.warning(
-            "".join(
-                traceback.format_exception(
-                    type(object), object, object.__traceback__
-                )
-            )
+            "The queue with measurements is full, when adding %s.\n"
+            "It is possible that the thread that get them to "
+            "write them to the disk (ResultDump.enter) is stalled.",
+            measurement,
         )
 
-    return closure
+
+def result_putter_error(target, exception):
+    print("in result putter error")
+    if settings.end_event.is_set():
+        return
+    # The only object that can be here if there is not any uncatched
+    # exception is stem.SocketClosed when stopping sbws
+    # An exception here means that the worker thread finished.
+    log.warning(FILLUP_TICKET_MSG)
+    # To print the traceback that happened in the thread, not here in
+    # the main process.
+    log.warning(
+        "".join(
+            traceback.format_exception(
+                type(exception), exception, exception.__traceback__
+            )
+        )
+    )
+    log.debug(
+        "".join(
+            target.fingerprint,
+            target.nickname,
+            traceback.format_exception(
+                type(exception), exception, exception.__traceback__
+            ),
+        )
+    )
 
 
 def main_loop(
@@ -666,41 +653,23 @@ def main_loop(
     relay_prioritizer,
     destinations,
 ):
-    """Starts and reuse the threads that measure the relays forever.
+    r"""Create the queue of future measurements for every relay to measure.
 
     It starts a loop that will be run while there is not and event signaling
     that sbws is stopping (because of SIGTERM or SIGINT).
 
-    Then, it starts a second loop with an ordered list (generator) of relays
-    to measure that might a subset of all the current relays in the Network.
+    Then the ``ThreadPoolExecutor`` (executor) queues all the relays to
+    measure in ``Future`` objects. These objects have an ``state``.
 
-    For every relay, it starts a new thread which runs ``measure_relay`` to
-    measure the relay until there are ``max_pending_results`` threads.
+    The executor starts a new thread for every relay to measure, which runs
+    ``measure_relay`` until there are ``max_pending_results`` threads.
     After that, it will reuse a thread that has finished for every relay to
     measure.
-    It is the the pool method ``apply_async`` which starts or reuse a thread.
-    This method returns an ``ApplyResult`` immediately, which has a ``ready``
-    methods that tells whether the thread has finished or not.
 
-    When the thread finish, ie. ``ApplyResult`` is ``ready``, it triggers
-    ``result_putter`` callback, which put the ``Result`` in ``ResultDump``
-    queue and complete immediately.
-
-    ``ResultDump`` thread (started before and out of this function) will get
-    the ``Result`` from the queue and write it to disk, so this doesn't block
-    the measurement threads.
-
-    If there was an exception not caught by ``measure_relay``, it will call
-    instead ``result_putter_error``, which logs the error and complete
-    immediately.
-
-    Before the outer loop iterates, it waits (non blocking) that all
-    the ``Results`` are ready calling ``wait_for_results``.
-    This avoid to start measuring the same relay which might still being
-    measured.
+    Then ``wait_for_results`` is call, to obtain the results in the completed
+    ``future``\s.
 
     """
-    global pool
     log.info("Started the main loop to measure the relays.")
     hbeat = Heartbeat(conf.getpath("paths", "state_fname"))
 
@@ -710,59 +679,57 @@ def main_loop(
     while not settings.end_event.is_set():
         log.debug("Starting a new measurement loop.")
         num_relays = 0
-        # Since loop might finish before pending_results is 0 due waiting too
-        # long, set it here and not outside the loop.
-        pending_results = []
         loop_tstart = time.time()
 
         # Register relay fingerprints to the heartbeat module
         hbeat.register_consensus_fprs(relay_list.relays_fingerprints)
-
-        for target in relay_prioritizer.best_priority():
-            # Don't start measuring a relay if sbws is stopping.
-            if settings.end_event.is_set():
-                break
-            # 40023, disable to decrease state.dat json lines
-            # relay_list.increment_recent_measurement_attempt()
-            target.increment_relay_recent_measurement_attempt()
-            num_relays += 1
-            # callback and callback_err must be non-blocking
-            callback = result_putter(result_dump)
-            callback_err = result_putter_error(target)
-            async_result = pool.apply_async(
-                dispatch_worker_thread,
-                [
+        # num_threads
+        max_pending_results = conf.getint("scanner", "measurement_threads")
+        with concurrent.futures.ThreadPoolExecutor(
+            max_workers=max_pending_results, thread_name_prefix="measurer"
+        ) as executor:
+            log.info("In the executor, queue all future measurements.")
+            # With futures, there's no need for callback, what it was the
+            # callback with multiprocessing library can be just a function
+            # that gets executed when the future result is obtained.
+            pending_results = {
+                executor.submit(
+                    dispatch_worker_thread,
                     args,
                     conf,
                     destinations,
                     circuit_builder,
                     relay_list,
                     target,
-                ],
-                {},
-                callback,
-                callback_err,
+                ): target
+                for target in relay_prioritizer.best_priority()
+            }
+            log.debug("Measurements queued.")
+            # After the submitting all the targets to the executor, the pool
+            # has queued all the relays and pending_results has the list of all
+            # `Future`s.
+
+            # Each target relay_recent_measurement_attempt is incremented in
+            # `wait_for_results` as well as hbeat measured fingerprints.
+            num_relays = len(pending_results)
+            # Without a callback, it's needed to pass `result_dump` here to
+            # call the function that writes the measurement when it's
+            # finished.
+            wait_for_results(
+                executor,
+                hbeat,
+                result_dump,
+                pending_results,
             )
-            pending_results.append(async_result)
-
-            # Register this measurement to the heartbeat module
-            hbeat.register_measured_fpr(target.fingerprint)
-
-        log.debug("Measurements queued.")
-        # After the for has finished, the pool has queued all the relays
-        # and pending_results has the list of all the AsyncResults.
-        # It could also be obtained with pool._cache, which contains
-        # a dictionary with AsyncResults as items.
-        num_relays_to_measure = len(pending_results)
-        wait_for_results(num_relays_to_measure, pending_results)
+            force_get_results(pending_results)
 
         # Print the heartbeat message
         hbeat.print_heartbeat_message()
 
         loop_tstop = time.time()
         loop_tdelta = (loop_tstop - loop_tstart) / 60
-        # At this point, we know the relays that were queued to be measured.
-        # That does not mean they were actually measured.
+        # At this point, we know the relays that were queued to be
+        # measured.
         log.debug(
             "Attempted to measure %s relays in %s minutes",
             num_relays,
@@ -775,111 +742,86 @@ def main_loop(
             stop_threads(signal.SIGTERM, None)
 
 
-def wait_for_results(num_relays_to_measure, pending_results):
-    """Wait for the pool to finish and log progress.
+def wait_for_results(executor, hbeat, result_dump, pending_results):
+    """Obtain the relays' measurements as they finish.
 
-    While there are relays being measured, just log the progress
-    and sleep :const:`~sbws.globals.TIMEOUT_MEASUREMENTS` (3mins),
-    which is approximately the time it can take to measure a relay in
-    the worst case.
+    For every ``Future`` measurements that gets completed, obtain the
+    ``result`` and call ``result_putter``, which put the ``Result`` in
+    ``ResultDump`` queue and complete immediately.
 
-    When there has not been any relay measured in ``TIMEOUT_MEASUREMENTS``
-    and there are still relays pending to be measured, it means there is no
-    progress and call :func:`~sbws.core.scanner.force_get_results`.
+    ``ResultDump`` thread (started before and out of this function) will get
+    the ``Result`` from the queue and write it to disk, so this doesn't block
+    the measurement threads.
 
-    This can happen in the case of a bug that makes either
-    :func:`~sbws.core.scanner.measure_relay`,
-    :func:`~sbws.core.scanner.result_putter` (callback) and/or
-    :func:`~sbws.core.scanner.result_putter_error` (callback error) stall.
+    If there was an exception not caught by ``measure_relay``, it will call
+    instead ``result_putter_error``, which logs the error and complete
+    immediately.
 
-    .. note:: in a future refactor, this could be simpler by:
-
-      1. Initializing the pool at the begingging of each loop
-      2. Callling :meth:`~Pool.close`; :meth:`~Pool.join` after
-         :meth:`~Pool.apply_async`,
-         to ensure no new jobs are added until the pool has finished with all
-         the ones in the queue.
-
-      As currently, there would be still two cases when the pool could stall:
-
-      1. There's an exception in ``measure_relay`` and another in
-         ``callback_err``
-      2. There's an exception ``callback``.
-
-      This could also be simpler by not having callback and callback error in
-      ``apply_async`` and instead just calling callback with the
-      ``pending_results``.
-
-      (callback could be also simpler by not having a thread and queue and
-      just storing to disk, since the time to write to disk is way smaller
-      than the time to request over the network.)
     """
-    num_last_measured = 1
-    while num_last_measured > 0 and not settings.end_event.is_set():
-        log.info(
-            "Pending measurements: %s out of %s: ",
-            len(pending_results),
-            num_relays_to_measure,
-        )
-        log.info("Last measured: %s", num_last_measured)
-        time.sleep(TIMEOUT_MEASUREMENTS)
-        old_pending_results = pending_results
-        pending_results = [r for r in pending_results if not r.ready()]
-        num_last_measured = len(old_pending_results) - len(pending_results)
-    if len(pending_results) > 0:
-        force_get_results(pending_results)
+    num_relays_to_measure = num_pending_results = len(pending_results)
+    with executor:
+        for future_measurement in concurrent.futures.as_completed(
+            pending_results
+        ):
+            target = pending_results[future_measurement]
+            # 40023, disable to decrease state.dat json lines
+            # relay_list.increment_recent_measurement_attempt()
+            target.increment_relay_recent_measurement_attempt()
+
+            # Register this measurement to the heartbeat module
+            hbeat.register_measured_fpr(target.fingerprint)
+            log.debug(
+                "Future measurement for target %s (%s) is done: %s",
+                target.fingerprint,
+                target.nickname,
+                future_measurement.done(),
+            )
+            try:
+                measurement = future_measurement.result()
+            except Exception as e:
+                result_putter_error(target, e)
+                import psutil
+
+                log.warning(psutil.Process(os.getpid()).memory_full_info())
+                virtualMemoryInfo = psutil.virtual_memory()
+                availableMemory = virtualMemoryInfo.available
+                log.warning(
+                    "Memory available %s MB.", availableMemory / 1024 ** 2
+                )
+                dumpstacks()
+            else:
+                log.info("Measurement ready: %s" % (measurement))
+                result_putter(result_dump, measurement)
+            # `pending_results` has all the initial queued `Future`s,
+            # they don't decrease as they get completed, but we know 1 has be
+            # completed in each loop,
+            num_pending_results -= 1
+            log.info(
+                "Pending measurements: %s out of %s: ",
+                num_pending_results,
+                num_relays_to_measure,
+            )
 
 
 def force_get_results(pending_results):
-    """Try to get either the result or an exception, which gets logged.
-
-    It is call by :func:`~sbws.core.scanner.wait_for_results` when
-    the time waiting for the results was long.
-
-    To get either the :class:`~sbws.lib.resultdump.Result` or an exception,
-    call :meth:`~AsyncResult.get` with timeout.
-    Timeout is low since we already waited.
-
-    ``get`` is not call before, because it blocks and the callbacks
-    are not call.
-    """
-    global pool
-    log.debug("Forcing get")
-    # In case there are no finished AsyncResults, print the cache here
-    # at level info so that is visible even if debug is not enabled.
-    log.info("Pool cache %s", pool._cache)
-    for r in pending_results:
-        try:
-            # HTTP timeout is 10
-            result = r.get(timeout=SOCKET_TIMEOUT + 10)
-            log.warning("Result %s was not stored, it took too long.", result)
-        # TimeoutError is raised when the result is not ready, ie. has not
-        # been processed yet
-        except TimeoutError:
-            log.warning("A result was not stored, it was not ready.")
-            # This is the only place where using psutil so far.
-            import psutil
-
-            log.warning(psutil.Process(os.getpid()).memory_full_info())
-            virtualMemoryInfo = psutil.virtual_memory()
-            availableMemory = virtualMemoryInfo.available
-            log.warning("Memory available %s MB.", availableMemory / 1024 ** 2)
-            dumpstacks()
-        # If the result raised an exception, `get` returns it,
-        # then log any exception so that it can be fixed.
-        # This should not happen, since `callback_err` would have been call
-        # first.
-        except Exception as e:
-            log.critical(FILLUP_TICKET_MSG)
-            # If the exception happened in the threads, `log.exception` does
-            # not have the traceback.
-            # Using `format_exception` instead of of `print_exception` to show
-            # the traceback in all the log handlers.
-            log.warning(
-                "".join(
-                    traceback.format_exception(type(e), e, e.__traceback__)
-                )
-            )
+    """Wait for last futures to finish, before starting new loop."""
+    log.info("Wait for any remaining measurements.")
+    done, not_done = concurrent.futures.wait(
+        pending_results,
+        timeout=SOCKET_TIMEOUT + 10,  # HTTP timeout is 10
+        return_when=concurrent.futures.ALL_COMPLETED,
+    )
+    log.info("Completed futures: %s", len(done))
+    # log.debug([f.__dict__ for f in done])
+    cancelled = [f for f in done if f.cancelled()]
+    if cancelled:
+        log.warning("Cancelled futures: %s", len(cancelled))
+        for f, t in cancelled:
+            log.debug(t.fingerprint)
+    if not_done:
+        log.warning("Not completed futures: %s", len(not_done))
+        for f, t in not_done:
+            log.debug(t.fingerprint)
 
 
 def run_speedtest(args, conf):
@@ -899,7 +841,7 @@ def run_speedtest(args, conf):
     Finally, it calls the function that will manage the measurement threads.
 
     """
-    global rd, pool, controller
+    global rd, controller
 
     controller = stem_utils.launch_or_connect_to_tor(conf)
 
@@ -927,8 +869,6 @@ def run_speedtest(args, conf):
     )
     if not destinations:
         fail_hard(error_msg)
-    max_pending_results = conf.getint("scanner", "measurement_threads")
-    pool = Pool(max_pending_results)
     try:
         main_loop(args, conf, controller, rl, cb, rd, rp, destinations)
     except KeyboardInterrupt:
