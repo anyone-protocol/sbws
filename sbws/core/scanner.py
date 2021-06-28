@@ -73,16 +73,15 @@ def dumpstacks():
             "Thread: %s(%d)", thread_id2name.get(thread_id, ""), thread_id
         )
         log.critical("Traceback: %s", "".join(traceback.format_stack(stack)))
-    # If logging level is less than DEBUG (more verbose), start pdb so that
-    # developers can debug the issue.
-    if log.getEffectiveLevel() < logging.DEBUG:
-        import pdb
 
-        pdb.set_trace()
-    # Otherwise exit.
-    else:
-        # Change to stop threads when #28869 is merged
-        sys.exit(1)
+
+def sigint_handler():
+    import pdb
+
+    pdb.set_trace()
+
+
+signal.signal(signal.SIGINT, sigint_handler)
 
 
 def timed_recv_from_server(session, dest, byte_range):
@@ -819,10 +818,12 @@ def wait_futures_completed(pending_results):
         log.warning("Cancelled futures: %s", len(cancelled))
         for f, t in cancelled:
             log.debug(t.fingerprint)
+            dumpstacks()
     if not_done:
         log.warning("Not completed futures: %s", len(not_done))
         for f, t in not_done:
             log.debug(t.fingerprint)
+            dumpstacks()
 
 
 def run_speedtest(args, conf):
@@ -874,13 +875,10 @@ def run_speedtest(args, conf):
         main_loop(args, conf, controller, rl, cb, rd, rp, destinations)
     except KeyboardInterrupt:
         log.info("Interrupted by the user.")
-        stop_threads(signal.SIGINT, None)
-    # Any exception not caught at this point would make the scanner stall.
-    # Log it and exit gracefully.
+        dumpstacks()
     except Exception as e:
-        log.critical(FILLUP_TICKET_MSG)
         log.exception(e)
-        stop_threads(signal.SIGTERM, None, 1)
+        dumpstacks()
 
 
 def gen_parser(sub):
