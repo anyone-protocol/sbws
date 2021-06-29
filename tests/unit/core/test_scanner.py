@@ -14,24 +14,26 @@ from sbws.lib.relayprioritizer import RelayPrioritizer
 log = logging.getLogger(__name__)
 
 
-def test_result_putter(sbwshome_only_datadir, result_success, rd, end_event):
+def test_measurement_writer(
+    sbwshome_only_datadir, result_success, rd, end_event
+):
     if rd is None:
         pytest.skip("ResultDump is None")
     # Put one item in the queue
-    scanner.result_putter(rd, result_success)
+    scanner.measurement_writer(rd, result_success)
     assert rd.queue.qsize() == 1
 
     # Make queue maxsize 1, so that it'll be full after the first callback.
     # The second callback will wait 1 second, then the queue will be empty
     # again.
     rd.queue.maxsize = 1
-    scanner.result_putter(rd, result_success)
+    scanner.measurement_writer(rd, result_success)
     # after putting 1 result, the queue will be full
     assert rd.queue.qsize() == 1
     assert rd.queue.full()
     # it's still possible to put another results, because the callback will
     # wait 1 second and the queue will be empty again.
-    scanner.result_putter(rd, result_success)
+    scanner.measurement_writer(rd, result_success)
     assert rd.queue.qsize() == 1
     assert rd.queue.full()
     end_event.set()
@@ -49,9 +51,10 @@ def test_complete_measurements(
 ):
     """
     Test that the ``ThreadPoolExecutor``` creates the epexted number of
-    futures, ``wait_for_results``process all of them and ``force_get_results``
-    completes them if they were not already completed by the time
-    ``wait_for_results`` has already processed them.
+    futures, ``process_completed_futures``process all of them and
+    ``wait_futures_completed``  completes them if they were not already
+    completed by the time ``process_completed_futures`` has already processed
+    them.
     There are not real measurements done and the ``results`` are None objects.
     Running the scanner with the test network, test the real measurements.
 
@@ -90,12 +93,14 @@ def test_complete_measurements(
 
             assert len(pending_results) == 321
             assert len(hbeat.measured_fp_set) == 0
-            log.debug("Before wait_for_results.")
-            scanner.wait_for_results(executor, hbeat, rd, pending_results)
-            log.debug("After wait_for_results")
+            log.debug("Before process_completed_futures.")
+            scanner.process_completed_futures(
+                executor, hbeat, rd, pending_results
+            )
+            log.debug("After process_completed_futures")
             for pending_result in pending_results:
                 assert pending_result.done() is True
             assert len(hbeat.measured_fp_set) == 321
-            scanner.force_get_results(pending_results)
-            log.debug("After force_get_results.")
+            scanner.wait_futures_completed(pending_results)
+            log.debug("After wait_futures_completed.")
             assert concurrent.futures.ALL_COMPLETED
