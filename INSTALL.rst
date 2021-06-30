@@ -41,7 +41,7 @@ Installing sbws from source
 
 Clone ``sbws``::
 
-    git clone https://git.torproject.org/sbws.git
+    git clone https://gitlab.torproject.org/tpo/network-health/sbws.git
     git checkout $(git describe --abbrev=0 --tags)
 
 (``git describe --abbrev=0 --tags`` provides the latest stable version which

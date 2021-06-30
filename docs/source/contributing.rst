@@ -23,10 +23,9 @@ Bug reports or feature requests
 Code/documentation patches
 ---------------------------
 
-The sbws canonical repository is https://gitweb.torproject.org/sbws.git,
-but we review patches using the Gitlab repository
-(https://gitlab.torproject.org/tpo/network-health/sbws/-/merge_requests)
-Merge Requests (MR).
+The sbws canonical repository is
+https://gitlab.torproject.org/tpo/network-health/sbws.
+
 
 To know more about ``sbws`` code,
 
