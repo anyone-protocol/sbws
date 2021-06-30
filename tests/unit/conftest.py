@@ -229,6 +229,13 @@ def conf(sbwshome_empty, tmpdir):
     conf = _get_default_config()
     conf["paths"]["sbws_home"] = sbwshome_empty
     conf["paths"]["state_fpath"] = str(tmpdir.join(".sbws", "state.dat"))
+    conf["destinations"]["local"] = "on"
+    conf["destinations.local"] = {
+        "url": "http://127.0.0.1:28888/sbws.bin",
+        "verify": False,
+        "country": "ZZ",
+    }
+
     return conf
 
 
