@@ -36,6 +36,15 @@ destination IP closer to the scanner exit.
 scanner setup
 ----------------------
 
+.. note:: To facilitate debugging, it is recommended that the system timezone
+   is set to UTC.
+
+To set the timezone to UTC in Debian::
+
+  apt-get --reinstall install tzdata
+  ln -sf /usr/share/zoneinfo/UTC /etc/localtime
+  update-initramfs -u
+
 Install sbws according to `<INSTALL.rst>`_ (in the local directory or Tor
 Project Gitlab) or `<INSTALL.html>`_  (local build or Read the Docs).
 
