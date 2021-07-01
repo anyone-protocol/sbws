@@ -41,11 +41,11 @@ Installing sbws from source
 
 Clone ``sbws``::
 
-    git clone https://git.torproject.org/sbws.git
-    git checkout maint-1.1
+    git clone https://gitlab.torproject.org/tpo/network-health/sbws.git
+    git checkout $(git describe --abbrev=0 --tags)
 
-The branch ``maint-1.1`` is the last stable version and the one that should be
-used in production.
+(``git describe --abbrev=0 --tags`` provides the latest stable version which
+should be used in production)
 
 and install it::
 

@@ -70,5 +70,5 @@ software in ./LICENSE.md
 Authors
 -------
 
-See `./AUTHORS.md <AUTHORS.md>`__ (in local directory or tpo Gitlab) or
+See `./AUTHORS.rst <AUTHORS.rst>`__ (in local directory or tpo Gitlab) or
 `AUTHORS.html <AUTHORS.html>`__ (local build or Read the Docs).
