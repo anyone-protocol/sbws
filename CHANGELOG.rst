@@ -7,6 +7,62 @@ The format is based on `Keep a
 Changelog <http://keepachangelog.com/en/1.0.0/>`__ and this project
 adheres to `Semantic Versioning <http://semver.org/spec/v2.0.0.html>`__.
 
+v1.3.0 (2021-08-09)
+-------------------
+
+Changes
+~~~~~~~
+- Split dumpstacks into handle_sigint.
+  stop exiting when there's a possible exception that makes sbws stalled
+  and instead just dump the stack. Additionally, call pdb on sigint.
+- Scanner: Move to concurrent.futures.
+  away from multiprocessing, because it looks like we hit python bug
+  22393, in which the pool hangs forever when a worker process dies.
+  We don't know the reason why a worker process might due, maybe oom.
+  See https://stackoverflow.com/questions/65115092/occasional-deadlock-in-multiprocessing-pool,
+  We also run into several other issues in the past with multiprocessing.
+  Concurrent.futures has a simpler API and is more modern.
+  Closes #40092.
+- V3bwfile: Stop scaling with consensus weight.
+  because when the observed bandwidth is higher than the consensus (for
+  example when the relay is new or was some time down), it's limited by
+  the previous consensus, not allowing it to grow.
+  Since the size of the data to download depends also on the consensus
+  weight, this results on lower measured bandwidth too.
+  Closes #40091.
+
+Fix
+~~~
+- Add the tag `v` in gitchangelog template.
+- Add missing date to last release.
+- Recommend system timezone in UTC.
+- Tests: Consensus bandwidth might not be 0.
+  Since tor version 0.4.7.0-alpha-dev with #40337 patch, chutney relays
+  notice bandwidth changes.
+- Scanner: Rename functions.
+  to more appropriate names, after switching to concurrent. futures.
+- Typos.
+- CI: Install tor specifying release.
+  instead of version, so that it's more clear which version is being installed.
+- CI: Really test tor stable.
+  since the default tor with deb.tpo repository is master
+- CI: Really test tor 0.4.6.
+  since master is the default and add test for master.
+- CI: Change indentation to 2 chars.
+- Scanner: Increase time getting measurements.
+  - Increase the time waiting for the last measurements queued, to avoid
+    canceling unfinished measurements and gc maybe not releasing thread
+    variables
+  - Use the already declared global pool instead of passing it by args
+  - Log more information when the last measuremetns timeout
+- Reformat docstrings for black.
+  To pass tox tests.
+  This seems to have changed in black from version 20.8b1 to 21.4b2.
+- Update python version for rtfd.io.
+- CI: Build docs automatically in Gitlab.
+  also replace the links to Read the Docs to pages.torproject.net
+  and add redirect to it.
+
 v1.2.0 (2021-04-14)
 -------------------
 
