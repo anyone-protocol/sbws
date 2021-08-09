@@ -23,7 +23,7 @@ User main documentation
 ------------------------
 
 Included in the
-`repository root <https://gitweb.torproject.org/sbws.git//tree/>`_
+`repository root <https://gitlab.torproject.org/tpo/network-health/sbws>`_
 and in ``sbws`` Debian package:
 
 .. toctree::
@@ -43,7 +43,7 @@ Developer/technical documentation
 ----------------------------------
 
 Included in the
-`docs directory <https://gitweb.torproject.org/sbws.git/tree/docs>`_ and in
+`docs directory <https://gitlab.torproject.org/tpo/network-health/sbws/-/tree/main/docs>`_ and in
 ``sbws-doc`` Debian package:
 
 .. toctree::
