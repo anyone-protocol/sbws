@@ -10,17 +10,18 @@
 # Python stable releases: https://www.python.org/downloads/
 # 3.9 EOL 2025-10 PEP 596
 # 3.8 EOL 2024-10 PEP 569, newest major release
-# 3.7 EOL 2023-06-27 PEP 537, included in Debian buster
+# 3.7 EOL 2023-06-27 PEP 537, included in Debian bullseye (Debian stable from
+# 2021-08-15)
 # 3.6 EOL 2021-12-23 PEP 494
 
 variables:
   BASE_IMAGE: python:3.8
-  RELEASE: tor-nightly-master-buster
+  RELEASE: tor-nightly-master-bullseye
   # Without version, the default available in the Debian repository will be
   # installed.
   # Specifying which version starts with will install the highest that start
   # with that version.
-  TOR: tor/tor-nightly-master-buster
+  TOR: tor/tor-nightly-master-bullseye
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
 
 cache:
@@ -53,49 +54,9 @@ python36:
     - tox -e py36
     - tox -e integration
 
-python37tor035:
+python37:
   variables:
     BASE_IMAGE: python:3.7
-    RELEASE: tor-nightly-0.3.5.x-buster
-    TOR: tor/tor-nightly-0.3.5.x-buster
-  image: $BASE_IMAGE
-  script:
-    - tox -e py37
-    - tox -e integration
-
-python37tor045:
-  variables:
-    BASE_IMAGE: python:3.7
-    RELEASE: tor-nightly-0.4.5.x-buster
-    TOR: tor/tor-nightly-0.4.5.x-buster
-  image: $BASE_IMAGE
-  script:
-    - tox -e py37
-    - tox -e integration
-
-python37tor046:
-  variables:
-    BASE_IMAGE: python:3.7
-    RELEASE: tor-nightly-0.4.6.x-buster
-    TOR: tor/tor-nightly-0.4.6.x-buster
-  image: $BASE_IMAGE
-  script:
-    - tox -e py37
-    - tox -e integration
-
-python37tormaster:
-  variables:
-    BASE_IMAGE: python:3.7
-  image: $BASE_IMAGE
-  script:
-    - tox -e py37
-    - tox -e integration
-
-python37torstable:
-  variables:
-    BASE_IMAGE: python:3.7
-    RELEASE: buster
-    TOR: tor/buster
   image: $BASE_IMAGE
   script:
     - tox -e py37
@@ -123,7 +84,37 @@ python38:
   script:
     - tox
 
-python39:
+python39tor035:
+  variables:
+    BASE_IMAGE: python:3.9
+    RELEASE: tor-nightly-0.3.5.x-bullseye
+    TOR: tor/tor-nightly-0.3.5.x-bullseye
+  image: $BASE_IMAGE
+  script:
+    - tox -e py39
+    - tox -e integration
+
+python39tor045:
+  variables:
+    BASE_IMAGE: python:3.9
+    RELEASE: tor-nightly-0.4.5.x-bullseye
+    TOR: tor/tor-nightly-0.4.5.x-bullseye
+  image: $BASE_IMAGE
+  script:
+    - tox -e py39
+    - tox -e integration
+
+python39tor046:
+  variables:
+    BASE_IMAGE: python:3.9
+    RELEASE: tor-nightly-0.4.6.x-bullseye
+    TOR: tor/tor-nightly-0.4.6.x-bullseye
+  image: $BASE_IMAGE
+  script:
+    - tox -e py39
+    - tox -e integration
+
+python39tormaster:
   variables:
     BASE_IMAGE: python:3.9
   image: $BASE_IMAGE
@@ -131,9 +122,19 @@ python39:
     - tox -e py39
     - tox -e integration
 
+python39torstable:
+  variables:
+    BASE_IMAGE: python:3.9
+    RELEASE: bullseye
+    TOR: tor/bullseye
+  image: $BASE_IMAGE
+  script:
+    - tox -e py39
+    - tox -e integration
+
 python310:
   variables:
-    BASE_IMAGE: python:3.10-rc-buster
+    BASE_IMAGE: python:3.10-rc-bullseye
   image: $BASE_IMAGE
   script:
     - tox -e py310
