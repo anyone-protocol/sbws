@@ -30,7 +30,7 @@ destination requirements
 - Bandwidth: at least 12.5MB/s (100 Mbit/s).
 - Network traffic: around 12-15GB/day.
 
-If possible, use a `Content delivery network`_ (CDN) in order to make the
+If you want, use a `Content delivery network`_ (CDN) in order to make the
 destination IP closer to the scanner exit.
 
 scanner setup
