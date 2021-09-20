@@ -61,5 +61,5 @@ def test_print_heartbeat_message(conf, caplog):
     caplog.set_level(logging.WARNING)
 
     hbeat.print_heartbeat_message()
-    message_No_Progress_Warning = "There is no progress measuring new unique relays."
-    assert message_No_Progress_Warning in caplog.records[0].getMessage()
+    message_No_Progress = "There is no progress measuring new unique relays."
+    assert message_No_Progress in caplog.records[0].getMessage()
