@@ -19,6 +19,11 @@ destination requirements
 - A Web server installed and running that supports HTTP GET, HEAD and
   Range (:rfc:`7233`) requests.
   ``Apache`` HTTP Server and ``Nginx`` support them.
+
+  Note that if the server is configured with ``keep-alive`` timeout, it'd need
+  to be at least the same timeout as in the sbws HTTP requests, which is 10
+  seconds by default (``http_timeout`` variable in the configuration file, see
+  more about in the next section).
 - TLS support to avoid HTTP content caches at the various exit nodes.
 - Certificates can be self-signed.
 - A large file; at the time of writing, at least 1 GiB in size
