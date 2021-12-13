@@ -39,3 +39,38 @@ def test_update_datetime_int_seq(conf):
     assert 8 == state.count("recent_measurement_attempt")
     # And `len` should return the same.
     assert 8 == len(dt_seq)
+
+
+def test_last_datetime_seq(conf):
+    dt_seq = DateTimeSeq([])
+    new_dts = dt_seq.last()
+    assert new_dts == datetime.utcnow().replace(microsecond=0) - timedelta(
+        hours=1
+    )
+
+
+def test_create_list_datetime_seq(conf):
+    now = datetime.utcnow().replace(microsecond=0)
+    # Create a list of 6 datetimes that started 6 days in the past.
+    dts = [now - timedelta(days=x) for x in range(6, 0, -1)]
+    dt_seq = DateTimeSeq(dts)
+    new_dts = dt_seq.list()
+    assert type(new_dts) == list
+
+
+def test_create_list_dt_int_seq(conf):
+    now = datetime.utcnow().replace(microsecond=0)
+    # Create a list of 6 datetimes that started 6 days in the past.
+    dts = [now - timedelta(days=x) for x in range(6, 0, -1)]
+    dt_int_seq = DateTimeIntSeq(dts)
+    new_dt_int_seq = dt_int_seq.list()
+
+    assert type(new_dt_int_seq) == list
+
+
+def test_last_dt_int_seq(conf):
+    dt_seq = DateTimeIntSeq([])
+    assert (
+        datetime.utcnow().replace(microsecond=0) - timedelta(hours=1)
+        == dt_seq.last()
+    )
