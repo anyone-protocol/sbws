@@ -648,7 +648,8 @@ class V3BWHeader(object):
             elapsed_time * consensus_relays / eligible_relays
         )
         log.info(
-            "Estimated time to measure the network: %s hours.",
+            "Estimated time to successfully report about all the relays in the"
+            " last consensus: %s hours.",
             round(estimated_time / 60 / 60),
         )
 
@@ -1320,14 +1321,15 @@ class V3BWFile(object):
             / (max(1, (sum_consensus_bw + sum_bw)) / 2)
         ) * 100
         log.info(
-            "The difference between the total consensus bandwidth (%s)"
-            "and the total measured bandwidth (%s) is %s%%.",
+            "The difference between the sum of the last consensus weight (%s "
+            "KB) and the sum of the reported weight in this Bandwidth File "
+            "(%s KB) is %s%%.",
             sum_consensus_bw,
             sum_bw,
             round(diff_perc),
         )
         if diff_perc > MAX_BW_DIFF_PERC:
-            log.warning("It is more than %s%%", max_bw_diff_perc)
+            log.warning("It is more than %s%%.", max_bw_diff_perc)
             return True
         return False
 
@@ -1352,8 +1354,8 @@ class V3BWFile(object):
         mu = mean([l.bw_mean for l in bw_lines])
         # filtered mean (Torflow's filt_avg)
         muf = mean([l.bw_filt for l in bw_lines])
-        log.debug("mu %s", mu)
-        log.debug("muf %s", muf)
+        log.debug("mu %i bytes.", mu)
+        log.debug("muf %i bytes.", muf)
 
         # Torflow's ``tot_net_bw``, sum of the scaled bandwidth for the relays
         # that are in the last consensus
@@ -1421,7 +1423,12 @@ class V3BWFile(object):
         # Cap maximum bw, only possible when the ``sum_bw`` is calculated.
         # Torflow's clipping
         hlimit = sum_bw * cap
-        log.debug("sum_bw: %s, hlimit: %s", sum_bw, hlimit)
+        log.debug(
+            "Sum of all the reported relays' scaled bandwidth: %i bytes, "
+            "the limit for any relay is: %i bytes",
+            sum_bw,
+            hlimit,
+        )
         for l in bw_lines_tf:
             bw_scaled = min(hlimit, l.bw)
             # round and convert to KB
@@ -1454,7 +1461,7 @@ class V3BWFile(object):
             )
         except (FileNotFoundError, AttributeError):
             log.warning(
-                "It is not possible to obtain the last consensus"
+                "It is not possible to obtain the last consensus "
                 "cached file %s.",
                 consensus_path,
             )
@@ -1550,17 +1557,16 @@ class V3BWFile(object):
     def info_stats(self):
         if not self.bw_lines:
             return
-        [
-            log.info(": ".join([attr, str(getattr(self, attr))]))
-            for attr in [
-                "sum_bw",
-                "mean_bw",
-                "median_bw",
-                "num",
-                "max_bw",
-                "min_bw",
-            ]
-        ]
+        log.info("Bandwidth File with:")
+        for attr in [
+            "sum_bw",
+            "mean_bw",
+            "median_bw",
+            "max_bw",
+            "min_bw",
+        ]:
+            log.info("%s: %s KB.", attr, str(getattr(self, attr)))
+        log.info("%s Bandwidth Lines", str(getattr(self, "num")))
 
     def update_progress(
         self, num_bw_lines, header, number_consensus_relays, state
