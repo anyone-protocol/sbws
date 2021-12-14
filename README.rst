@@ -1,9 +1,6 @@
 Readme
 ======
 
-`Build
-Status <https://travis-ci.org/https://travis-ci.org/torproject/sbws>`__
-
 Simple Bandwidth Scanner (called ``sbws``) is a Tor bandwidth scanner
 that generates bandwidth files to be used by Directory Authorities.
 
@@ -65,7 +62,7 @@ We waive copyright and related rights in the work worldwide through the
 `CC0-1.0 license <https://creativecommons.org/publicdomain/zero/1.0>`__.
 
 You can find a copy of the CC0 Public Domain Dedication along with this
-software in ./LICENSE.md
+software in ./LICENSE.rst
 
 Authors
 -------
