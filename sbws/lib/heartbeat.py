@@ -56,16 +56,23 @@ class Heartbeat(object):
 
         log.info("Run %s main loops.", loops_count)
         log.info(
-            "Measured in total %s (%s%%) unique relays in %s minutes",
+            "Measured in total %s (%s%% of the last consensus) unique relays"
+            " in %i minutes",
             len(self.measured_fp_set),
             new_measured_percent,
             main_loop_tdelta,
         )
-        log.info("%s relays still not measured.", len(not_measured_fp_set))
+        log.info(
+            "%s relays from the last consensus are not measured yet.",
+            len(not_measured_fp_set),
+        )
 
         # The case when it is equal will only happen when all the relays
         # have been measured.
         if new_measured_percent <= self.previous_measurement_percent:
-            log.warning("There is no progress measuring new unique relays.")
+            log.warning(
+                "There is no progress measuring new unique relays with respect"
+                " to the previous loop."
+            )
 
         self.previous_measurement_percent = new_measured_percent
