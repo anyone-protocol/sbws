@@ -48,13 +48,14 @@ def main():
     parser = create_parser()
     args = parser.parse_args()
     conf = get_config(args)
-    _ensure_dirs(conf)
     _adjust_log_level(args, conf)
     conf_valid, conf_errors = validate_config(conf)
     if not conf_valid:
         for e in conf_errors:
             log.critical(e)
         exit(1)
+    # Create directories after the home have been obtained from the config.
+    _ensure_dirs(conf)
     configure_logging(args, conf)
     parser.description = sbws_required_disk_space(conf)
     def_args = [args, conf]
