@@ -731,7 +731,7 @@ def main_loop(
         # At this point, we know the relays that were queued to be
         # measured.
         log.debug(
-            "Attempted to measure %s relays in %s minutes",
+            "Attempted to measure %s relays in %i minutes.",
             num_relays,
             loop_tdelta,
         )

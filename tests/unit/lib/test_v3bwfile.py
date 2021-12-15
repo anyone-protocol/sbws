@@ -597,7 +597,10 @@ def test_time_measure_half_network(caplog):
     caplog.set_level(logging.INFO)
     header.add_time_report_half_network()
     assert header.time_to_report_half_network == "70200"  # 19.5h
-    expected_log = "Estimated time to measure the network: 39 hours."  # 19.5*2
+    expected_log = (
+        "Estimated time to successfully report about all the "
+        "relays in the last consensus: 39 hours."
+    )  # 19.5*2
     assert caplog.records[-1].getMessage() == expected_log
 
 

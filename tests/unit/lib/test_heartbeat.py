@@ -46,8 +46,8 @@ def test_print_heartbeat_message(conf, caplog):
 
     assert hbeat.previous_measurement_percent == 33
     assert "Run None main loops." in caplog.records[0].getMessage()
-    assert "Measured in total 1 (33%)" in caplog.records[1].getMessage()
-    log_relay_not_measured = "3 relays still not measured"
+    assert "Measured in total 1 (33%" in caplog.records[1].getMessage()
+    log_relay_not_measured = "3 relays from the last consensus are not "
     assert log_relay_not_measured in caplog.records[2].getMessage()
 
     caplog.clear()
@@ -58,5 +58,5 @@ def test_print_heartbeat_message(conf, caplog):
     caplog.set_level(logging.WARNING)
 
     hbeat.print_heartbeat_message()
-    log_no_progress = "There is no progress measuring new unique relays."
+    log_no_progress = "There is no progress measuring new unique relays"
     assert log_no_progress in caplog.records[0].getMessage()
