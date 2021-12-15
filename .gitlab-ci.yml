@@ -84,16 +84,6 @@ python38:
   script:
     - tox
 
-python39tor035:
-  variables:
-    BASE_IMAGE: python:3.9
-    RELEASE: tor-nightly-0.3.5.x-bullseye
-    TOR: tor/tor-nightly-0.3.5.x-bullseye
-  image: $BASE_IMAGE
-  script:
-    - tox -e py39
-    - tox -e integration
-
 python39tor045:
   variables:
     BASE_IMAGE: python:3.9
