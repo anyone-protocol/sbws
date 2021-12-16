@@ -38,7 +38,7 @@ class DateTimeSeq(collections.deque):
     def last(self):
         if len(self._items) > 0:
             return self._items[-1]
-        return datetime.utcnow().replace(microsecond=0) - timedelta(hour=1)
+        return datetime.utcnow().replace(microsecond=0) - timedelta(hours=1)
 
     def list(self):
         return list(self._items)
@@ -80,7 +80,7 @@ class DateTimeIntSeq(collections.deque):
     def last(self):
         if len(self._items) > 0:
             return self._items[-1]
-        return datetime.utcnow().replace(microsecond=0) - timedelta(hour=1)
+        return datetime.utcnow().replace(microsecond=0) - timedelta(hours=1)
 
     def list(self):
         return list(self._items)
