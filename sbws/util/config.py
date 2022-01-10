@@ -81,16 +81,18 @@ def _get_user_config(args, conf=None):
         if not os.path.isfile(args.config):
             # XXX: The logger is not configured at this stage,
             # sbws should start with a logger before reading configurations.
+            # #40110: while the log is not configured, do not print, so that
+            # no output is generated unless there're warnings.
             print(
                 "Configuration file %s not found, using defaults."
                 % args.config
             )
             return conf
-        print("Using configuration provided as argument %s" % args.config)
+        # print("Using configuration provided as argument %s" % args.config)
         return _extend_config(conf, args.config)
     user_config_path = _obtain_user_conf_path()
     if os.path.isfile(user_config_path):
-        print("Using configuration file %s" % user_config_path)
+        # print("Using configuration file %s" % user_config_path)
         return _extend_config(conf, user_config_path)
     log.debug("No user config found, using defaults.")
     return conf
