@@ -1021,7 +1021,9 @@ class V3BWLine(object):
                 desc_bw_obs_ls.append(r.relay_observed_bandwidth)
         if desc_bw_obs_ls:
             return round(mean(desc_bw_obs_ls))
-        log.warning("Descriptor observed bandwidth is None.")
+        log.info(
+            "Descriptor observed bandwidth is None. Can't calculate mean."
+        )
         return None
 
     @staticmethod
@@ -1030,7 +1032,7 @@ class V3BWLine(object):
         for r in reversed(results):
             if r.relay_observed_bandwidth is not None:
                 return r.relay_observed_bandwidth
-        log.warning("Descriptor observed bandwidth is None.")
+        log.info("Descriptor observed bandwidth is None. Can't get the last.")
         return None
 
     @property
