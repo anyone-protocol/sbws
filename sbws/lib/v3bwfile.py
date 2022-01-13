@@ -1328,8 +1328,16 @@ class V3BWFile(object):
             sum_bw,
             round(diff_perc),
         )
-        if diff_perc > MAX_BW_DIFF_PERC:
-            log.warning("It is more than %s%%.", max_bw_diff_perc)
+        if diff_perc > max_bw_diff_perc:
+            log.warning(
+                "The difference between the sum of the last consensus weight "
+                "(%s KB) and the sum of the reported weight in this Bandwidth "
+                "File (%s KB) is %s%%. It is more than %s%%.",
+                sum_consensus_bw,
+                sum_bw,
+                round(diff_perc),
+                max_bw_diff_perc,
+            )
             return True
         return False
 
