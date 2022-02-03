@@ -75,6 +75,36 @@ More details about the configuration file can be found in
 Gitlab) or `<man_sbws.ini.html>`_  (local build or Read the Docs) or
 ``man sbws.ini`` (system package).
 
+generator setup
+---------------
+
+The Debian package also includes a cron job to run the ``generator``.
+If sbws is installed in some other way, there should be cron job. For example::
+
+  35 *     * * *   sbws  /usr/local/bin/sbws -c /etc/sbws/sbws.ini generate
+  05 0     * * *   sbws  /usr/local/bin/sbws -c /etc/sbws/sbws.ini cleanup
+
+(Note that there is also a command to clean the old data).
+
+If the cron job is configured to send Email alerts on errors, it's probably
+better to configure the log level to ``ERROR`` instead of ``WARNING``.
+
+At level ``WARNING``, the first days, the ``generator`` will log every hour
+that it hasn't reached enough percentage of relays to report.
+After some days, if the scanner is located near fasts exits, it would also log
+every hour that it is reporting more than the 50% of the consensus bandwidth.
+
+The log level can be changed in the configuration file, for example::
+
+  to_stdout_level = error
+
+This setup will affect both to the ``generator`` and the ``scanner``, so for
+Email alerts, it's probably more convenient to configure it from the command
+line, for example::
+
+  /usr/local/bin/sbws --log-level error generate
+
+
 See also ``./docs/source/man_sbws.rst`` (in the local directory or Tor Project
 Gitlab) or `<man_sbws.html>`_ (local build or Read the Docs) or ``man sbws``
 (system package).
