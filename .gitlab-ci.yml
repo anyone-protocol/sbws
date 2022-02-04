@@ -15,7 +15,7 @@
 # 3.6 EOL 2021-12-23 PEP 494
 
 variables:
-  BASE_IMAGE: python:3.8
+  BASE_IMAGE: python:3.9
   RELEASE: tor-nightly-main-bullseye
   # Without version, the default available in the Debian repository will be
   # installed.
@@ -49,7 +49,6 @@ after_script:
 python36:
   variables:
     BASE_IMAGE: python:3.6
-  image: $BASE_IMAGE
   script:
     - tox -e py36
     - tox -e integration
@@ -57,12 +56,34 @@ python36:
 python37:
   variables:
     BASE_IMAGE: python:3.7
-  image: $BASE_IMAGE
   script:
     - tox -e py37
     - tox -e integration
 
 python38:
+  variables:
+    BASE_IMAGE: python:3.8
+  script:
+    - tox -e py38
+    - tox -e integration
+
+python39tor045:
+  variables:
+    RELEASE: tor-nightly-0.4.5.x-bullseye
+    TOR: tor/tor-nightly-0.4.5.x-bullseye
+  script:
+    - tox -e py39
+    - tox -e integration
+
+python39tor046:
+  variables:
+    RELEASE: tor-nightly-0.4.6.x-bullseye
+    TOR: tor/tor-nightly-0.4.6.x-bullseye
+  script:
+    - tox -e py39
+    - tox -e integration
+
+python39tormaster:
   # This will overwrite the default before_script, so need to repeat the
   # commands
   before_script:
@@ -80,44 +101,14 @@ python38:
     # To build the docs
     - apt install -yqq texlive-latex-extra
     - apt install -yqq dvipng
-  image: $BASE_IMAGE
   script:
     - tox
-
-python39tor045:
-  variables:
-    BASE_IMAGE: python:3.9
-    RELEASE: tor-nightly-0.4.5.x-bullseye
-    TOR: tor/tor-nightly-0.4.5.x-bullseye
-  image: $BASE_IMAGE
-  script:
-    - tox -e py39
-    - tox -e integration
-
-python39tor046:
-  variables:
-    BASE_IMAGE: python:3.9
-    RELEASE: tor-nightly-0.4.6.x-bullseye
-    TOR: tor/tor-nightly-0.4.6.x-bullseye
-  image: $BASE_IMAGE
-  script:
-    - tox -e py39
-    - tox -e integration
-
-python39tormaster:
-  variables:
-    BASE_IMAGE: python:3.9
-  image: $BASE_IMAGE
-  script:
-    - tox -e py39
-    - tox -e integration
 
 python39torstable:
   variables:
     BASE_IMAGE: python:3.9
     RELEASE: bullseye
     TOR: tor/bullseye
-  image: $BASE_IMAGE
   script:
     - tox -e py39
     - tox -e integration
@@ -125,7 +116,6 @@ python39torstable:
 python310:
   variables:
     BASE_IMAGE: python:3.10-rc-bullseye
-  image: $BASE_IMAGE
   script:
     - tox -e py310
     - tox -e integration
