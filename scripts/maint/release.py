@@ -51,6 +51,12 @@ try:
 except ImportError:
     print("Please, install gitchangelog: `pip install gitchangelog`")
     sys.exit(1)
+# Not used directly, but gitchangelog depends on it
+try:
+    import mako  # noqa
+except ImportError:
+    print("Please, install mako: `pip install mako`")
+    sys.exit(1)
 
 import sbws
 
