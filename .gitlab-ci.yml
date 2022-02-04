@@ -5,9 +5,8 @@
 # 0.4.6 stable by Jun 15, 2021
 # 0.4.5 (LTS) EOL Feb 15, 2023
 # 0.3.5 (LTS) EOL Feb 1, 2022
-# Python releases:
-# 3.10 stable by 2021-10-04: https://www.python.org/dev/peps/pep-0619/
 # Python stable releases: https://www.python.org/downloads/
+# 3.10 EOL 2026-10, PEP 619
 # 3.9 EOL 2025-10, PEP 596
 # 3.8 EOL 2024-10, PEP 569
 # 3.7 EOL 2023-06-27, PEP 537
@@ -106,11 +105,10 @@ python39torstable:
 
 python310:
   variables:
-    BASE_IMAGE: python:3.10-rc-bullseye
+    BASE_IMAGE: python:3.10
   script:
     - tox -e py310
     - tox -e integration
-  allow_failure: true
 
 release_job:
   before_script:
