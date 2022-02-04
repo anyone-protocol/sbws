@@ -28,7 +28,7 @@ System requirements
 Python dependencies
 --------------------
 
-- Stem_ >= 1.7.0
+- Stem_ >= 1.8.0
 - Requests_ (with socks_ support) >= 2.10.0
 
 It is recommend to install the dependencies from your system package manager.
