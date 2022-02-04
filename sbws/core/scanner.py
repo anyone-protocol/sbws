@@ -786,7 +786,7 @@ def process_completed_futures(executor, hbeat, result_dump, pending_results):
                 virtualMemoryInfo = psutil.virtual_memory()
                 availableMemory = virtualMemoryInfo.available
                 log.warning(
-                    "Memory available %s MB.", availableMemory / 1024 ** 2
+                    "Memory available %s MB.", availableMemory / 1024**2
                 )
                 dumpstacks()
             else:

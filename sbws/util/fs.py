@@ -47,7 +47,7 @@ def sbws_required_disk_space(conf):
     v3bw_max_space_after_delete = (
         space_v3bw_files_day * v3bw_compress_after_days
     ) + (size_compressed_files * num_v3bw_files_day * v3bw_delete_after_days)
-    text_dict["mb_bw"] = round(v3bw_max_space_after_delete / 1000 ** 2)
+    text_dict["mb_bw"] = round(v3bw_max_space_after_delete / 1000**2)
     text_dict["d_bw"] = v3bw_delete_after_days
     # default crontab configuration will run cleanup once a day
     # default cleanup configuration will compress v3bw files after 1 day
@@ -63,7 +63,7 @@ def sbws_required_disk_space(conf):
     ) + (
         size_compressed_files * num_v3bw_files_day * results_delete_after_days
     )
-    text_dict["mb_results"] = round(results_max_space_after_delete / 1000 ** 2)
+    text_dict["mb_results"] = round(results_max_space_after_delete / 1000**2)
     text_dict["d_r"] = results_delete_after_days
     # not counted rotated files and assuming that when it is not rotated the
     # size will be approximately 10MiB
@@ -75,10 +75,10 @@ def sbws_required_disk_space(conf):
     text_dict["mb_log"] = space_log_files
     # roughly, size of a current tor dir
     size_tor_dir = 19828000
-    text_dict["mb_tor"] = round(size_tor_dir / 1000 ** 2)
+    text_dict["mb_tor"] = round(size_tor_dir / 1000**2)
     # roughly, the size of this code and dependencies
     size_code_deps = 2097152
-    text_dict["mb_code"] = round(size_code_deps / 1000 ** 2)
+    text_dict["mb_code"] = round(size_code_deps / 1000**2)
     # Multiply per 2, just in case
     size_total = (
         results_max_space_after_delete
@@ -87,7 +87,7 @@ def sbws_required_disk_space(conf):
         + size_tor_dir
         + size_code_deps
     ) * 2
-    text_dict["mb_total"] = round(size_total / 1000 ** 2)
+    text_dict["mb_total"] = round(size_total / 1000**2)
     space_text = DISK_SPACE_TEXT.format(**text_dict)
     return space_text
 
@@ -96,7 +96,7 @@ def df(path):
     # Not being used, since it makes a disk space system call and some
     # systems might not allow it
     """Return space left on device where path is in MiB."""
-    return round(shutil.disk_usage(path).free / (1024 ** 2))
+    return round(shutil.disk_usage(path).free / (1024**2))
 
 
 def is_low_space(conf):

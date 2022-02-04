@@ -174,7 +174,7 @@ def test_num_results_of_type(result_success, result_error_stream):
 def assert_round_sig_dig_any_digits(n, result):
     """Test that rounding n to any reasonable number of significant digits
     produces result."""
-    max_digits_int64 = int(math.ceil(math.log10(2 ** 64 - 1))) + 1
+    max_digits_int64 = int(math.ceil(math.log10(2**64 - 1))) + 1
     for d in range(1, max_digits_int64 + 1):
         assert round_sig_dig(n, digits=d) == result
 
@@ -182,7 +182,7 @@ def assert_round_sig_dig_any_digits(n, result):
 def assert_round_sig_dig_any_digits_error(n, elp_fraction=0.5):
     """Test that rounding n to any reasonable number of significant digits
     produces a result within elp_fraction * 10.0 ** -(digits - 1)."""
-    max_digits_int64 = int(math.ceil(math.log10(2 ** 64 - 1))) + 1
+    max_digits_int64 = int(math.ceil(math.log10(2**64 - 1))) + 1
     for d in range(1, max_digits_int64 + 1):
         error_fraction = elp_fraction * (10.0 ** -(d - 1))
         # use ceil rather than round, to work around floating-point inaccuracy
@@ -259,21 +259,21 @@ def test_round_sig_dig():
     assert_round_sig_dig_any_digits(10, 10)
 
     # Large values
-    assert_round_sig_dig_any_digits_error(2 ** 30)
-    assert_round_sig_dig_any_digits_error(2 ** 31)
-    assert_round_sig_dig_any_digits_error(2 ** 32)
+    assert_round_sig_dig_any_digits_error(2**30)
+    assert_round_sig_dig_any_digits_error(2**31)
+    assert_round_sig_dig_any_digits_error(2**32)
 
     # the floating-point accuracy limit for this function is 2**73
     # on some machines
-    assert_round_sig_dig_any_digits_error(2 ** 62)
-    assert_round_sig_dig_any_digits_error(2 ** 63)
-    assert_round_sig_dig_any_digits_error(2 ** 64)
+    assert_round_sig_dig_any_digits_error(2**62)
+    assert_round_sig_dig_any_digits_error(2**63)
+    assert_round_sig_dig_any_digits_error(2**64)
 
     # Out of range values: must round to 1
     assert_round_sig_dig_any_digits(-0.01, 1)
     assert_round_sig_dig_any_digits(-1, 1)
     assert_round_sig_dig_any_digits(-10.5, 1)
-    assert_round_sig_dig_any_digits(-(2 ** 31), 1)
+    assert_round_sig_dig_any_digits(-(2**31), 1)
 
     # test the transition points in the supported range
     # testing the entire range up to 1 million takes 100s
