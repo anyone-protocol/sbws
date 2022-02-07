@@ -8,11 +8,9 @@
 # Python releases:
 # 3.10 stable by 2021-10-04: https://www.python.org/dev/peps/pep-0619/
 # Python stable releases: https://www.python.org/downloads/
-# 3.9 EOL 2025-10 PEP 596
-# 3.8 EOL 2024-10 PEP 569, newest major release
-# 3.7 EOL 2023-06-27 PEP 537, included in Debian bullseye (Debian stable from
-# 2021-08-15)
-# 3.6 EOL 2021-12-23 PEP 494
+# 3.9 EOL 2025-10, PEP 596
+# 3.8 EOL 2024-10, PEP 569
+# 3.7 EOL 2023-06-27, PEP 537
 
 variables:
   BASE_IMAGE: python:3.9
@@ -45,13 +43,6 @@ before_script:
 
 after_script:
   - tox -e stats
-
-python36:
-  variables:
-    BASE_IMAGE: python:3.6
-  script:
-    - tox -e py36
-    - tox -e integration
 
 python37:
   variables:

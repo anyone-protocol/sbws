@@ -23,7 +23,7 @@ System requirements
 --------------------
 
 - Tor (last stable version is recommended)
-- Python 3 (>= 3.6)
+- Python 3 (>= 3.7)
 
 Python dependencies
 --------------------
