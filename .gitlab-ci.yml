@@ -1,10 +1,8 @@
 # core/tor releases:
 # https://gitlab.torproject.org/tpo/core/team/-/wikis/NetworkTeam/CoreTorReleases
-# As of 2021.03.02 all dirauths are running with version greater or equal to
-# 0.4.5.
-# 0.4.6 stable by Jun 15, 2021
+# 0.4.7 stable by March 15, 2022
+# 0.4.6 EOL on or after June 15, 2022
 # 0.4.5 (LTS) EOL Feb 15, 2023
-# 0.3.5 (LTS) EOL Feb 1, 2022
 # Python stable releases: https://www.python.org/downloads/
 # 3.10 EOL 2026-10, PEP 619
 # 3.9 EOL 2025-10, PEP 596
