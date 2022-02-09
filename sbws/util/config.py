@@ -569,7 +569,7 @@ def _validate_section_ports(conf, sec, ports, tmpl):
     errors = []
     section = conf[sec]
     for key in ports:
-        valid, error = _validate_int(section, key, minimum=1, maximum=2 ** 16)
+        valid, error = _validate_int(section, key, minimum=1, maximum=2**16)
         if not valid:
             errors.append(
                 tmpl.substitute(

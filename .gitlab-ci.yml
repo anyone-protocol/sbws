@@ -1,21 +1,16 @@
 # core/tor releases:
 # https://gitlab.torproject.org/tpo/core/team/-/wikis/NetworkTeam/CoreTorReleases
-# As of 2021.03.02 all dirauths are running with version greater or equal to
-# 0.4.5.
-# 0.4.6 stable by Jun 15, 2021
+# 0.4.7 stable by March 15, 2022
+# 0.4.6 EOL on or after June 15, 2022
 # 0.4.5 (LTS) EOL Feb 15, 2023
-# 0.3.5 (LTS) EOL Feb 1, 2022
-# Python releases:
-# 3.10 stable by 2021-10-04: https://www.python.org/dev/peps/pep-0619/
 # Python stable releases: https://www.python.org/downloads/
-# 3.9 EOL 2025-10 PEP 596
-# 3.8 EOL 2024-10 PEP 569, newest major release
-# 3.7 EOL 2023-06-27 PEP 537, included in Debian bullseye (Debian stable from
-# 2021-08-15)
-# 3.6 EOL 2021-12-23 PEP 494
+# 3.10 EOL 2026-10, PEP 619
+# 3.9 EOL 2025-10, PEP 596
+# 3.8 EOL 2024-10, PEP 569
+# 3.7 EOL 2023-06-27, PEP 537
 
 variables:
-  BASE_IMAGE: python:3.8
+  BASE_IMAGE: python:3.9
   RELEASE: tor-nightly-main-bullseye
   # Without version, the default available in the Debian repository will be
   # installed.
@@ -46,23 +41,37 @@ before_script:
 after_script:
   - tox -e stats
 
-python36:
-  variables:
-    BASE_IMAGE: python:3.6
-  image: $BASE_IMAGE
-  script:
-    - tox -e py36
-    - tox -e integration
-
 python37:
   variables:
     BASE_IMAGE: python:3.7
-  image: $BASE_IMAGE
   script:
     - tox -e py37
     - tox -e integration
 
 python38:
+  variables:
+    BASE_IMAGE: python:3.8
+  script:
+    - tox -e py38
+    - tox -e integration
+
+python39tor045:
+  variables:
+    RELEASE: tor-nightly-0.4.5.x-bullseye
+    TOR: tor/tor-nightly-0.4.5.x-bullseye
+  script:
+    - tox -e py39
+    - tox -e integration
+
+python39tor046:
+  variables:
+    RELEASE: tor-nightly-0.4.6.x-bullseye
+    TOR: tor/tor-nightly-0.4.6.x-bullseye
+  script:
+    - tox -e py39
+    - tox -e integration
+
+python39tormaster:
   # This will overwrite the default before_script, so need to repeat the
   # commands
   before_script:
@@ -80,56 +89,24 @@ python38:
     # To build the docs
     - apt install -yqq texlive-latex-extra
     - apt install -yqq dvipng
-  image: $BASE_IMAGE
   script:
     - tox
-
-python39tor045:
-  variables:
-    BASE_IMAGE: python:3.9
-    RELEASE: tor-nightly-0.4.5.x-bullseye
-    TOR: tor/tor-nightly-0.4.5.x-bullseye
-  image: $BASE_IMAGE
-  script:
-    - tox -e py39
-    - tox -e integration
-
-python39tor046:
-  variables:
-    BASE_IMAGE: python:3.9
-    RELEASE: tor-nightly-0.4.6.x-bullseye
-    TOR: tor/tor-nightly-0.4.6.x-bullseye
-  image: $BASE_IMAGE
-  script:
-    - tox -e py39
-    - tox -e integration
-
-python39tormaster:
-  variables:
-    BASE_IMAGE: python:3.9
-  image: $BASE_IMAGE
-  script:
-    - tox -e py39
-    - tox -e integration
 
 python39torstable:
   variables:
     BASE_IMAGE: python:3.9
     RELEASE: bullseye
     TOR: tor/bullseye
-  image: $BASE_IMAGE
   script:
     - tox -e py39
     - tox -e integration
 
 python310:
   variables:
-    BASE_IMAGE: python:3.10-rc-bullseye
-  image: $BASE_IMAGE
+    BASE_IMAGE: python:3.10
   script:
     - tox -e py310
     - tox -e integration
-  allow_failure: true
 
 release_job:
   before_script:
