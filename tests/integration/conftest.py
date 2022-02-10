@@ -3,6 +3,7 @@ import argparse
 import os
 
 import pytest
+from stem.version import Version
 
 from sbws.lib.circuitbuilder import GapsCircuitBuilder as CB
 from sbws.lib.destination import DestinationList
@@ -93,7 +94,8 @@ def persistent_launch_tor(conf):
 
 @pytest.fixture(scope="session")
 def rl(args, conf, persistent_launch_tor):
-    return RelayList(args, conf, persistent_launch_tor)
+    temp_rl = RelayList(args, conf, persistent_launch_tor)
+    return temp_rl
 
 
 @pytest.fixture(scope="session")
@@ -110,4 +112,8 @@ def dests(args, conf, persistent_launch_tor, cb, rl):
     return dests
 
 
-# @pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
+def is_cc_tor_version(persistent_launch_tor):
+    version = persistent_launch_tor.get_version()
+    print("version", version)
+    return version >= Version("0.4.7.4-alpha-dev")

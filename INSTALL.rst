@@ -23,6 +23,7 @@ System requirements
 --------------------
 
 - Tor (last stable version is recommended)
+  To use only exits that implement congestion control, tor >= 0.4.7.4-alpha-dev
 - Python 3 (>= 3.7)
 
 Python dependencies

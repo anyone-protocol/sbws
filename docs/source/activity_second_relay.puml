@@ -2,13 +2,29 @@
 
 start
 
-if (relay to measure is exit?) then (yes)
-  :obtain non-exits;
+if (consensus has `cc_alg=2`) then (yes)
+  if (consensus has `bwscanner_cc>=1`) then (yes)
+    :obtain exits
+    with proto `FlowCtrol=2`
+    without bad flag
+    that can exit
+    to port 443;
+  else (no)
+    :obtain exits
+    with proto `FlowCtrol!=2`
+    without bad flag
+    that can exit
+    to port 443;
+  endif
 else (no)
-  :obtain an exits
-  without bad flag
-  that can exit
-  to port 443;
+  if (relay to measure is exit?) then (yes)
+    :obtain non-exits;
+  else (no)
+    :obtain an exits
+    without bad flag
+    that can exit
+    to port 443;
+  endif
 endif
 :potential second relays;
 :obtain a relay

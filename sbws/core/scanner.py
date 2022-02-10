@@ -223,10 +223,27 @@ def _pick_ideal_second_hop(relay, dest, rl, cont, is_exit):
     # In the case that a concrete exit can't exit to the Web server, it is not
     # a problem since the relay will be measured in the next loop with other
     # random exit.
-    candidates = (
-        rl.exits_not_bad_allowing_port(dest.port) if is_exit else rl.non_exits
-    )
+
+    # #40125
+    if rl.is_consensus_cc_alg_2:
+        if rl.is_consensus_bwscanner_cc_gte_1:
+            log.debug("Congestion control enabled.")
+            candidates = rl.exits_with_2_in_flowctrl(dest.port)
+        else:  # bwscanner_cc != 1
+            log.debug(
+                "Congestion control enabled but not using exits with "
+                "congestion control enabled."
+            )
+            candidates = rl.exits_without_2_in_flowctrl(dest.port)
+    else:
+        log.debug("Congestion control disabled.")
+        candidates = (
+            rl.exits_not_bad_allowing_port(dest.port)
+            if is_exit
+            else rl.non_exits
+        )
     if not len(candidates):
+        log.debug("No candidates.")
         return None
     # In the case the helper is an exit, the entry could be an exit too
     # (#40041), so ensure the helper is not the same as the entry, likely to
@@ -235,6 +252,8 @@ def _pick_ideal_second_hop(relay, dest, rl, cont, is_exit):
         candidates = [
             c for c in candidates if c.fingerprint != relay.fingerprint
         ]
+    # While not all exits implement congestion control, the min bw might not
+    # correspond to the subset that implement it.
     min_relay_bw = rl.exit_min_bw() if is_exit else rl.non_exit_min_bw()
     log.debug(
         "Picking a 2nd hop to measure %s from %d choices. is_exit=%s",
@@ -295,9 +314,11 @@ def create_path_relay(relay, dest, rl, cb, relay_as_entry=True):
     # is True when the relay is the entry (helper has to be exit)
     # and False when the relay is not the entry, ie. is the exit (helper does
     # not have to be an exit)
+
     helper = _pick_ideal_second_hop(
         relay, dest, rl, cb.controller, is_exit=relay_as_entry
     )
+
     if not helper:
         return error_no_helper(relay, dest)
     if relay_as_entry:

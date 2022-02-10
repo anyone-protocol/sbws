@@ -126,6 +126,23 @@ class Relay:
         return self._from_desc("observed_bandwidth")
 
     @property
+    def has_2_in_flowctrl(self):
+        """
+        Return True if the `FlowCtrl` field in the relay's protover consensus
+        line include a value of 2 and False otherwise.
+
+        """
+        # NOTE: stem doesn't seem to obtain `pr`` nor create `protocols``
+        # protocols = self._from_ns("protocols")
+        protocols = self._from_desc("protocols")
+        if protocols:
+            if 2 in protocols.get("FlowCtrl", []):
+                log.debug("Exit %s has 2 in `FlowCtrl`.", self.nickname)
+                return True
+        log.debug("Exit %s does not have 2 in `FlowCtrl`.", self.nickname)
+        return False
+
+    @property
     def consensus_bandwidth(self):
         """Return the consensus bandwidth in Bytes.
 
@@ -484,11 +501,120 @@ class RelayList:
         # Calculate minimum bandwidth value for 2nd hop after we refreshed
         # our available relays.
         self._calculate_min_bw_second_hop()
+        self.set_consensus_params()
 
     @property
     def recent_consensus_count(self):
         """Number of times a new consensus was obtained."""
         return len(self._recent_consensus)
+
+    def exits_with_2_in_flowctrl(self, port):
+        """
+        Return the exits that include a value of 2 in the `FlowCtrl` field
+        in their protover consensus line.
+
+        """
+        return [
+            r
+            for r in self.exits_not_bad_allowing_port(port)
+            if r.has_2_in_flowctrl
+        ]
+
+    def exits_without_2_in_flowctrl(self, port):
+        """
+        Return the exits that do not include a value of 2 in the `FlowCtrl`
+        field in their protover consensus line or the field is missing.
+
+        """
+        return [
+            r
+            for r in self.exits_not_bad_allowing_port(port)
+            if not r.has_2_in_flowctrl
+        ]
+
+    def set_consensus_params(self):
+        """Obtain current consensus params fields and store them as an attr.
+
+        It is not possible to obtain them from `get_network_statuses` via
+        control port, only via a cached file.
+
+        """
+        if self._controller.get_conf("TestingTorNetwork") == "1":
+            log.debug("In a testing network.")
+            self.consensus_params_dict = {}
+            return
+        log.debug("Not in a testing network.")
+        consensus = self._controller.get_info(
+            "dir/status-vote/current/consensus"
+        )
+        from unittest import mock
+
+        if isinstance(consensus, mock.Mock):
+            log.debug("Mocked consensus.")
+            self.consensus_params_dict = {}
+            return
+        # Create a dictionary from all the consensus lines.
+        consensus_dict = dict(
+            [
+                (line.split(" ")[0], line.split()[1:])
+                for line in consensus.split("\n")
+            ]
+        )
+        # Create a dictionary from the consensus `params` line.
+        self.consensus_params_dict = dict(
+            [
+                (p.split("=")[0], p.split("=")[1])
+                for p in consensus_dict.get("params", [])
+            ]
+        )
+        log.debug("Consensus params: %s", self.consensus_params_dict.keys())
+
+    @property
+    def is_consensus_cc_alg_2(self):
+        """
+        Return True if the consensus document has a value of 2 in the `cc_alg`
+        field.
+
+        From proposals/324-rtt-congestion-control.txt spec::
+
+            6.5.1. Parameters common to all algorithms
+            [...]
+            cc_alg:
+            - Description:
+                Specifies which congestion control algorithm clients should
+                use, as an integer.
+            - Range: [0,3]  (0=fixed, 1=Westwood, 2=Vegas, 3=NOLA)
+            - Default: 2
+
+        """
+        if (
+            self.consensus_params_dict
+            and self.consensus_params_dict.get("cc_alg", None) == 2
+        ):
+            log.info("The consensus implements congestion control.")
+            return True
+        log.info("The consensus does not implement congestion control.")
+        return False
+
+    @property
+    def is_consensus_bwscanner_cc_gte_1(self):
+        """
+        Return True if the consensus document has a value of 1 or greater in
+        the `bwscanner_cc` field."""
+        if (
+            self.consensus_params_dict
+            and self.consensus_params_dict.get("bwscanner_cc", None) >= 1
+        ):
+            log.info(
+                "The consensus says to use exits that support congestion"
+                " control."
+            )
+            return True
+        log.info(
+            "The consensus says to use exits that do not support congestion"
+            " control."
+        )
+        return False
 
     def exits_not_bad_allowing_port(self, port, strict=False):
         return [

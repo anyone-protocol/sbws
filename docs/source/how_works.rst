@@ -85,6 +85,8 @@ Source code: :func:`sbws.core.scanner.measure_relay`
 Selecting a second relay
 ------------------------
 
+#. If the consensus has `cc_alg=2` param, use the exits that have `2` in the
+   field `FlowCtrl` in their `proto` line, otherwise
 #. If the relay to measure is an exit, use it as an exit and obtain the
    non-exits.
 #. If the relay to measure is not an exit, use it as first hop and obtain

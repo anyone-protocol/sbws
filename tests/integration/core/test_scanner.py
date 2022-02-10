@@ -2,7 +2,7 @@ import logging
 
 import pytest
 
-from sbws.core.scanner import measure_relay
+from sbws.core.scanner import _pick_ideal_second_hop, measure_relay
 from sbws.lib.resultdump import ResultSuccess
 
 
@@ -70,3 +70,22 @@ def test_measure_relay_with_relaybandwidthrate(
     dls = result.downloads
     for dl in dls:
         assert_within(dl["amount"] / dl["duration"], one_mbyte, allowed_error)
+
+
+def test_second_hop_has_2_in_flowctrl(
+    is_cc_tor_version, dests, rl, persistent_launch_tor
+):
+    if not is_cc_tor_version:
+        import pytest
+
+        pytest.skip("This test can't be run with this tor version")
+        return
+    rl.consensus_params_dict = {"cc_alg": 2, "bwscanner_cc": 1}
+    assert rl.is_consensus_cc_alg_2
+    assert rl.is_consensus_bwscanner_cc_gte_1
+    dest = dests._all_dests[0]
+    relay = rl._relays[0]
+    helper = _pick_ideal_second_hop(
+        relay, dest, rl, persistent_launch_tor, False
+    )
+    assert helper.has_2_in_flowctrl

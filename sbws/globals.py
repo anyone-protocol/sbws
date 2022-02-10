@@ -61,7 +61,7 @@ TORRC_OPTIONS_CAN_FAIL = OrderedDict(
     {
         # Since currently scanner anonymity is not the goal, ConnectionPadding
         # is disable to do not send extra traffic
-        "ConnectionPadding": "0"
+        "ConnectionPadding": "0",
     }
 )
 
