@@ -7,6 +7,115 @@ The format is based on `Keep a
 Changelog <http://keepachangelog.com/en/1.0.0/>`__ and this project
 adheres to `Semantic Versioning <http://semver.org/spec/v2.0.0.html>`__.
 
+v1.4.0 (2022-02-14)
+-------------------
+
+Changes
+~~~~~~~
+- Remove support for Python 3.6.
+  because it's already EOL. Also update dates other python releases.
+- Config: Stop printing which config file is used.
+  sbws doesn't use default logging configuration until it tries to read
+  configuration files. However it prints to stdout which configuration
+  file is being used before that.
+  If an sbws' operator wish to only receive emails on warnings, they'll
+  still receive emails because of the print line. Therefore stop printing
+  before configuring logging.
+  Closes #40110.
+- Clarify stats and units in the logs.
+  to make them less confusing.
+  Closes #40109.
+- Create home directory after reading config.
+  Otherwise it'd create a `.sbws` directory even when it's run as
+  a supervised service.
+  Closes #40108
+
+Fix
+~~~
+- Maint: Require mako library to create release.
+- Meta: Upgrade stem version.
+  that was long ago released
+- CI: Update comments about tor releases.
+  Remove comment about tor 0.3.5, already EOL and update dates other tor
+  releases become stable or EOL.
+  No need to remove tests with tor 0.3.5, since there wasn't anymore.
+- CI: Stop allowing python 3.10 to fail.
+  Also:
+  - add Python 3.10 as supported version.
+  - target Python 3.10 in black
+- CI: Update Python default version to 3.9.
+  Also:
+  - remove redundant image variable
+  - build docs with python 3.9 too
+  - Add python 3.9 as target-version for black
+- Style: Remove spaces around power operators.
+  if both operands are simple. To make CI tests pass with new black
+  version 22.1 (#2726).
+  Closes #40123
+- Clarify log level to use for alerts.
+  If a bwauth operator wish to receive (email) alerts, it might be more
+  convenient to set the log level to error.
+  Closes #40121
+- V3bwfile: Lower log level about no observed bw.
+  Because it might happen due fetching "early", "useless" descriptors or
+  non running relays, so that there aren't too many warnings.
+  Closes #40116.
+- V3bwfile: Clarify percent warning.
+  about the difference between the sum of the last consensus weight and
+  the sum of the reported weight in the just generated Bandwidth File.
+  Otherwise, when looking at the warnings only, it's not explained what
+  the percentage is about.
+  Closes #40115
+- Improve coverage timestamps.py.
+- Correct metadata urls and files.
+  The readme a and license files changed to restructured text and the
+  urls were missing `https`.
+  Also add maintainer and contact metadata and remove travis link since
+  travis is not being used anymore.
+  Closes #40100.
+- CI: tor-nightly-0.3.5.x-bullseye release is empty.
+  and it is not used by any bwauth.
+  Closes #40114.
+- CI: Replace Debian package name.
+  that changed from master to main.
+- Comment about keep-alive timeout.
+  in the Web server.
+  Closes #40112
+- Make CDN more optional.
+- CI: update python versions.
+  because bullseye is the new Debian stable, has by default python3.9
+  amd tests using buster dependencies fail.
+  Closes #40099.
+
+Other
+~~~~~
+- Remove userquery code.
+- Change default country to AA for [scanner]
+  - SN was set as default value instead of AA;
+    - according to ISO 3166, SN refers to Senegal.
+- Update scanner.country's comment.
+  - sbws.example.ini described destination's country inside of scanner's
+- Improvements and being inline with pep8.
+  As juga suggested in the commits, I've done.
+  I tried to figure out another way instead of manually defining the value but couldn't figure it out
+- Line length was too long.
+  line 64 was too long
+- Changed variables to PEP 8 standard.
+  I didn't see the link https://tpo.pages.torproject.net/network-health/sbws/contributing.html#code-style
+  changed the variables
+- Heartbeat coverage improvement.
+  This should increase the coverage to 100% and should be passing the tests/commands when running tox
+- Heartbeat coverage improvement.
+  This should increase the coverage to 100% and should be passing the tests/commands when running tox
+  Changed variables to PEP 8 standard
+  I didn't see the link https://tpo.pages.torproject.net/network-health/sbws/contributing.html#code-style
+  changed the variables
+  line length was too long
+  line 64 was too long
+  improvements and being inline with pep8
+  As juga suggested in the commits, I've done.
+  I tried to figure out another way instead of manually defining the value but couldn't figure it out
+
 v1.3.0 (2021-08-09)
 -------------------
 
