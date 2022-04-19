@@ -2,6 +2,7 @@ import os
 from argparse import ArgumentParser, RawTextHelpFormatter
 
 import sbws.core.cleanup
+import sbws.core.flowctrl2
 import sbws.core.generate
 import sbws.core.scanner
 import sbws.core.stats
@@ -32,4 +33,5 @@ def create_parser():
     sbws.core.scanner.gen_parser(sub)
     sbws.core.generate.gen_parser(sub)
     sbws.core.stats.gen_parser(sub)
+    sbws.core.flowctrl2.gen_parser(sub)
     return p

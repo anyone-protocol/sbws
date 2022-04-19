@@ -6,6 +6,7 @@ from requests.__version__ import __version__ as requests_version
 from stem import __version__ as stem_version
 
 import sbws.core.cleanup
+import sbws.core.flowctrl2
 import sbws.core.generate
 import sbws.core.scanner
 import sbws.core.stats
@@ -77,6 +78,11 @@ def main():
             "kw": def_kwargs,
         },
         "stats": {"f": sbws.core.stats.main, "a": def_args, "kw": def_kwargs},
+        "flowctrl2": {
+            "f": sbws.core.flowctrl2.main,
+            "a": def_args,
+            "kw": def_kwargs,
+        },
     }
     try:
         if args.command not in known_commands:
