@@ -7,6 +7,25 @@ The format is based on `Keep a
 Changelog <http://keepachangelog.com/en/1.0.0/>`__ and this project
 adheres to `Semantic Versioning <http://semver.org/spec/v2.0.0.html>`__.
 
+v1.5.0 (2022-04-26)
+-------------------
+
+New
+~~~
+- Choose exits that implement congestion control.
+  and create methods to check that the consensus implements congestion
+  control.
+  Closes #40125
+
+Changes
+~~~~~~~
+- Add subcommand to show exits with 2 in FlowCtrl.
+  Closes #40132
+
+Fix
+~~~
+- Update authors.
+
 v1.4.0 (2022-02-14)
 -------------------
 
