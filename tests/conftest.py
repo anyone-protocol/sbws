@@ -79,7 +79,7 @@ def router_statuses_5days_later(root_data_path):
 @pytest.fixture(scope="session")
 def controller(router_statuses):
     controller = mock.Mock()
-    controller.get_info.return_value = "params foo=bar"
+    controller.get_info.return_value = "params foo=23"
     controller.get_network_statuses.return_value = router_statuses
     return controller
 

@@ -563,7 +563,7 @@ class RelayList:
         # Create a dictionary from the consensus `params` line.
         self.consensus_params_dict = dict(
             [
-                (p.split("=")[0], p.split("=")[1])
+                (p.split("=")[0], int(p.split("=")[1]))
                 for p in consensus_dict.get("params", [])
             ]
         )
@@ -589,7 +589,7 @@ class RelayList:
         """
         if (
             self.consensus_params_dict
-            and self.consensus_params_dict.get("cc_alg", None) == 2
+            and self.consensus_params_dict.get("cc_alg", 0) == 2
         ):
             log.info("The consensus implements congestion control.")
             return True
@@ -603,7 +603,7 @@ class RelayList:
         the `bwscanner_cc` field."""
         if (
             self.consensus_params_dict
-            and self.consensus_params_dict.get("bwscanner_cc", None) >= 1
+            and self.consensus_params_dict.get("bwscanner_cc", 0) >= 1
         ):
             log.info(
                 "The consensus says to use exits that support congestion"
