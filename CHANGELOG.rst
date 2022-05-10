@@ -7,6 +7,15 @@ The format is based on `Keep a
 Changelog <http://keepachangelog.com/en/1.0.0/>`__ and this project
 adheres to `Semantic Versioning <http://semver.org/spec/v2.0.0.html>`__.
 
+v1.5.1 (2022-05-10)
+-------------------
+
+Changes
+~~~~~~~
+- Change `cc_alg` and `bwscanner_cc` values to int.
+  Because consensus parameters are strings in stem.
+  Closes #40134.
+
 v1.5.0 (2022-04-26)
 -------------------
 
