@@ -224,34 +224,14 @@ def _pick_ideal_second_hop(relay, dest, rl, cont, is_exit):
     # a problem since the relay will be measured in the next loop with other
     # random exit.
 
-    # #40125
-    if rl.is_consensus_cc_alg_2:
-        if rl.is_consensus_bwscanner_cc_gte_1:
-            log.debug("Congestion control enabled.")
-            candidates = rl.exits_with_2_in_flowctrl(dest.port)
-        else:  # bwscanner_cc != 1
-            log.debug(
-                "Congestion control enabled but not using exits with "
-                "congestion control enabled."
-            )
-            candidates = rl.exits_without_2_in_flowctrl(dest.port)
-    else:
-        log.debug("Congestion control disabled.")
-        candidates = (
-            rl.exits_not_bad_allowing_port(dest.port)
-            if is_exit
-            else rl.non_exits
-        )
+    # #40125: Select the candidates calling again this function, call already
+    # in `measure_relay`, so that there is no need to change internal API.
+    _, candidates = select_helper_candidates(relay, rl, dest)
+
     if not len(candidates):
         log.debug("No candidates.")
         return None
-    # In the case the helper is an exit, the entry could be an exit too
-    # (#40041), so ensure the helper is not the same as the entry, likely to
-    # happen in a test network.
-    if is_exit:
-        candidates = [
-            c for c in candidates if c.fingerprint != relay.fingerprint
-        ]
+
     # While not all exits implement congestion control, the min bw might not
     # correspond to the subset that implement it.
     min_relay_bw = rl.exit_min_bw() if is_exit else rl.non_exit_min_bw()
@@ -344,6 +324,73 @@ def error_no_circuit(circ_fps, nicknames, reason, relay, dest, our_nick):
     ]
 
 
+def select_helper_candidates(relay, rl, dest):
+    """Return whether to use the relay as entry and helper candidates list.
+
+    :rtype: tuple(bool, list)
+
+    """
+    relay_as_entry = True
+    if rl.is_consensus_cc_alg_2:
+        log.debug("Congestion control enabled.")
+        if rl.is_consensus_bwscanner_cc_gte_1:
+            log.debug("Use congestion control.")
+            if (
+                relay.is_exit_not_bad_allowing_port(dest.port)
+                and relay.has_2_in_flowctrl
+            ):
+                log.debug("Relay to measure is exit.")
+                log.debug("Exit has 2 in FlowCtrl.")
+                log.debug("Use relay as exit. Choose non-exits.")
+                relay_as_entry = False
+                candidates = rl.non_exits
+            else:  # no exit or no 2 in FlowCtrl
+                log.debug("Relay is not exit or has NOT 2 in FlowCtrl.")
+                log.debug(
+                    "Use relay as entry."
+                    "Choose an exit that does have 2 in FlowCtrl"
+                )
+                candidates = rl.exits_with_2_in_flowctrl(dest.port)
+        else:  # bwscanner_cc != 1
+            log.debug("Do not use congestion control.")
+            if (
+                relay.is_exit_not_bad_allowing_port(dest.port)
+                and not relay.has_2_in_flowctrl
+            ):
+                log.debug("Relay to measure is exit.")
+                log.debug("Exit has NOT 2 in FlowCtrl.")
+                log.debug("Use relay as exit. Choose non-exits.")
+                relay_as_entry = False
+                candidates = rl.non_exits
+            else:  # no exit or 2 in FlowCtrl
+                log.debug("Relay is not exit or it has 2 in FlowCtrl.")
+                log.debug(
+                    "Use relay as entry."
+                    "Choose an exit that does NOT have 2 in FlowCtrl"
+                )
+                candidates = rl.exits_without_2_in_flowctrl(dest.port)
+    else:  # cc_alg!=2
+        log.debug("Congestion control disabled.")
+        if relay.is_exit_not_bad_allowing_port(dest.port):
+            log.debug("Relay to measure is exit.")
+            log.debug("Use relay as exit. Choose non-exits.")
+            relay_as_entry = False
+            candidates = rl.non_exits
+        else:
+            log.debug("Relay to measure is NOT exit.")
+            log.debug("Use relay as entry. Choose an exit.")
+            candidates = rl.exits_not_bad_allowing_port(dest.port)
+
+    # In the case the helper is an exit, the entry could be an exit too
+    # (#40041), so ensure the helper is not the same as the entry, likely to
+    # happen in a test network.
+    if not relay_as_entry:
+        candidates = [
+            c for c in candidates if c.fingerprint != relay.fingerprint
+        ]
+    return (relay_as_entry, candidates)
+
+
 def measure_relay(args, conf, destinations, cb, rl, relay):
     """
     Select a Web server, a relay to build the circuit,
@@ -395,12 +442,16 @@ def measure_relay(args, conf, destinations, cb, rl, relay):
 
     # Pick a relay to help us measure the given relay. If the given relay is an
     # exit, then pick a non-exit. Otherwise pick an exit.
+    # From #40125, this condition is more complex.
+
     # Instead of ensuring that the relay can exit to all IPs, try first with
     # the relay as an exit, if it can exit to some IPs.
-    if relay.is_exit_not_bad_allowing_port(dest.port):
-        r = create_path_relay(relay, dest, rl, cb, relay_as_entry=False)
-    else:
-        r = create_path_relay(relay, dest, rl, cb)
+
+    # #40125 Check whether the relay will be used as entry and which obtain the
+    # helper candidates.
+    relay_as_entry, candidates = select_helper_candidates(relay, rl, dest)
+    r = create_path_relay(relay, dest, rl, cb, relay_as_entry=relay_as_entry)
+
     # When `error_no_helper` is triggered because a helper is not found, what
     # can happen in test networks with very few relays, it returns a list with
     # the error.
@@ -434,7 +485,8 @@ def measure_relay(args, conf, destinations, cb, rl, relay):
     # In the case that the relay was used as an exit, but could not exit
     # to the Web server, try again using it as entry, to avoid that it would
     # always fail when there's only one Web server.
-    if not is_usable and relay.is_exit_not_bad_allowing_port(dest.port):
+
+    if not is_usable and not relay_as_entry:
         log.debug(
             "Exit %s (%s) that can't exit all ips, with exit policy %s, failed"
             " to connect to %s via circuit %s (%s). Reason: %s. Trying again "
