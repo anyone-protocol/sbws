@@ -137,9 +137,9 @@ class Relay:
         protocols = self._from_desc("protocols")
         if protocols:
             if 2 in protocols.get("FlowCtrl", []):
-                log.debug("Exit %s has 2 in `FlowCtrl`.", self.nickname)
+                # log.debug("Exit %s has 2 in `FlowCtrl`.", self.nickname)
                 return True
-        log.debug("Exit %s does not have 2 in `FlowCtrl`.", self.nickname)
+        # log.debug("Exit %s does not have 2 in `FlowCtrl`.", self.nickname)
         return False
 
     @property
@@ -567,7 +567,7 @@ class RelayList:
                 for p in consensus_dict.get("params", [])
             ]
         )
-        log.debug("Consensus params: %s", self.consensus_params_dict.keys())
+        log.debug("Consensus params: %s", self.consensus_params_dict.items())
 
     @property
     def is_consensus_cc_alg_2(self):
