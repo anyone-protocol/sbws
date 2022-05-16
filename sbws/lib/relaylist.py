@@ -514,11 +514,20 @@ class RelayList:
         in their protover consensus line.
 
         """
-        return [
+        exits_flowctrl2 = [
             r
             for r in self.exits_not_bad_allowing_port(port)
             if r.has_2_in_flowctrl
         ]
+        # In chutney, just take relays with exit flag
+        if (
+            not exits_flowctrl2
+            and self._controller.get_conf("TestingTorNetwork") == "1"
+        ):
+            exits_flowctrl2 = list(
+                filter(lambda r: r.has_2_in_flowctrl, self.exits)
+            )
+        return exits_flowctrl2
 
     def exits_without_2_in_flowctrl(self, port):
         """

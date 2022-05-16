@@ -211,11 +211,11 @@ def measure_bandwidth_to_server(session, conf, dest, content_length):
     return results, None
 
 
-def _pick_ideal_second_hop(relay, dest, rl, cont, is_exit):
+def _pick_ideal_second_hop(relay, rl, relay_as_entry, candidates):
     """
-    Sbws builds two hop circuits. Given the **relay** to measure with
-    destination **dest**, pick a second relay that is or is not an exit
-    according to **is_exit**.
+    Sbws builds two hop circuits. Given the **relay** to measure, pick a helper
+    relay from **candidates** with minimum bandwidth depending on whether
+    **relay_as_entry**.
     """
     # 40041: Instead of using exits that can exit to all IPs, to ensure that
     # they can make requests to the Web servers, try with the exits that
@@ -224,22 +224,14 @@ def _pick_ideal_second_hop(relay, dest, rl, cont, is_exit):
     # a problem since the relay will be measured in the next loop with other
     # random exit.
 
-    # #40125: Select the candidates calling again this function, call already
-    # in `measure_relay`, so that there is no need to change internal API.
-    _, candidates = select_helper_candidates(relay, rl, dest)
-
-    if not len(candidates):
-        log.debug("No candidates.")
-        return None
-
     # While not all exits implement congestion control, the min bw might not
     # correspond to the subset that implement it.
-    min_relay_bw = rl.exit_min_bw() if is_exit else rl.non_exit_min_bw()
+    min_relay_bw = rl.exit_min_bw() if relay_as_entry else rl.non_exit_min_bw()
     log.debug(
-        "Picking a 2nd hop to measure %s from %d choices. is_exit=%s",
+        "Picking a 2nd hop to measure %s from %d choices. relay_as_entry=%s",
         relay.nickname,
         len(candidates),
-        is_exit,
+        relay_as_entry,
     )
     for min_bw_factor in [2, 1.75, 1.5, 1.25, 1]:
         min_bw = relay.consensus_bandwidth * min_bw_factor
@@ -249,7 +241,7 @@ def _pick_ideal_second_hop(relay, dest, rl, cont, is_exit):
         if min_bw < min_relay_bw:
             min_bw = min_relay_bw
         new_candidates = stem_utils.only_relays_with_bandwidth(
-            cont, candidates, min_bw=min_bw
+            candidates, min_bw=min_bw
         )
         if len(new_candidates) > 0:
             chosen = rng.choice(new_candidates)
@@ -289,15 +281,16 @@ def error_no_helper(relay, dest, our_nick=""):
     ]
 
 
-def create_path_relay(relay, dest, rl, cb, relay_as_entry=True):
-    # the helper `is_exit` arg (should be better called `helper_as_exit`),
+def create_path_relay(relay, dest, rl, relay_as_entry, candidates):
+    # the helper `relay_as_entry` arg,
     # is True when the relay is the entry (helper has to be exit)
     # and False when the relay is not the entry, ie. is the exit (helper does
     # not have to be an exit)
 
-    helper = _pick_ideal_second_hop(
-        relay, dest, rl, cb.controller, is_exit=relay_as_entry
-    )
+    if not candidates:
+        return error_no_helper(relay, dest)
+
+    helper = _pick_ideal_second_hop(relay, rl, relay_as_entry, candidates)
 
     if not helper:
         return error_no_helper(relay, dest)
@@ -324,12 +317,13 @@ def error_no_circuit(circ_fps, nicknames, reason, relay, dest, our_nick):
     ]
 
 
-def select_helper_candidates(relay, rl, dest):
-    """Return whether to use the relay as entry and helper candidates list.
+def use_relay_as_entry(relay, rl, dest):
+    """Return whether to use the relay as entry or not.
 
-    :rtype: tuple(bool, list)
+    :rtype: bool
 
     """
+    log.debug("Deciding whether to use the relay as entry or not.")
     relay_as_entry = True
     if rl.is_consensus_cc_alg_2:
         log.debug("Congestion control enabled.")
@@ -343,6 +337,58 @@ def select_helper_candidates(relay, rl, dest):
                 log.debug("Exit has 2 in FlowCtrl.")
                 log.debug("Use relay as exit. Choose non-exits.")
                 relay_as_entry = False
+            else:  # no exit or no 2 in FlowCtrl
+                log.debug("Relay is not exit or has NOT 2 in FlowCtrl.")
+                log.debug(
+                    "Use relay as entry."
+                    "Choose an exit that does have 2 in FlowCtrl"
+                )
+        else:  # bwscanner_cc != 1
+            log.debug("Do not use congestion control.")
+            if (
+                relay.is_exit_not_bad_allowing_port(dest.port)
+                and not relay.has_2_in_flowctrl
+            ):
+                log.debug("Relay to measure is exit.")
+                log.debug("Exit has NOT 2 in FlowCtrl.")
+                log.debug("Use relay as exit. Choose non-exits.")
+                relay_as_entry = False
+            else:  # no exit or 2 in FlowCtrl
+                log.debug("Relay is not exit or it has 2 in FlowCtrl.")
+                log.debug(
+                    "Use relay as entry."
+                    "Choose an exit that does NOT have 2 in FlowCtrl"
+                )
+    else:  # cc_alg!=2
+        log.debug("Congestion control disabled.")
+        if relay.is_exit_not_bad_allowing_port(dest.port):
+            log.debug("Relay to measure is exit.")
+            log.debug("Use relay as exit. Choose non-exits.")
+            relay_as_entry = False
+        else:
+            log.debug("Relay to measure is NOT exit.")
+            log.debug("Use relay as entry. Choose an exit.")
+    return relay_as_entry
+
+
+def select_helper_candidates(relay, rl, dest, relay_as_entry=True):
+    """Return helper candidates list.
+
+    :rtype: list
+
+    """
+    if rl.is_consensus_cc_alg_2:
+        log.debug("Congestion control enabled.")
+        if rl.is_consensus_bwscanner_cc_gte_1:
+            log.debug("Use congestion control.")
+            if (
+                relay.is_exit_not_bad_allowing_port(dest.port)
+                and relay.has_2_in_flowctrl
+                and not relay_as_entry
+            ):
+                log.debug("Relay to measure is exit.")
+                log.debug("Exit has 2 in FlowCtrl.")
+                log.debug("Use relay as exit. Choose non-exits.")
                 candidates = rl.non_exits
             else:  # no exit or no 2 in FlowCtrl
                 log.debug("Relay is not exit or has NOT 2 in FlowCtrl.")
@@ -356,11 +402,11 @@ def select_helper_candidates(relay, rl, dest):
             if (
                 relay.is_exit_not_bad_allowing_port(dest.port)
                 and not relay.has_2_in_flowctrl
+                and not relay_as_entry
             ):
                 log.debug("Relay to measure is exit.")
                 log.debug("Exit has NOT 2 in FlowCtrl.")
                 log.debug("Use relay as exit. Choose non-exits.")
-                relay_as_entry = False
                 candidates = rl.non_exits
             else:  # no exit or 2 in FlowCtrl
                 log.debug("Relay is not exit or it has 2 in FlowCtrl.")
@@ -371,24 +417,27 @@ def select_helper_candidates(relay, rl, dest):
                 candidates = rl.exits_without_2_in_flowctrl(dest.port)
     else:  # cc_alg!=2
         log.debug("Congestion control disabled.")
-        if relay.is_exit_not_bad_allowing_port(dest.port):
+        if (
+            relay.is_exit_not_bad_allowing_port(dest.port)
+            and not relay_as_entry
+        ):
             log.debug("Relay to measure is exit.")
             log.debug("Use relay as exit. Choose non-exits.")
-            relay_as_entry = False
             candidates = rl.non_exits
         else:
             log.debug("Relay to measure is NOT exit.")
             log.debug("Use relay as entry. Choose an exit.")
             candidates = rl.exits_not_bad_allowing_port(dest.port)
 
-    # In the case the helper is an exit, the entry could be an exit too
+    # In the case the relay is measured as an exit, the entry helper could be
+    # an exit too
     # (#40041), so ensure the helper is not the same as the entry, likely to
     # happen in a test network.
-    if not relay_as_entry:
+    if not relay_as_entry:  # relay to measure as exit
         candidates = [
             c for c in candidates if c.fingerprint != relay.fingerprint
         ]
-    return (relay_as_entry, candidates)
+    return candidates
 
 
 def measure_relay(args, conf, destinations, cb, rl, relay):
@@ -449,8 +498,9 @@ def measure_relay(args, conf, destinations, cb, rl, relay):
 
     # #40125 Check whether the relay will be used as entry and which obtain the
     # helper candidates.
-    relay_as_entry, candidates = select_helper_candidates(relay, rl, dest)
-    r = create_path_relay(relay, dest, rl, cb, relay_as_entry=relay_as_entry)
+    relay_as_entry = use_relay_as_entry(relay, rl, dest)
+    candidates = select_helper_candidates(relay, rl, dest, relay_as_entry)
+    r = create_path_relay(relay, dest, rl, relay_as_entry, candidates)
 
     # When `error_no_helper` is triggered because a helper is not found, what
     # can happen in test networks with very few relays, it returns a list with
@@ -499,7 +549,10 @@ def measure_relay(args, conf, destinations, cb, rl, relay):
             nicknames,
             usable_data,
         )
-        r = create_path_relay(relay, dest, rl, cb)
+        relay_as_entry = True
+        # select new candidates as exit
+        candidates = select_helper_candidates(relay, rl, dest, relay_as_entry)
+        r = create_path_relay(relay, dest, rl, relay_as_entry, candidates)
         if len(r) == 1:
             return r
         circ_fps, nicknames, exit_policy = r

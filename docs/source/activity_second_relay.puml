@@ -2,13 +2,31 @@
 
 start
 
+:relay_as_entry = True;
 if (consensus has `cc_alg=2`) then (yes)
   if (consensus has `bwscanner_cc>=1`) then (yes)
     if (relay to measure is exit AND has `FlowCtrl=2`) then (yes)
-      :use relay as exit;
+      :relay_as_entry = False;
+    endif
+  'no bwscanner>=1
+  else (no)
+    if (relay to measure is exit AND has NOT `FlowCtrl=2`) then (yes)
+      :relay_as_entry = False;
+    endif
+  endif
+' no cc_alg=2
+else (no)
+  if (relay to measure is exit?) then (yes)
+      :relay_as_entry = False;
+  endif
+endif
+
+
+if (consensus has `cc_alg=2`) then (yes)
+  if (consensus has `bwscanner_cc>=1`) then (yes)
+    if (relay to measure is exit AND has `FlowCtrl=2` AND NOT relay_as_entry) then (yes)
       :obtain non-exits;
     else (no)
-      :use relay as entry;
       :obtain exits
       with proto `FlowCtrol=2`
       without bad flag
@@ -17,11 +35,9 @@ if (consensus has `cc_alg=2`) then (yes)
     endif
   'no bwscanner>=1
   else (no)
-    if (relay to measure is exit AND has NOT `FlowCtrl=2`) then (yes)
-      :use relay as exit;
+    if (relay to measure is exit AND has NOT `FlowCtrl=2` AND NOT relay_as_entry) then (yes)
       :obtain non-exits;
-    else
-      :use relay as entry;
+    else (no)
       :obtain exits
       with proto `FlowCtrol!=2`
       without bad flag
@@ -31,17 +47,16 @@ if (consensus has `cc_alg=2`) then (yes)
   endif
 ' no cc_alg=2
 else (no)
-  if (relay to measure is exit?) then (yes)
-    :use relay as exit;
+  if (relay to measure is exit AND NOT relay_as_entry?) then (yes)
     :obtain non-exits;
   else (no)
-    :use relay as entry;
-    :obtain an exits
+    :obtain exits
     without bad flag
     that can exit
     to port 443;
   endif
 endif
+
 
 :potential second relays;
 :obtain a relay

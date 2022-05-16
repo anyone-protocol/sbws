@@ -2,7 +2,12 @@ import logging
 
 import pytest
 
-from sbws.core.scanner import _pick_ideal_second_hop, measure_relay
+from sbws.core.scanner import (
+    _pick_ideal_second_hop,
+    measure_relay,
+    select_helper_candidates,
+    use_relay_as_entry,
+)
 from sbws.lib.resultdump import ResultSuccess
 
 
@@ -85,7 +90,8 @@ def test_second_hop_has_2_in_flowctrl(
     assert rl.is_consensus_bwscanner_cc_gte_1
     dest = dests._all_dests[0]
     relay = rl._relays[0]
-    helper = _pick_ideal_second_hop(
-        relay, dest, rl, persistent_launch_tor, False
-    )
+
+    relay_as_entry = use_relay_as_entry(relay, rl, dest)
+    candidates = select_helper_candidates(relay, rl, dest, relay_as_entry)
+    helper = _pick_ideal_second_hop(relay, rl, relay_as_entry, candidates)
     assert helper.has_2_in_flowctrl

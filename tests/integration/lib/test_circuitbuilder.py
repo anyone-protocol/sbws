@@ -36,13 +36,12 @@ def test_build_circuit_with_exit_flowctrl(is_cc_tor_version, cb, rl):
     assert not circuit_id
     # Valid path, not valid exit
     exits = rl.exits_with_2_in_flowctrl(port=443)
+    # Valid path and relays
+    exit_relay = random.choice(exits)
     # See https://gitlab.torproject.org/tpo/core/chutney/-/issues/40013:
     # Work around to get supposed non-exits because chutney is putting Exit
     # flag to all relays
-    non_exits = list(set(rl.exits).difference(set(exits)))
-    entry = random.choice(non_exits)
-    # Valid path and relays
-    exit_relay = random.choice(exits)
+    entry = random.choice([e for e in exits if e != exit_relay])
     path = [entry.fingerprint, exit_relay.fingerprint]
     circuit_id, _ = cb.build_circuit(path)
     assert circuit_id

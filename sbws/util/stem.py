@@ -297,7 +297,7 @@ def get_socks_info(controller):
         log.debug(e)
 
 
-def only_relays_with_bandwidth(controller, relays, min_bw=None, max_bw=None):
+def only_relays_with_bandwidth(relays, min_bw=None, max_bw=None):
     """
     Given a list of relays, only return those that optionally have above
     **min_bw** and optionally have below **max_bw**, inclusively. If neither

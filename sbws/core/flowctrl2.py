@@ -58,7 +58,7 @@ def main(args, conf):
     for relay in non_exits:
         double_min_bw = max(exits_min_bw, relay.consensus_bandwidth * 2)
         helpers = stem_utils.only_relays_with_bandwidth(
-            controller, exits_with_min_bw, min_bw=double_min_bw
+            exits_with_min_bw, min_bw=double_min_bw
         )
         if helpers:
             log.debug(
@@ -70,7 +70,7 @@ def main(args, conf):
         else:
             min_bw = max(exits_min_bw, relay.consensus_bandwidth)
             helpers = stem_utils.only_relays_with_bandwidth(
-                controller, exits_with_min_bw, min_bw=min_bw
+                exits_with_min_bw, min_bw=min_bw
             )
             if helpers:
                 log.debug(
