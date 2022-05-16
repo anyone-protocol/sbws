@@ -164,3 +164,28 @@ def main(args, conf):
         " double or same bandwidth: %s.",
         non_exits_without_helpers_flowctrl2_same_double_bw,
     )
+
+    sum_consensus_bw = rl.sum_consensus_bw
+    log.info("Total consensus weight: %s", sum_consensus_bw / 1000)
+    sum_consensus_bw_exits_not_bad_allowing_port = (
+        rl.sum_consensus_bw_exits_not_bad_allowing_port
+    )
+    log.info(
+        "Consensus weight of exits (without BAD flag, allowing 443 port): %s",
+        sum_consensus_bw_exits_not_bad_allowing_port / 1000,
+    )
+    sum_consensus_bw_exits_flowctrl2 = rl.sum_consensus_bw_exits_flowctrl2
+    log.info(
+        "Cnsensus weight exits (without BAD flag, allowing 443 port)"
+        " with 2 in FlowCtrl: %s",
+        sum_consensus_bw_exits_flowctrl2,
+    )
+    fraction_flowctrl2_exits = (
+        sum_consensus_bw_exits_flowctrl2
+        / sum_consensus_bw_exits_not_bad_allowing_port
+    )
+    log.info(
+        "Fraction of consensus weight of exits with 2 in FlowCtrl with respect"
+        " all the exits: %.2f",
+        fraction_flowctrl2_exits,
+    )

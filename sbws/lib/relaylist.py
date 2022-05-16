@@ -672,3 +672,36 @@ class RelayList:
 
     def non_exit_min_bw(self):
         return self._non_exit_min_bw
+
+    @property
+    def sum_consensus_bw(self):
+        return sum(
+            list(
+                map(
+                    lambda r: r.consensus_bandwidth,
+                    self.relays,
+                )
+            )
+        )
+
+    @property
+    def sum_consensus_bw_exits_not_bad_allowing_port(self):
+        return sum(
+            list(
+                map(
+                    lambda r: r.consensus_bandwidth,
+                    self.exits_not_bad_allowing_port(443),
+                )
+            )
+        )
+
+    @property
+    def sum_consensus_bw_exits_flowctrl2(self):
+        return sum(
+            list(
+                map(
+                    lambda r: r.consensus_bandwidth,
+                    self.exits_with_2_in_flowctrl(443),
+                )
+            )
+        )
