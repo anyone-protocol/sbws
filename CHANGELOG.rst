@@ -7,6 +7,51 @@ The format is based on `Keep a
 Changelog <http://keepachangelog.com/en/1.0.0/>`__ and this project
 adheres to `Semantic Versioning <http://semver.org/spec/v2.0.0.html>`__.
 
+v1.5.2 (2022-05-17)
+-------------------
+
+Changes
+~~~~~~~
+- When an exit fail to exit, check CC.
+  before selecting other exits as helpers.
+  In #40136 we forgot to consider the corner case in #40041, discovered
+  thanks to analysis#36.
+  This was causing that sometimes a CC circuit was built when
+  bwscanner_cc wasn't equal or greater than 1 or the other way around.
+  We didn't realize about this cause this part of the code is very
+  confusing. To don't make it even more confusing, i've changed the
+  internal API:
+
+  - `select_helper_candidates`: split function into one to select the
+    helper candidates, knowing whether to use the relay as exit or not
+    and other function `use_relay_as_entry` to decide whether to use the
+    relay as entry or not checking CC params.
+    Also pass a new arg `relay_as_entry`.
+  - `create_path_relay`: remove not used `cb` arg, add `candidates` arg
+    to stop having to select them again later on. Move the no
+    `candidates` condition here instead of checking it in
+    `pick_ideal_second_hop`.
+  - `_pick_ideal_second_hope: remove unneeded `dest` and `cont arguments,
+    rename `is_exit` to `helper_is_exit`. Use the candidates instead of
+    selecting them again.
+  - `measure_relay`: in the case an exit fails to exit, select the
+    candidates knowing that they have to be exits and checking CC.
+  - `only_relays_with_bandwidth`: remove unneeded arg `controller` so
+    that there is no need to pass it through several functions.
+
+  Closes #40138
+- Consensus weight fraction of CC exits.
+  Closes #40139
+- Scanner: check `bwscanner_cc` and `FlowCtrl`
+  before measuring an exit as exit.
+  Closes #40136
+
+Fix
+~~~
+- Doc: changelog indentation and new lines
+- Relaylist: Comment too verbose logs.
+  And log consensus params items instead of just keys.
+
 v1.5.1 (2022-05-10)
 -------------------
 
