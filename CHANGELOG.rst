@@ -119,8 +119,8 @@ Other
 ~~~~~
 - Remove userquery code.
 - Change default country to AA for [scanner]
-  - SN was set as default value instead of AA;
-    - according to ISO 3166, SN refers to Senegal.
+  SN was set as default value instead of AA
+  according to ISO 3166, SN refers to Senegal.
 - Update scanner.country's comment.
   - sbws.example.ini described destination's country inside of scanner's
 - Improvements and being inline with pep8.
@@ -187,6 +187,7 @@ Fix
   since master is the default and add test for master.
 - CI: Change indentation to 2 chars.
 - Scanner: Increase time getting measurements.
+
   - Increase the time waiting for the last measurements queued, to avoid
     canceling unfinished measurements and gc maybe not releasing thread
     variables
