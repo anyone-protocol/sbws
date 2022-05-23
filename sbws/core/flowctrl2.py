@@ -32,7 +32,7 @@ def main(args, conf):
     exits_min_bw = rl.exit_min_bw()
     log.info("Exits minimum bandwidth: %s KB.", exits_min_bw / 1000)
     exits_with_min_bw = stem_utils.only_relays_with_bandwidth(
-        controller, exits, min_bw=exits_min_bw
+        exits, min_bw=exits_min_bw
     )
     log.info(
         "Number of exits with minimum bandwidth: %s", len(exits_with_min_bw)
@@ -101,7 +101,7 @@ def main(args, conf):
         "Number of exits that have 2 in FlowCtrl: %s.", len(exits_flowctrl2)
     )
     exits_flowctrl2_min_bw = stem_utils.only_relays_with_bandwidth(
-        controller, exits_flowctrl2, min_bw=exits_min_bw
+        exits_flowctrl2, min_bw=exits_min_bw
     )
     log.info(
         "Number of exits that have 2 in FlowCtrl and minimum bandwidth: %s",
@@ -125,7 +125,7 @@ def main(args, conf):
     for relay in non_exits:
         double_min_bw = max(exits_min_bw, relay.consensus_bandwidth * 2)
         helpers = stem_utils.only_relays_with_bandwidth(
-            controller, exits_flowctrl2_min_bw, min_bw=double_min_bw
+            exits_flowctrl2_min_bw, min_bw=double_min_bw
         )
         if helpers:
             log.debug(
@@ -137,7 +137,7 @@ def main(args, conf):
         else:
             min_bw = max(exits_min_bw, relay.consensus_bandwidth)
             helpers = stem_utils.only_relays_with_bandwidth(
-                controller, exits_flowctrl2_min_bw, min_bw=min_bw
+                exits_flowctrl2_min_bw, min_bw=min_bw
             )
             if helpers:
                 log.debug(
@@ -176,7 +176,7 @@ def main(args, conf):
     )
     sum_consensus_bw_exits_flowctrl2 = rl.sum_consensus_bw_exits_flowctrl2
     log.info(
-        "Cnsensus weight exits (without BAD flag, allowing 443 port)"
+        "Consensus weight exits (without BAD flag, allowing 443 port)"
         " with 2 in FlowCtrl: %s",
         sum_consensus_bw_exits_flowctrl2,
     )
