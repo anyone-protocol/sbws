@@ -5,9 +5,13 @@
 set -ex
 
 tests/integration/start_chutney.sh
-python3 scripts/tools/sbws-http-server.py --port 28888 &>/dev/null &
-sleep 1
-wget -O/dev/null http://127.0.0.1:28888/sbws.bin
+
+sleep 60
+
+python3 tests/integration/async_https_server.py &>/dev/null &
+sleep 5
+wget --no-check-certificate -O/dev/null https://localhost:28888/
+
 # Run actually the scanner
 sbws -c tests/integration/sbws_testnet.ini scanner
 sbws -c tests/integration/sbws_testnet.ini generate

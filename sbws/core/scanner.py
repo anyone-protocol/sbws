@@ -12,9 +12,18 @@ import traceback
 import uuid
 from argparse import ArgumentDefaultsHelpFormatter
 
+import requests
+from stem.control import EventType
+
 import sbws.util.requests as requests_utils
 import sbws.util.stem as stem_utils
-from sbws.globals import HTTP_GET_HEADERS, SOCKET_TIMEOUT, fail_hard
+from sbws.globals import (
+    HTTP_GET_HEADERS,
+    HTTP_POST_SIZE,
+    HTTP_POST_UL_KEY,
+    SOCKET_TIMEOUT,
+    fail_hard,
+)
 
 from .. import settings
 from ..lib.circuitbuilder import GapsCircuitBuilder as CB
@@ -208,6 +217,85 @@ def measure_bandwidth_to_server(session, conf, dest, content_length):
         expected_amount = _next_expected_amount(
             expected_amount, data, download_times, min_dl, max_dl
         )
+    return results, None
+
+
+def upload_data(
+    session, conf, dest, cont, circ_id
+):  # , size=HTTP_POST_SIZE, payload_key=HTTP_POST_UL_KEY, ul_file_path=None):
+    """
+    Upload data ``size`` or ``ul_file_path`` to a destination URL over
+    ``circ_id`` via HTTP POST request.
+
+    This function is equivalent to the HTTP HEAD and GET requests implemented
+    with the functions:
+
+    - ``sbws.lib.destination.connect_to_destination_over_circuit``
+      which in turn calls``sbws.lib.stem.attach_stream_to_circuit_listener``
+      and ``sbws.lib.stem.add_event_listener``: to listen for stream event.
+    - ``measure_bandwidth_to_server``: to calculate download sizes, not needed
+      anymore.
+    - ``timed_recv_from_server``: the measurement itself.
+
+    :return: measurement ``Result`` (or None) and error or None
+    :rtype: tuple(Result, str)
+
+    """
+    log.debug("Uploading data...")
+    listener = stem_utils.attach_stream_to_circuit_listener(cont, circ_id)
+    stem_utils.add_event_listener(cont, listener, EventType.STREAM)
+
+    size = conf.getint("scanner", "http_post_size")
+    # The data to upload is so far zeros.
+    data = bytearray(size)
+    # Without opening a file, `filename` is not sent in the request.
+    ul_file_path = conf.getpath("paths", "ul_file_path")
+    if ul_file_path:
+        data = open(ul_file_path, "rb")
+    start_time = time.monotonic()
+    try:
+        response = session.post(
+            dest.url,
+            files={conf.get("scanner", "payload_key"): data},
+            verify=dest.verify,
+        )
+    except requests.exceptions.RequestException as e:
+        dest.add_failure()
+        msg = "Could not connect to {} over circ {} {}: {}".format(
+            dest.url, circ_id, stem_utils.circuit_str(cont, circ_id), e
+        )
+        log.debug("%s: %s", msg, e)
+        return None, msg
+    except Exception as e:
+        dest.add_failure()
+        log.debug(e)
+        return None, e
+    finally:
+        end_time = time.monotonic()
+        stem_utils.remove_event_listener(cont, listener)
+
+    if response.status_code != requests.codes.ok:
+        dest.add_failure()
+        msg = (
+            "When sending HTTP POST to {}, we expected HTTP code {} "
+            "not {}".format(dest.url, requests.codes.ok, response.status_code)
+        )
+        log.debug(msg)
+        return None, msg
+
+    dest.add_success()
+    time_delta = end_time - start_time
+    results = [{"duration": time_delta, "amount": size}]
+    log.debug("Time uploading %s bytes: %s seconds.", size, time_delta)
+    log.debug(
+        "POST response elapsed seconds: %s.",
+        response.elapsed.total_seconds(),
+    )
+    measured_bandwidth = size / (time_delta)
+    log.debug(
+        "Measured bandwidth: %s Bytes/seconds",
+        measured_bandwidth,
+    )
     return results, None
 
 
@@ -527,104 +615,113 @@ def measure_relay(args, conf, destinations, cb, rl, relay):
         relay.fingerprint,
         relay.nickname,
     )
-    # Make a connection to the destination
-    is_usable, usable_data = connect_to_destination_over_circuit(
-        dest, circ_id, s, cb.controller, dest._max_dl
-    )
 
-    # In the case that the relay was used as an exit, but could not exit
-    # to the Web server, try again using it as entry, to avoid that it would
-    # always fail when there's only one Web server.
-
-    if not is_usable and not relay_as_entry:
-        log.debug(
-            "Exit %s (%s) that can't exit all ips, with exit policy %s, failed"
-            " to connect to %s via circuit %s (%s). Reason: %s. Trying again "
-            "with it as entry.",
-            relay.fingerprint,
-            relay.nickname,
-            exit_policy,
-            dest.url,
-            circ_fps,
-            nicknames,
-            usable_data,
+    if rl.is_consensus_bwscanner_cc_2:
+        # 40130: Upload data instead of downloading it.
+        bw_results, reason = upload_data(s, conf, dest, cb.controller, circ_id)
+    else:
+        # Make a connection to the destination
+        is_usable, usable_data = connect_to_destination_over_circuit(
+            dest, circ_id, s, cb.controller, dest._max_dl
         )
-        relay_as_entry = True
-        # select new candidates as exit
-        candidates = select_helper_candidates(relay, rl, dest, relay_as_entry)
-        r = create_path_relay(relay, dest, rl, relay_as_entry, candidates)
-        if len(r) == 1:
-            return r
-        circ_fps, nicknames, exit_policy = r
-        circ_id, reason = cb.build_circuit(circ_fps)
-        if not circ_id:
-            log.info(
-                "Exit %s (%s) that can't exit all ips, failed to create "
-                " circuit as entry: %s (%s).",
+
+        # In the case that the relay was used as an exit, but could not exit
+        # to the Web server, try again using it as entry, to avoid that it
+        # would always fail when there's only one Web server.
+
+        if not is_usable and not relay_as_entry:
+            log.debug(
+                "Exit %s (%s) that can't exit all ips, with exit policy %s, "
+                "failed to connect to %s via circuit %s (%s). Reason: %s. "
+                "Trying again with it as entry.",
+                relay.fingerprint,
+                relay.nickname,
+                exit_policy,
+                dest.url,
+                circ_fps,
+                nicknames,
+                usable_data,
+            )
+            relay_as_entry = True
+            # select new candidates as exit
+            candidates = select_helper_candidates(
+                relay, rl, dest, relay_as_entry
+            )
+            r = create_path_relay(relay, dest, rl, relay_as_entry, candidates)
+            if len(r) == 1:
+                return r
+            circ_fps, nicknames, exit_policy = r
+            circ_id, reason = cb.build_circuit(circ_fps)
+            if not circ_id:
+                log.info(
+                    "Exit %s (%s) that can't exit all ips, failed to create "
+                    " circuit as entry: %s (%s).",
+                    relay.fingerprint,
+                    relay.nickname,
+                    circ_fps,
+                    nicknames,
+                )
+                return error_no_circuit(
+                    circ_fps, nicknames, reason, relay, dest, our_nick
+                )
+
+            log.debug(
+                "Built circuit with path %s (%s) to measure %s (%s)",
+                circ_fps,
+                nicknames,
+                relay.fingerprint,
+                relay.nickname,
+            )
+            is_usable, usable_data = connect_to_destination_over_circuit(
+                dest, circ_id, s, cb.controller, dest._max_dl
+            )
+        if not is_usable:
+            log.debug(
+                "Failed to connect to %s to measure %s (%s) via circuit "
+                "%s (%s). Exit policy: %s. Reason: %s.",
+                dest.url,
                 relay.fingerprint,
                 relay.nickname,
                 circ_fps,
                 nicknames,
+                exit_policy,
+                usable_data,
             )
-            return error_no_circuit(
-                circ_fps, nicknames, reason, relay, dest, our_nick
+            cb.close_circuit(circ_id)
+            return [
+                ResultErrorStream(
+                    relay, circ_fps, dest.url, our_nick, msg=usable_data
+                ),
+            ]
+        assert is_usable
+        assert "content_length" in usable_data
+        # FIRST: measure RTT
+        rtts, reason = measure_rtt_to_server(
+            s, conf, dest, usable_data["content_length"]
+        )
+        if rtts is None:
+            log.debug(
+                "Unable to measure RTT for %s (%s) to %s via circuit "
+                "%s (%s): %s",
+                relay.fingerprint,
+                relay.nickname,
+                dest.url,
+                circ_fps,
+                nicknames,
+                reason,
             )
+            cb.close_circuit(circ_id)
+            return [
+                ResultErrorStream(
+                    relay, circ_fps, dest.url, our_nick, msg=str(reason)
+                ),
+            ]
 
-        log.debug(
-            "Built circuit with path %s (%s) to measure %s (%s)",
-            circ_fps,
-            nicknames,
-            relay.fingerprint,
-            relay.nickname,
+        # SECOND: measure bandwidth
+        bw_results, reason = measure_bandwidth_to_server(
+            s, conf, dest, usable_data["content_length"]
         )
-        is_usable, usable_data = connect_to_destination_over_circuit(
-            dest, circ_id, s, cb.controller, dest._max_dl
-        )
-    if not is_usable:
-        log.debug(
-            "Failed to connect to %s to measure %s (%s) via circuit "
-            "%s (%s). Exit policy: %s. Reason: %s.",
-            dest.url,
-            relay.fingerprint,
-            relay.nickname,
-            circ_fps,
-            nicknames,
-            exit_policy,
-            usable_data,
-        )
-        cb.close_circuit(circ_id)
-        return [
-            ResultErrorStream(
-                relay, circ_fps, dest.url, our_nick, msg=usable_data
-            ),
-        ]
-    assert is_usable
-    assert "content_length" in usable_data
-    # FIRST: measure RTT
-    rtts, reason = measure_rtt_to_server(
-        s, conf, dest, usable_data["content_length"]
-    )
-    if rtts is None:
-        log.debug(
-            "Unable to measure RTT for %s (%s) to %s via circuit "
-            "%s (%s): %s",
-            relay.fingerprint,
-            relay.nickname,
-            dest.url,
-            circ_fps,
-            nicknames,
-            reason,
-        )
-        cb.close_circuit(circ_id)
-        return [
-            ResultErrorStream(
-                relay, circ_fps, dest.url, our_nick, msg=str(reason)
-            ),
-        ]
-    # SECOND: measure bandwidth
-    bw_results, reason = measure_bandwidth_to_server(
-        s, conf, dest, usable_data["content_length"]
-    )
+
     if bw_results is None:
         log.debug(
             "Failed to measure %s (%s) via circuit %s (%s) to %s. Exit"
@@ -646,15 +743,16 @@ def measure_relay(args, conf, destinations, cb, rl, relay):
     cb.close_circuit(circ_id)
     # Finally: store result
     log.debug(
-        "Success measurement for %s (%s) via circuit %s (%s) to %s",
+        "Success measurement for %s (%s) via circuit %s (%s) to %s: %s",
         relay.fingerprint,
         relay.nickname,
         circ_fps,
         nicknames,
         dest.url,
+        bw_results,
     )
     return [
-        ResultSuccess(rtts, bw_results, relay, circ_fps, dest.url, our_nick),
+        ResultSuccess(None, bw_results, relay, circ_fps, dest.url, our_nick),
     ]
 
 
@@ -1033,6 +1131,13 @@ def main(args, conf):
         )
 
     os.makedirs(conf.getpath("paths", "datadir"), exist_ok=True)
+
+    # For now, no need to add these variables as config file options or args.
+    print("conf", conf)
+    # conf["ul_file_path"] = UL_FILE_PATH
+    conf["paths"]["ul_file_path"] = ""
+    conf["scanner"]["payload_key"] = str(HTTP_POST_UL_KEY)
+    conf["scanner"]["http_post_size"] = str(HTTP_POST_SIZE)
 
     state = State(conf.getpath("paths", "state_fname"))
     state["scanner_started"] = now_isodt_str()

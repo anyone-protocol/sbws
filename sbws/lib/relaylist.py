@@ -625,6 +625,21 @@ class RelayList:
         )
         return False
 
+    @property
+    def is_consensus_bwscanner_cc_2(self):
+        """Return True if the consensus document has a value of 2 in
+        the `bwscanner_cc` field."""
+        if (
+            self.consensus_params_dict
+            and self.consensus_params_dict.get("bwscanner_cc", 0) == 2
+        ):
+            log.info(
+                "The consensus says to upload data instead of download it."
+            )
+            return True
+        log.info("The consensus says to download data.")
+        return False
+
     def exits_not_bad_allowing_port(self, port, strict=False):
         return [
             r
