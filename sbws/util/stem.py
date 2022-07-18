@@ -35,7 +35,22 @@ def attach_stream_to_circuit_listener(controller, circ_id):
     looks for newly created streams and attaches them to the given circ_id"""
 
     def closure_stream_event_listener(st):
-        if st.status == "NEW" and st.purpose == "USER":
+        if st.status == "XOFF_RECV":
+            # Upload
+            if controller.is_consensus_bwscanner_cc_2:
+                log.error(
+                    "Received XOFF_RECV stream status while uploading data."
+                    " The HTTP server is too slow."
+                    " Please, replace it with other or contact network-health "
+                    "team."
+                )
+            # Download
+            else:
+                log.error(
+                    "Received XOFF_RECV stream status while downloading"
+                    "data. Is there a bug in tor?"
+                )
+        elif st.status == "NEW" and st.purpose == "USER":
             log.debug(
                 "Attaching stream %s to circ %s %s",
                 st.id,
