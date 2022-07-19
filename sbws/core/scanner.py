@@ -1,5 +1,6 @@
 """ Measure the relays. """
 import concurrent.futures
+import functools
 import logging
 import os
 import queue
@@ -19,7 +20,8 @@ import sbws.util.requests as requests_utils
 import sbws.util.stem as stem_utils
 from sbws.globals import (
     HTTP_GET_HEADERS,
-    HTTP_POST_SIZE,
+    HTTP_POST_INITIAL_SIZE,
+    HTTP_POST_INITIAL_SIZE_SS0,
     HTTP_POST_UL_KEY,
     SOCKET_TIMEOUT,
     fail_hard,
@@ -57,6 +59,12 @@ FILLUP_TICKET_MSG = """Something went wrong.
 Please create an issue at
 https://gitlab.torproject.org/tpo/network-health/sbws/-/issues with this
 traceback."""
+
+
+class UploadedException(Exception):
+    """Exit from uploading callback when 1.5MiB have been uploaded."""
+
+    log.debug("Uploaded 1.5MiB since the first `CIRC_BW SS=0` event.")
 
 
 def stop_threads(signal, frame, exit_code=0):
@@ -220,9 +228,54 @@ def measure_bandwidth_to_server(session, conf, dest, content_length):
     return results, None
 
 
-def upload_data(
-    session, conf, dest, cont, circ_id
-):  # , size=HTTP_POST_SIZE, payload_key=HTTP_POST_UL_KEY, ul_file_path=None):
+def create_callback(circ_id, size_ss0):
+    """Create the callback closure to monitor uploaded data."""
+
+    def callback(monitor):
+        """Callback to monitor uploaded data.
+
+        .. NOTE: By default ``httplib``'s blocksize is 8192 bytes and the
+           callback is call after reading that amount. This size is fine as it
+           is smaller than the 1.5MB to check.
+           (see https://docs.python.org/3/library/http.client.html?
+            highlight=blocksize#http.client.HTTPConnection).
+
+        :raises UploadedException: when the uploaded data is greater or equal
+        than HTTP_POST_INITIAL_SIZE_SS0.
+
+        """
+        bytes_read = monitor.bytes_read
+        circ_bw_event = settings.circ_bw_event.get(circ_id, None)
+        if circ_bw_event:
+            # Check whether the first `CIRC_BW` event with `SS=0` field has
+            # been received and if not, store it.
+            if not circ_bw_event.get("ss0_start_time", None):
+                log.debug("First `CIRC_BW` event with `SS=0` field received.")
+                circ_bw_event["ss0_start_time"] = {
+                    "time": time.monotonic(),
+                    "bytes_read": bytes_read,
+                }
+            else:  # This is not the first `CIRC_BW` event with `SS=0` field.
+                # Check whether 1.5MiB has been already uploaded.
+                ss0_bytes = (
+                    bytes_read - circ_bw_event["ss0_start_time"]["bytes_read"]
+                )
+                if ss0_bytes >= size_ss0:  # HTTP_POST_INITIAL_SIZE_SS0
+                    log.debug(
+                        "Successfully uploaded 1.5MiB after the first"
+                        " `CIRC_BW` event with SS=0 field."
+                    )
+                    circ_bw_event["ss0_end_time"] = {
+                        "time": time.monotonic(),
+                        "bytes_read": bytes_read,
+                    }
+                    # Exit from uploading
+                    raise UploadedException
+
+    return callback
+
+
+def upload_data_multipart(session, conf, dest, cont, circ_id):
     """
     Upload data ``size`` or ``ul_file_path`` to a destination URL over
     ``circ_id`` via HTTP POST request.
@@ -245,20 +298,44 @@ def upload_data(
     listener = stem_utils.attach_stream_to_circuit_listener(cont, circ_id)
     stem_utils.add_event_listener(cont, listener, EventType.STREAM)
 
-    size = conf.getint("scanner", "http_post_size")
+    settings.circ_bw_event[circ_id] = {}
+    circ_bw_listener = functools.partial(stem_utils.handle_circ_bw_event)
+    stem_utils.add_event_listener(cont, circ_bw_listener, EventType.CIRC_BW)
+
+    size = conf.getint("scanner", "http_post_initial_size")
     # The data to upload is so far zeros.
     data = bytearray(size)
     # Without opening a file, `filename` is not sent in the request.
     ul_file_path = conf.getpath("paths", "ul_file_path")
     if ul_file_path:
         data = open(ul_file_path, "rb")
-    start_time = time.monotonic()
+    else:
+        # Convert the data to str since that is what the encoder expect.
+        data = str(data)
+    size_ss0 = conf.getint("scanner", "http_post_initial_size_ss0")
+
+    # Only used in this piece of code
+    from requests_toolbelt.multipart import encoder
+
+    # Monitor the upload
+    multipart_encoder = encoder.MultipartEncoder(
+        fields={conf.get("scanner", "payload_key"): data}
+    )
+    callback = create_callback(circ_id, size_ss0)
+    monitor = encoder.MultipartEncoderMonitor(multipart_encoder, callback)
+
     try:
         response = session.post(
             dest.url,
-            files={conf.get("scanner", "payload_key"): data},
+            data=monitor,
+            headers={"Content-Type": monitor.content_type},
             verify=dest.verify,
         )
+    # When 1.5 MiB have been uploaded after the first `CIRC_BW` event with the
+    # `SS=0` field, the callback raises this exception
+    except UploadedException:
+        # No need to check the response
+        response = None
     except requests.exceptions.RequestException as e:
         dest.add_failure()
         msg = "Could not connect to {} over circ {} {}: {}".format(
@@ -271,10 +348,10 @@ def upload_data(
         log.debug(e)
         return None, e
     finally:
-        end_time = time.monotonic()
         stem_utils.remove_event_listener(cont, listener)
+        stem_utils.remove_event_listener(cont, circ_bw_listener)
 
-    if response.status_code != requests.codes.ok:
+    if response and response.status_code != requests.codes.ok:
         dest.add_failure()
         msg = (
             "When sending HTTP POST to {}, we expected HTTP code {} "
@@ -284,19 +361,49 @@ def upload_data(
         return None, msg
 
     dest.add_success()
-    time_delta = end_time - start_time
-    results = [{"duration": time_delta, "amount": size}]
-    log.debug("Time uploading %s bytes: %s seconds.", size, time_delta)
-    log.debug(
-        "POST response elapsed seconds: %s.",
-        response.elapsed.total_seconds(),
-    )
-    measured_bandwidth = size / (time_delta)
-    log.debug(
-        "Measured bandwidth: %s Bytes/seconds",
+
+    # Measurements when `CIRC_BW SS=0` have been received`
+    result = calculate_bw_ss0(circ_id)
+    if isinstance(result, str):  # Error with `CIRC_BW` events
+        return (None, result)
+    results = [{"duration": result[0], "amount": result[1]}]
+    return results, None
+
+
+def calculate_bw_ss0(circ_id):
+    """Calculate bandwidth when CIRC_BW SS field started to be 0
+
+    :return: Either an error if there wasn't SS=0 or it was not possible to
+        upload or the data or the resulted time delta and amount uploaded.
+    :rtype: str (on error) or dict(int, int)
+    """
+    time_delta = size = None
+    circ_bw_event = settings.circ_bw_event.get(circ_id, None)
+    if not circ_bw_event:
+        msg = "No `CIRC_BW` events received for circuit {}?".format(circ_id)
+        log.error(msg)
+        return msg
+    # log.debug("Some `CIRC_BW SS=0` event(s) receiveed.")
+    start_time = circ_bw_event.pop("ss0_start_time", None)
+    end_time = circ_bw_event.pop("ss0_end_time", None)
+    if not start_time or not end_time:
+        msg = "`CIRC_BW` SS=0` received but could not upload 1.5MiB"
+        log.error(msg)
+        # Remove this circuit information about events.
+        settings.circ_bw_event.pop(circ_id)
+        return msg
+    time_delta = end_time["time"] - start_time["time"]
+    size = end_time["bytes_read"] - start_time["bytes_read"]
+    measured_bandwidth = size / time_delta
+    log.info(
+        "Time uploading %s bytes: %s seconds. Bandwidth: %s Bytes/seconds.",
+        size,
+        time_delta,
         measured_bandwidth,
     )
-    return results, None
+    # Remove this circuit information about events.
+    settings.circ_bw_event.pop(circ_id)
+    return time_delta, size
 
 
 def _pick_ideal_second_hop(relay, rl, relay_as_entry, candidates):
@@ -618,7 +725,9 @@ def measure_relay(args, conf, destinations, cb, rl, relay):
 
     if rl.is_consensus_bwscanner_cc_2:
         # 40130: Upload data instead of downloading it.
-        bw_results, reason = upload_data(s, conf, dest, cb.controller, circ_id)
+        bw_results, reason = upload_data_multipart(
+            s, conf, dest, cb.controller, circ_id
+        )
     else:
         # Make a connection to the destination
         is_usable, usable_data = connect_to_destination_over_circuit(
@@ -1134,10 +1243,15 @@ def main(args, conf):
 
     # For now, no need to add these variables as config file options or args.
     print("conf", conf)
+
+    # This keys are not currently checked in `config.py`
     # conf["ul_file_path"] = UL_FILE_PATH
     conf["paths"]["ul_file_path"] = ""
     conf["scanner"]["payload_key"] = str(HTTP_POST_UL_KEY)
-    conf["scanner"]["http_post_size"] = str(HTTP_POST_SIZE)
+    conf["scanner"]["http_post_initial_size"] = str(HTTP_POST_INITIAL_SIZE)
+    conf["scanner"]["http_post_initial_size_ss0"] = str(
+        HTTP_POST_INITIAL_SIZE_SS0
+    )
 
     state = State(conf.getpath("paths", "state_fname"))
     state["scanner_started"] = now_isodt_str()

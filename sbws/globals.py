@@ -155,8 +155,12 @@ DESTINATION_VERIFY_CERTIFICATE = True
 # HTTP requests failures.
 
 # The size of the data to upload to a Web server
-HTTP_POST_SIZE = 20 * 1024**2  # 20 MiB
+HTTP_POST_INITIAL_SIZE = 20 * 1024**2  # 20 MiB
 HTTP_POST_UL_KEY = "data"
+# The size of the uploaded data after the first `CIRC_BW SS=0` to stop the
+# measurement
+HTTP_POST_INITIAL_SIZE_SS0 = int(1.5 * 1024**2)  # 1.5 MiB.
+
 # Number of attempts to use a destination, that are stored, in order to decide
 # whether the destination is functional or not.
 NUM_DESTINATION_ATTEMPTS_STORED = 10
