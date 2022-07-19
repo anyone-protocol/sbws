@@ -550,7 +550,7 @@ class RelayList:
         """
         if self._controller.get_conf("TestingTorNetwork") == "1":
             log.debug("In a testing network.")
-            self.consensus_params_dict = {}
+            self.consensus_params_dict = {"cc_alg": 2, "bwscanner_cc": 2}
             return
         log.debug("Not in a testing network.")
         consensus = self._controller.get_info(
