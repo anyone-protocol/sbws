@@ -51,9 +51,24 @@ def attach_stream_to_circuit_listener(controller, circ_id):
                     "Received XOFF_RECV stream status while downloading"
                     "data. Is there a bug in tor?"
                 )
-        elif st.status in ["XOFF_SENT", "XON_RECV", "XON_SENT"]:
-            log.warning(
-                "Received %s stream status for circuit %s", st.status, circ_id
+        elif st.status == "XOFF_SENT":
+            # Uploading
+            if controller.is_consensus_bwscanner_cc_2:
+                log.error(
+                    "Received XOFF_SENT stream status while uploading"
+                    "data. Is there a bug in tor?"
+                )
+            # Downloading
+            else:
+                log.error(
+                    "Received XOFF_SENT stream status while downloading data."
+                    " The HTTP server is too slow."
+                    " Please, replace it with other or contact network-health "
+                    "team."
+                )
+        elif st.status in ["XON_RECV", "XON_SENT"]:
+            log.info(
+                "Received %s stream status for circuit %s.", st.status, circ_id
             )
         elif st.status == "NEW" and st.purpose == "USER":
             log.debug(
