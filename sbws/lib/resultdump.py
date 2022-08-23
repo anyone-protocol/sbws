@@ -197,10 +197,20 @@ def write_result_to_datadir(result, datadir):
     dt = datetime.utcfromtimestamp(result.time)
     ext = ".txt"
     result_fname = os.path.join(datadir, "{}{}".format(dt.date(), ext))
-    with DirectoryLock(datadir):
-        log.debug("Writing a result to %s", result_fname)
-        with open(result_fname, "at") as fd:
-            fd.write("{}\n".format(str(result)))
+    try:
+        with DirectoryLock(datadir):
+            log.debug("Writing a result to %s", result_fname)
+            with open(result_fname, "at") as fd:
+                fd.write("{}\n".format(str(result)))
+    # Catch any exception writing.
+    except Exception as e:
+        log.error(
+            "Can not write to datadir %s: %s. "
+            "Please check that there is enough space in disk "
+            "and the directory has the correct permissions.",
+            datadir,
+            e,
+        )
 
 
 class _StrEnum(str, Enum):
