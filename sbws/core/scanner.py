@@ -106,7 +106,7 @@ def timed_recv_from_server(session, dest, byte_range):
     return True and the time it took to download. Otherwise return False and an
     exception."""
 
-    start_time = time.time()
+    start_time = time.monotonic()
     HTTP_GET_HEADERS["Range"] = byte_range
     # - response.elapsed "measures the time taken between sending the first
     #   byte of the request and finishing parsing the headers.
@@ -123,7 +123,7 @@ def timed_recv_from_server(session, dest, byte_range):
     except Exception as e:
         log.debug(e)
         return False, e
-    end_time = time.time()
+    end_time = time.monotonic()
     return True, end_time - start_time
 
 
@@ -1011,7 +1011,7 @@ def main_loop(
     while not settings.end_event.is_set():
         log.debug("Starting a new measurement loop.")
         num_relays = 0
-        loop_tstart = time.time()
+        loop_tstart = time.monotonic()
 
         # Register relay fingerprints to the heartbeat module
         hbeat.register_consensus_fprs(relay_list.relays_fingerprints)
@@ -1059,7 +1059,7 @@ def main_loop(
         # Print the heartbeat message
         hbeat.print_heartbeat_message()
 
-        loop_tstop = time.time()
+        loop_tstop = time.monotonic()
         loop_tdelta = (loop_tstop - loop_tstart) / 60
         # At this point, we know the relays that were queued to be
         # measured.
