@@ -17,7 +17,7 @@ def test_init_relays(
     """
     Test `init_relays` when creating the RelayList the first time and when a
     new consensus is received.
-    Test that the number of consesus timesamps and relays is correct.
+    Test that the number of consesus timestamps and relays is correct.
     Additionally, make sure the calculated min bw for the second hop for
     exit/non-exit relays is correct, too.
     """
