@@ -165,7 +165,7 @@ HTTP_POST_INITIAL_SIZE_SS0 = int(1.5 * 1024**2)  # 1.5 MiB.
 # whether the destination is functional or not.
 NUM_DESTINATION_ATTEMPTS_STORED = 10
 # Time to wait before trying again a destination that wasn't functional.
-# Because intermitent failures with CDN destinations, start trying again
+# Because intermittent failures with CDN destinations, start trying again
 # after 5 min.
 DELTA_SECONDS_RETRY_DESTINATION = 60 * 5
 # No matter what, do not increase the wait time between destination reties
