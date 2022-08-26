@@ -111,7 +111,7 @@ raw_bwl_str = (
     "relay_recent_measurements_excluded_error_count=2 "
     "relay_recent_priority_list_count=3 "
     "rtt=456 success=1 "
-    "time=2018-04-17T14:09:07\n"
+    "time=2018-04-17T14:09:07 xoff_recv=0 xoff_sent=0\n"
 )
 
 v3bw_str = header_extra_str + raw_bwl_str

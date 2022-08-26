@@ -19,6 +19,7 @@ from stem.control import EventType
 import sbws.util.requests as requests_utils
 import sbws.util.stem as stem_utils
 from sbws.globals import (
+    BWSCANNER_CC2,
     HTTP_GET_HEADERS,
     HTTP_POST_INITIAL_SIZE,
     HTTP_POST_INITIAL_SIZE_SS0,
@@ -295,7 +296,10 @@ def upload_data_multipart(session, conf, dest, cont, circ_id):
 
     """
     log.debug("Uploading data...")
-    listener = stem_utils.attach_stream_to_circuit_listener(cont, circ_id)
+    settings.stream_event[circ_id] = {}
+    listener = stem_utils.attach_stream_to_circuit_listener(
+        cont, circ_id, BWSCANNER_CC2
+    )
     stem_utils.add_event_listener(cont, listener, EventType.STREAM)
 
     settings.circ_bw_event[circ_id] = {}
@@ -635,6 +639,17 @@ def select_helper_candidates(relay, rl, dest, relay_as_entry=True):
     return candidates
 
 
+def relay_update_xoff(relay, circ_id):
+    # Check `XOFF_RECV/SENT`
+    relay.update_xoff_recv(
+        settings.stream_event[circ_id].pop("XOFF_RECV", None)
+    )
+    relay.update_xoff_sent(
+        settings.stream_event[circ_id].pop("XOFF_SENT", None)
+    )
+    settings.stream_event.pop(circ_id)
+
+
 def measure_relay(args, conf, destinations, cb, rl, relay):
     """
     Select a Web server, a relay to build the circuit,
@@ -830,6 +845,14 @@ def measure_relay(args, conf, destinations, cb, rl, relay):
         bw_results, reason = measure_bandwidth_to_server(
             s, conf, dest, usable_data["content_length"]
         )
+
+    # The `XOFF` events can only be received once an upload or download
+    # stream starts (in `measure_bandwidth_to_server` or
+    # `upload_data_multipart` functions). This is the reason way they're stored
+    # here and not before.
+    # The `XOFF` events are also independent on whether the stream end up
+    # failing or succeeding.
+    relay_update_xoff(relay, circ_id)
 
     if bw_results is None:
         log.debug(

@@ -254,6 +254,8 @@ class Result:
             relay_in_recent_consensus=None,
             relay_recent_measurement_attempt=None,
             relay_recent_priority_list=None,
+            xoff_recv=None,
+            xoff_sent=None,
         ):
             """
             Initializes a ``Result.Relay``.
@@ -280,6 +282,8 @@ class Result:
                 relay_recent_measurement_attempt
             )
             self.relay_recent_priority_list = relay_recent_priority_list
+            self.xoff_recv = xoff_recv
+            self.xoff_sent = xoff_sent
 
     def __init__(self, relay, circ, dest_url, scanner_nick, t=None):
         """
@@ -299,6 +303,8 @@ class Result:
             relay.relay_in_recent_consensus,
             relay.relay_recent_measurement_attempt,
             relay.relay_recent_priority_list,
+            relay.xoff_recv,
+            relay.xoff_sent,
         )
         self._circ = circ
         self._dest_url = dest_url
@@ -369,6 +375,14 @@ class Result:
         return self._relay.relay_recent_priority_list
 
     @property
+    def xoff_recv(self):
+        return self._relay.xoff_recv
+
+    @property
+    def xoff_sent(self):
+        return self._relay.xoff_sent
+
+    @property
     def circ(self):
         return self._circ
 
@@ -403,6 +417,8 @@ class Result:
             "relay_in_recent_consensus": self.relay_in_recent_consensus,
             "relay_recent_measurement_attempt": self.relay_recent_measurement_attempt,  # noqa
             "relay_recent_priority_list": self.relay_recent_priority_list,
+            "xoff_recv": self.xoff_recv,
+            "xoff_sent": self.xoff_sent,
         }
 
     @staticmethod
@@ -497,6 +513,8 @@ class ResultError(Result):
                 relay_recent_priority_list=d.get(  # noqa
                     "relay_recent_priority_list", None
                 ),  # noqa
+                xoff_recv=d.get("xoff_recv", None),
+                xoff_sent=d.get("xoff_sent", None),
             ),
             d["circ"],
             d["dest_url"],
@@ -552,6 +570,8 @@ class ResultErrorCircuit(ResultError):
                 relay_recent_priority_list=d.get(  # noqa
                     "relay_recent_priority_list", None
                 ),  # noqa
+                xoff_recv=d.get("xoff_recv", None),
+                xoff_sent=d.get("xoff_sent", None),
             ),
             d["circ"],
             d["dest_url"],
@@ -591,6 +611,8 @@ class ResultErrorStream(ResultError):
                 relay_recent_priority_list=d.get(  # noqa
                     "relay_recent_priority_list", None
                 ),  # noqa
+                xoff_recv=d.get("xoff_recv", None),
+                xoff_sent=d.get("xoff_sent", None),
             ),
             d["circ"],
             d["dest_url"],
@@ -650,6 +672,8 @@ class ResultErrorSecondRelay(ResultError):
                 relay_recent_priority_list=d.get(  # noqa
                     "relay_recent_priority_list", None
                 ),  # noqa
+                xoff_recv=d.get("xoff_recv", None),
+                xoff_sent=d.get("xoff_sent", None),
             ),
             d["circ"],
             d["dest_url"],
@@ -705,6 +729,8 @@ class ResultErrorDestination(ResultError):
                 relay_recent_priority_list=d.get(  # noqa
                     "relay_recent_priority_list", None
                 ),  # noqa
+                xoff_recv=d.get("xoff_recv", None),
+                xoff_sent=d.get("xoff_sent", None),
             ),
             msg=d["msg"],
             t=d["time"],
@@ -754,6 +780,8 @@ class ResultErrorAuth(ResultError):
                 relay_recent_priority_list=d.get(  # noqa
                     "relay_recent_priority_list", None
                 ),  # noqa
+                xoff_recv=d.get("xoff_recv", None),
+                xoff_sent=d.get("xoff_sent", None),
             ),
             d["circ"],
             d["dest_url"],
@@ -810,6 +838,8 @@ class ResultSuccess(Result):
                 relay_recent_priority_list=d.get(  # noqa
                     "relay_recent_priority_list", None
                 ),  # noqa
+                xoff_recv=d.get("xoff_recv", None),
+                xoff_sent=d.get("xoff_sent", None),
             ),
             d["circ"],
             d["dest_url"],
