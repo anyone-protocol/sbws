@@ -550,7 +550,7 @@ class RelayList:
         """
         if self._controller.get_conf("TestingTorNetwork") == "1":
             log.debug("In a testing network.")
-            self.consensus_params_dict = {}
+            self.consensus_params_dict = {"cc_alg": 2, "bwscanner_cc": 2}
             return
         log.debug("Not in a testing network.")
         consensus = self._controller.get_info(
@@ -623,6 +623,21 @@ class RelayList:
             "The consensus says to use exits that do not support congestion"
             " control."
         )
+        return False
+
+    @property
+    def is_consensus_bwscanner_cc_2(self):
+        """Return True if the consensus document has a value of 2 in
+        the `bwscanner_cc` field."""
+        if (
+            self.consensus_params_dict
+            and self.consensus_params_dict.get("bwscanner_cc", 0) == 2
+        ):
+            log.info(
+                "The consensus says to upload data instead of download it."
+            )
+            return True
+        log.info("The consensus says to download data.")
         return False
 
     def exits_not_bad_allowing_port(self, port, strict=False):

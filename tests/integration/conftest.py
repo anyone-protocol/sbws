@@ -81,7 +81,8 @@ def conf(sbwshome_dir):
     # The test server is not using TLS. Ideally it should also support TLS
     # If the url would start with https but the request is not using TLS,
     # the request would hang.
-    conf["destinations.foo"]["url"] = "http://127.0.0.1:28888/sbws.bin"
+    conf["destinations.foo"]["url"] = "https://127.0.0.1:28888"
+    conf["destinations.foo"]["verify"] = "false"
     conf["tor"]["external_control_port"] = "8015"
     return conf
 

@@ -1,3 +1,4 @@
+# flake8:noqa:E501
 import copy
 import logging
 import os
@@ -35,7 +36,41 @@ def attach_stream_to_circuit_listener(controller, circ_id):
     looks for newly created streams and attaches them to the given circ_id"""
 
     def closure_stream_event_listener(st):
-        if st.status == "NEW" and st.purpose == "USER":
+        if st.status == "XOFF_RECV":
+            # Upload
+            if controller.is_consensus_bwscanner_cc_2:
+                log.error(
+                    "Received XOFF_RECV stream status while uploading data."
+                    " The HTTP server is too slow."
+                    " Please, replace it with other or contact network-health "
+                    "team."
+                )
+            # Download
+            else:
+                log.error(
+                    "Received XOFF_RECV stream status while downloading"
+                    "data. Is there a bug in tor?"
+                )
+        elif st.status == "XOFF_SENT":
+            # Uploading
+            if controller.is_consensus_bwscanner_cc_2:
+                log.error(
+                    "Received XOFF_SENT stream status while uploading"
+                    "data. Is there a bug in tor?"
+                )
+            # Downloading
+            else:
+                log.error(
+                    "Received XOFF_SENT stream status while downloading data."
+                    " The HTTP server is too slow."
+                    " Please, replace it with other or contact network-health "
+                    "team."
+                )
+        elif st.status in ["XON_RECV", "XON_SENT"]:
+            log.info(
+                "Received %s stream status for circuit %s.", st.status, circ_id
+            )
+        elif st.status == "NEW" and st.purpose == "USER":
             log.debug(
                 "Attaching stream %s to circ %s %s",
                 st.id,
@@ -60,6 +95,33 @@ def attach_stream_to_circuit_listener(controller, circ_id):
             pass
 
     return closure_stream_event_listener
+
+
+def handle_circ_bw_event(event):
+    """
+    Watch Tor's ``CIRC_BW`` events to only start measuring upload bandwidth
+    once the CIRC_BW field SS=0.
+
+    From torspec/control-spec.txt [0]_::
+
+      SS provides an indication if the circuit is in slow start (1), or not (0)
+      The SS, CWND, RTT, and MIN_RTT fields are present only if the circuit
+      has negotiated congestion control to an onion service or Exit hop.
+      The SS and CWND fields apply only to the upstream direction of the
+      circuit.
+
+    stem's ``CircuitBandwidthEvent`` [1]_ does not implement ``SS`` fields, but
+    it is present in the ``keyword_args``.
+
+    .. [0] https://gitlab.torproject.org/tpo/core/torspec/-/blob/main/control-spec.txt#L3443
+    .. [1] https://stem.torproject.org/api/response.html#stem.response.events.CircuitBandwidthEvent
+
+
+    """
+    ss = event.keyword_args.get("SS", None)
+    # Store the SS=0 events to monitor them ``scanner.py::callback``
+    if ss == "0":
+        settings.circ_bw_event[event.id][event.time] = event.delivered_written
 
 
 def add_event_listener(controller, func, event):

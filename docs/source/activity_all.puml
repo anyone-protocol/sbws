@@ -12,7 +12,7 @@ while (no SIGINT/SIGTERM?)
 
     :Build a circuit;
 
-    :HTTP GET (Range-Bytes);
+    :HTTP GET (Range-Bytes) or HTTP POST;
 
     :Store measurement;
 

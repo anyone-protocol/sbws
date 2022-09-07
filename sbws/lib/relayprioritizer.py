@@ -107,7 +107,7 @@ class RelayPrioritizer:
         return: a generator of the new ordered list of relays to measure next.
 
         """
-        fn_tstart = Decimal(time.time())
+        fn_tstart = Decimal(time.monotonic())
         relays = set(copy.deepcopy(self.relay_list.relays))
         if not self.measure_authorities:
             relays = relays.difference(set(self.relay_list.authorities))
@@ -151,7 +151,7 @@ class RelayPrioritizer:
         # relays at the front
         relays = sorted(relays, key=lambda r: r.priority)
 
-        fn_tstop = Decimal(time.time())
+        fn_tstop = Decimal(time.monotonic())
         fn_tdelta = (fn_tstop - fn_tstart) * 1000
         log.info("Spent %f msecs calculating relay best priority", fn_tdelta)
 

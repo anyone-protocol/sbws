@@ -16,21 +16,47 @@ well connected machines.
 destination requirements
 ------------------------------------
 
-- A Web server installed and running that supports HTTP GET, HEAD and
+- If the consensus parameter ``bwscanner_cc`` is not set or has a value lower
+  than 2: A Web server installed and running that supports HTTP GET, HEAD and
   Range (:rfc:`7233`) requests.
   ``Apache`` HTTP Server and ``Nginx`` support them.
+  If it has value 2: A Web server installed and running that supports HTTP POST
+  either:
+
+  - via ``Content-Type multipart/form-data`` (:rfc:`2388`) as a file upload.
+  - via ``Content-Type multipart/form-data`` RFC 2388 as a raw (text) field
+    upload.
+
+  If your Web server supports HTTP MQTT binary but not the 2 previous methods,
+  open an issue so that we implement the MQTT client part in the scanner.
+
+  An nginx configuration that works for the 3 previous methods can be::
+
+    location /postpath {
+      root /same/path/to/normal/directory;
+      client_max_body_size 1G;
+      # should not be necessary, but just in case nginx tries to litter:
+      client_body_in_file_only clean;
+      # this is a really horrible hack:
+      error_page 405 =200 $uri;
+    }
+
+  And in the directory of static files served::
+
+    echo OK > postpath
 
   Note that if the server is configured with ``keep-alive`` timeout, it'd need
   to be at least the same timeout as in the sbws HTTP requests, which is 10
   seconds by default (``http_timeout`` variable in the configuration file, see
   more about in the next section).
-- TLS support to avoid HTTP content caches at the various exit nodes.
-- Certificates can be self-signed.
-- A large file; at the time of writing, at least 1 GiB in size
+- If the consensus parameter ``bwscanner_cc`` is not set or has a value lower
+  than 2: A large file; at the time of writing, at least 1 GiB in size
   It can be created running::
 
       head -c $((1024*1024*1024)) /dev/urandom > 1GiB
 
+- TLS support to avoid HTTP content caches at the various exit nodes.
+- Certificates can be self-signed.
 - A fixed IP address or a domain name.
 - Bandwidth: at least 12.5MB/s (100 Mbit/s).
 - Network traffic: around 12-15GB/day.

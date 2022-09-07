@@ -62,8 +62,12 @@ Measuring relays
 #. For every relay:
 #. Select a second relay to build a Tor circuit.
 #. Build the circuit.
-#. Make HTTPS GET requests to the Web server over the circuit.
-#. Store the time the request took and the amount of bytes requested.
+#. If ``bwscanner_cc=2``:
+      do HTTPS POST requests to the Web server over the circuit.
+   else:
+      do HTTPS HEAD and GET requests to the Web server over the circuit.
+#. Store the time the request took and the amount of bytes uploaded or
+   dowlodaded.
 
 .. image:: ./images/activity_all.svg
    :alt: activity measuring relays
@@ -71,6 +75,7 @@ Measuring relays
    :align: center
 
 Source code: :func:`sbws.core.scanner.measure_relay`
+Source code: :func:`sbws.core.scanner.upload_data`
 
 Measuring a relay
 ~~~~~~~~~~~~~~~~~

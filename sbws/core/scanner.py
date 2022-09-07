@@ -1,5 +1,6 @@
 """ Measure the relays. """
 import concurrent.futures
+import functools
 import logging
 import os
 import queue
@@ -12,9 +13,19 @@ import traceback
 import uuid
 from argparse import ArgumentDefaultsHelpFormatter
 
+import requests
+from stem.control import EventType
+
 import sbws.util.requests as requests_utils
 import sbws.util.stem as stem_utils
-from sbws.globals import HTTP_GET_HEADERS, SOCKET_TIMEOUT, fail_hard
+from sbws.globals import (
+    HTTP_GET_HEADERS,
+    HTTP_POST_INITIAL_SIZE,
+    HTTP_POST_INITIAL_SIZE_SS0,
+    HTTP_POST_UL_KEY,
+    SOCKET_TIMEOUT,
+    fail_hard,
+)
 
 from .. import settings
 from ..lib.circuitbuilder import GapsCircuitBuilder as CB
@@ -48,6 +59,12 @@ FILLUP_TICKET_MSG = """Something went wrong.
 Please create an issue at
 https://gitlab.torproject.org/tpo/network-health/sbws/-/issues with this
 traceback."""
+
+
+class UploadedException(Exception):
+    """Exit from uploading callback when 1.5MiB have been uploaded."""
+
+    log.debug("Uploaded 1.5MiB since the first `CIRC_BW SS=0` event.")
 
 
 def stop_threads(signal, frame, exit_code=0):
@@ -89,7 +106,7 @@ def timed_recv_from_server(session, dest, byte_range):
     return True and the time it took to download. Otherwise return False and an
     exception."""
 
-    start_time = time.time()
+    start_time = time.monotonic()
     HTTP_GET_HEADERS["Range"] = byte_range
     # - response.elapsed "measures the time taken between sending the first
     #   byte of the request and finishing parsing the headers.
@@ -106,7 +123,7 @@ def timed_recv_from_server(session, dest, byte_range):
     except Exception as e:
         log.debug(e)
         return False, e
-    end_time = time.time()
+    end_time = time.monotonic()
     return True, end_time - start_time
 
 
@@ -209,6 +226,184 @@ def measure_bandwidth_to_server(session, conf, dest, content_length):
             expected_amount, data, download_times, min_dl, max_dl
         )
     return results, None
+
+
+def create_callback(circ_id, size_ss0):
+    """Create the callback closure to monitor uploaded data."""
+
+    def callback(monitor):
+        """Callback to monitor uploaded data.
+
+        .. NOTE: By default ``httplib``'s blocksize is 8192 bytes and the
+           callback is call after reading that amount. This size is fine as it
+           is smaller than the 1.5MB to check.
+           (see https://docs.python.org/3/library/http.client.html?
+            highlight=blocksize#http.client.HTTPConnection).
+
+        :raises UploadedException: when the uploaded data is greater or equal
+        than HTTP_POST_INITIAL_SIZE_SS0.
+
+        """
+        bytes_read = monitor.bytes_read
+        circ_bw_event = settings.circ_bw_event.get(circ_id, None)
+        if circ_bw_event:
+            # Check whether the first `CIRC_BW` event with `SS=0` field has
+            # been received and if not, store it.
+            if not circ_bw_event.get("ss0_start_time", None):
+                log.debug("First `CIRC_BW` event with `SS=0` field received.")
+                circ_bw_event["ss0_start_time"] = {
+                    "time": time.monotonic(),
+                    "bytes_read": bytes_read,
+                }
+            else:  # This is not the first `CIRC_BW` event with `SS=0` field.
+                # Check whether 1.5MiB has been already uploaded.
+                ss0_bytes = (
+                    bytes_read - circ_bw_event["ss0_start_time"]["bytes_read"]
+                )
+                if ss0_bytes >= size_ss0:  # HTTP_POST_INITIAL_SIZE_SS0
+                    log.debug(
+                        "Successfully uploaded 1.5MiB after the first"
+                        " `CIRC_BW` event with SS=0 field."
+                    )
+                    circ_bw_event["ss0_end_time"] = {
+                        "time": time.monotonic(),
+                        "bytes_read": bytes_read,
+                    }
+                    # Exit from uploading
+                    raise UploadedException
+
+    return callback
+
+
+def upload_data_multipart(session, conf, dest, cont, circ_id):
+    """
+    Upload data ``size`` or ``ul_file_path`` to a destination URL over
+    ``circ_id`` via HTTP POST request.
+
+    This function is equivalent to the HTTP HEAD and GET requests implemented
+    with the functions:
+
+    - ``sbws.lib.destination.connect_to_destination_over_circuit``
+      which in turn calls``sbws.lib.stem.attach_stream_to_circuit_listener``
+      and ``sbws.lib.stem.add_event_listener``: to listen for stream event.
+    - ``measure_bandwidth_to_server``: to calculate download sizes, not needed
+      anymore.
+    - ``timed_recv_from_server``: the measurement itself.
+
+    :return: measurement ``Result`` (or None) and error or None
+    :rtype: tuple(Result, str)
+
+    """
+    log.debug("Uploading data...")
+    listener = stem_utils.attach_stream_to_circuit_listener(cont, circ_id)
+    stem_utils.add_event_listener(cont, listener, EventType.STREAM)
+
+    settings.circ_bw_event[circ_id] = {}
+    circ_bw_listener = functools.partial(stem_utils.handle_circ_bw_event)
+    stem_utils.add_event_listener(cont, circ_bw_listener, EventType.CIRC_BW)
+
+    size = conf.getint("scanner", "http_post_initial_size")
+    # The data to upload is so far zeros.
+    data = bytearray(size)
+    # Without opening a file, `filename` is not sent in the request.
+    ul_file_path = conf.getpath("paths", "ul_file_path")
+    if ul_file_path:
+        data = open(ul_file_path, "rb")
+    else:
+        # Convert the data to str since that is what the encoder expect.
+        data = str(data)
+    size_ss0 = conf.getint("scanner", "http_post_initial_size_ss0")
+
+    # Only used in this piece of code
+    from requests_toolbelt.multipart import encoder
+
+    # Monitor the upload
+    multipart_encoder = encoder.MultipartEncoder(
+        fields={conf.get("scanner", "payload_key"): data}
+    )
+    callback = create_callback(circ_id, size_ss0)
+    monitor = encoder.MultipartEncoderMonitor(multipart_encoder, callback)
+
+    try:
+        response = session.post(
+            dest.url,
+            data=monitor,
+            headers={"Content-Type": monitor.content_type},
+            verify=dest.verify,
+        )
+    # When 1.5 MiB have been uploaded after the first `CIRC_BW` event with the
+    # `SS=0` field, the callback raises this exception
+    except UploadedException:
+        # No need to check the response
+        response = None
+    except requests.exceptions.RequestException as e:
+        dest.add_failure()
+        msg = "Could not connect to {} over circ {} {}: {}".format(
+            dest.url, circ_id, stem_utils.circuit_str(cont, circ_id), e
+        )
+        log.debug("%s: %s", msg, e)
+        return None, msg
+    except Exception as e:
+        dest.add_failure()
+        log.debug(e)
+        return None, e
+    finally:
+        stem_utils.remove_event_listener(cont, listener)
+        stem_utils.remove_event_listener(cont, circ_bw_listener)
+
+    if response and response.status_code != requests.codes.ok:
+        dest.add_failure()
+        msg = (
+            "When sending HTTP POST to {}, we expected HTTP code {} "
+            "not {}".format(dest.url, requests.codes.ok, response.status_code)
+        )
+        log.debug(msg)
+        return None, msg
+
+    dest.add_success()
+
+    # Measurements when `CIRC_BW SS=0` have been received`
+    result = calculate_bw_ss0(circ_id)
+    if isinstance(result, str):  # Error with `CIRC_BW` events
+        return (None, result)
+    results = [{"duration": result[0], "amount": result[1]}]
+    return results, None
+
+
+def calculate_bw_ss0(circ_id):
+    """Calculate bandwidth when CIRC_BW SS field started to be 0
+
+    :return: Either an error if there wasn't SS=0 or it was not possible to
+        upload or the data or the resulted time delta and amount uploaded.
+    :rtype: str (on error) or dict(int, int)
+    """
+    time_delta = size = None
+    circ_bw_event = settings.circ_bw_event.get(circ_id, None)
+    if not circ_bw_event:
+        msg = "No `CIRC_BW` events received for circuit {}?".format(circ_id)
+        log.error(msg)
+        return msg
+    # log.debug("Some `CIRC_BW SS=0` event(s) receiveed.")
+    start_time = circ_bw_event.pop("ss0_start_time", None)
+    end_time = circ_bw_event.pop("ss0_end_time", None)
+    if not start_time or not end_time:
+        msg = "`CIRC_BW` SS=0` received but could not upload 1.5MiB"
+        log.error(msg)
+        # Remove this circuit information about events.
+        settings.circ_bw_event.pop(circ_id)
+        return msg
+    time_delta = end_time["time"] - start_time["time"]
+    size = end_time["bytes_read"] - start_time["bytes_read"]
+    measured_bandwidth = size / time_delta
+    log.info(
+        "Time uploading %s bytes: %s seconds. Bandwidth: %s Bytes/seconds.",
+        size,
+        time_delta,
+        measured_bandwidth,
+    )
+    # Remove this circuit information about events.
+    settings.circ_bw_event.pop(circ_id)
+    return time_delta, size
 
 
 def _pick_ideal_second_hop(relay, rl, relay_as_entry, candidates):
@@ -527,104 +722,115 @@ def measure_relay(args, conf, destinations, cb, rl, relay):
         relay.fingerprint,
         relay.nickname,
     )
-    # Make a connection to the destination
-    is_usable, usable_data = connect_to_destination_over_circuit(
-        dest, circ_id, s, cb.controller, dest._max_dl
-    )
 
-    # In the case that the relay was used as an exit, but could not exit
-    # to the Web server, try again using it as entry, to avoid that it would
-    # always fail when there's only one Web server.
-
-    if not is_usable and not relay_as_entry:
-        log.debug(
-            "Exit %s (%s) that can't exit all ips, with exit policy %s, failed"
-            " to connect to %s via circuit %s (%s). Reason: %s. Trying again "
-            "with it as entry.",
-            relay.fingerprint,
-            relay.nickname,
-            exit_policy,
-            dest.url,
-            circ_fps,
-            nicknames,
-            usable_data,
+    if rl.is_consensus_bwscanner_cc_2:
+        # 40130: Upload data instead of downloading it.
+        bw_results, reason = upload_data_multipart(
+            s, conf, dest, cb.controller, circ_id
         )
-        relay_as_entry = True
-        # select new candidates as exit
-        candidates = select_helper_candidates(relay, rl, dest, relay_as_entry)
-        r = create_path_relay(relay, dest, rl, relay_as_entry, candidates)
-        if len(r) == 1:
-            return r
-        circ_fps, nicknames, exit_policy = r
-        circ_id, reason = cb.build_circuit(circ_fps)
-        if not circ_id:
-            log.info(
-                "Exit %s (%s) that can't exit all ips, failed to create "
-                " circuit as entry: %s (%s).",
+    else:
+        # Make a connection to the destination
+        is_usable, usable_data = connect_to_destination_over_circuit(
+            dest, circ_id, s, cb.controller, dest._max_dl
+        )
+
+        # In the case that the relay was used as an exit, but could not exit
+        # to the Web server, try again using it as entry, to avoid that it
+        # would always fail when there's only one Web server.
+
+        if not is_usable and not relay_as_entry:
+            log.debug(
+                "Exit %s (%s) that can't exit all ips, with exit policy %s, "
+                "failed to connect to %s via circuit %s (%s). Reason: %s. "
+                "Trying again with it as entry.",
+                relay.fingerprint,
+                relay.nickname,
+                exit_policy,
+                dest.url,
+                circ_fps,
+                nicknames,
+                usable_data,
+            )
+            relay_as_entry = True
+            # select new candidates as exit
+            candidates = select_helper_candidates(
+                relay, rl, dest, relay_as_entry
+            )
+            r = create_path_relay(relay, dest, rl, relay_as_entry, candidates)
+            if len(r) == 1:
+                return r
+            circ_fps, nicknames, exit_policy = r
+            circ_id, reason = cb.build_circuit(circ_fps)
+            if not circ_id:
+                log.info(
+                    "Exit %s (%s) that can't exit all ips, failed to create "
+                    " circuit as entry: %s (%s).",
+                    relay.fingerprint,
+                    relay.nickname,
+                    circ_fps,
+                    nicknames,
+                )
+                return error_no_circuit(
+                    circ_fps, nicknames, reason, relay, dest, our_nick
+                )
+
+            log.debug(
+                "Built circuit with path %s (%s) to measure %s (%s)",
+                circ_fps,
+                nicknames,
+                relay.fingerprint,
+                relay.nickname,
+            )
+            is_usable, usable_data = connect_to_destination_over_circuit(
+                dest, circ_id, s, cb.controller, dest._max_dl
+            )
+        if not is_usable:
+            log.debug(
+                "Failed to connect to %s to measure %s (%s) via circuit "
+                "%s (%s). Exit policy: %s. Reason: %s.",
+                dest.url,
                 relay.fingerprint,
                 relay.nickname,
                 circ_fps,
                 nicknames,
+                exit_policy,
+                usable_data,
             )
-            return error_no_circuit(
-                circ_fps, nicknames, reason, relay, dest, our_nick
+            cb.close_circuit(circ_id)
+            return [
+                ResultErrorStream(
+                    relay, circ_fps, dest.url, our_nick, msg=usable_data
+                ),
+            ]
+        assert is_usable
+        assert "content_length" in usable_data
+        # FIRST: measure RTT
+        rtts, reason = measure_rtt_to_server(
+            s, conf, dest, usable_data["content_length"]
+        )
+        if rtts is None:
+            log.debug(
+                "Unable to measure RTT for %s (%s) to %s via circuit "
+                "%s (%s): %s",
+                relay.fingerprint,
+                relay.nickname,
+                dest.url,
+                circ_fps,
+                nicknames,
+                reason,
             )
+            cb.close_circuit(circ_id)
+            return [
+                ResultErrorStream(
+                    relay, circ_fps, dest.url, our_nick, msg=str(reason)
+                ),
+            ]
 
-        log.debug(
-            "Built circuit with path %s (%s) to measure %s (%s)",
-            circ_fps,
-            nicknames,
-            relay.fingerprint,
-            relay.nickname,
+        # SECOND: measure bandwidth
+        bw_results, reason = measure_bandwidth_to_server(
+            s, conf, dest, usable_data["content_length"]
         )
-        is_usable, usable_data = connect_to_destination_over_circuit(
-            dest, circ_id, s, cb.controller, dest._max_dl
-        )
-    if not is_usable:
-        log.debug(
-            "Failed to connect to %s to measure %s (%s) via circuit "
-            "%s (%s). Exit policy: %s. Reason: %s.",
-            dest.url,
-            relay.fingerprint,
-            relay.nickname,
-            circ_fps,
-            nicknames,
-            exit_policy,
-            usable_data,
-        )
-        cb.close_circuit(circ_id)
-        return [
-            ResultErrorStream(
-                relay, circ_fps, dest.url, our_nick, msg=usable_data
-            ),
-        ]
-    assert is_usable
-    assert "content_length" in usable_data
-    # FIRST: measure RTT
-    rtts, reason = measure_rtt_to_server(
-        s, conf, dest, usable_data["content_length"]
-    )
-    if rtts is None:
-        log.debug(
-            "Unable to measure RTT for %s (%s) to %s via circuit "
-            "%s (%s): %s",
-            relay.fingerprint,
-            relay.nickname,
-            dest.url,
-            circ_fps,
-            nicknames,
-            reason,
-        )
-        cb.close_circuit(circ_id)
-        return [
-            ResultErrorStream(
-                relay, circ_fps, dest.url, our_nick, msg=str(reason)
-            ),
-        ]
-    # SECOND: measure bandwidth
-    bw_results, reason = measure_bandwidth_to_server(
-        s, conf, dest, usable_data["content_length"]
-    )
+
     if bw_results is None:
         log.debug(
             "Failed to measure %s (%s) via circuit %s (%s) to %s. Exit"
@@ -646,15 +852,16 @@ def measure_relay(args, conf, destinations, cb, rl, relay):
     cb.close_circuit(circ_id)
     # Finally: store result
     log.debug(
-        "Success measurement for %s (%s) via circuit %s (%s) to %s",
+        "Success measurement for %s (%s) via circuit %s (%s) to %s: %s",
         relay.fingerprint,
         relay.nickname,
         circ_fps,
         nicknames,
         dest.url,
+        bw_results,
     )
     return [
-        ResultSuccess(rtts, bw_results, relay, circ_fps, dest.url, our_nick),
+        ResultSuccess(None, bw_results, relay, circ_fps, dest.url, our_nick),
     ]
 
 
@@ -804,7 +1011,7 @@ def main_loop(
     while not settings.end_event.is_set():
         log.debug("Starting a new measurement loop.")
         num_relays = 0
-        loop_tstart = time.time()
+        loop_tstart = time.monotonic()
 
         # Register relay fingerprints to the heartbeat module
         hbeat.register_consensus_fprs(relay_list.relays_fingerprints)
@@ -852,7 +1059,7 @@ def main_loop(
         # Print the heartbeat message
         hbeat.print_heartbeat_message()
 
-        loop_tstop = time.time()
+        loop_tstop = time.monotonic()
         loop_tdelta = (loop_tstop - loop_tstart) / 60
         # At this point, we know the relays that were queued to be
         # measured.
@@ -1033,6 +1240,18 @@ def main(args, conf):
         )
 
     os.makedirs(conf.getpath("paths", "datadir"), exist_ok=True)
+
+    # For now, no need to add these variables as config file options or args.
+    print("conf", conf)
+
+    # This keys are not currently checked in `config.py`
+    # conf["ul_file_path"] = UL_FILE_PATH
+    conf["paths"]["ul_file_path"] = ""
+    conf["scanner"]["payload_key"] = str(HTTP_POST_UL_KEY)
+    conf["scanner"]["http_post_initial_size"] = str(HTTP_POST_INITIAL_SIZE)
+    conf["scanner"]["http_post_initial_size_ss0"] = str(
+        HTTP_POST_INITIAL_SIZE_SS0
+    )
 
     state = State(conf.getpath("paths", "state_fname"))
     state["scanner_started"] = now_isodt_str()
