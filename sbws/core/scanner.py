@@ -848,7 +848,7 @@ def measure_relay(args, conf, destinations, cb, rl, relay):
 
     # The `XOFF` events can only be received once an upload or download
     # stream starts (in `measure_bandwidth_to_server` or
-    # `upload_data_multipart` functions). This is the reason way they're stored
+    # `upload_data_multipart` functions). This is the reason why they're stored
     # here and not before.
     # The `XOFF` events are also independent on whether the stream end up
     # failing or succeeding.
