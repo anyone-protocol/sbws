@@ -1,5 +1,6 @@
 # flake8:noqa:E501
 import copy
+import datetime
 import logging
 import os
 from threading import RLock
@@ -21,6 +22,7 @@ from stem.control import Controller, Listener
 
 from sbws import settings
 from sbws.globals import (
+    BWSCANNER_CC2,
     TORRC_OPTIONS_CAN_FAIL,
     TORRC_RUNTIME_OPTIONS,
     TORRC_STARTING_POINT,
@@ -31,21 +33,29 @@ log = logging.getLogger(__name__)
 stream_building_lock = RLock()
 
 
-def attach_stream_to_circuit_listener(controller, circ_id):
+def attach_stream_to_circuit_listener(controller, circ_id, bwscanner_cc):
     """Returns a function that should be given to add_event_listener(). It
     looks for newly created streams and attaches them to the given circ_id"""
 
     def closure_stream_event_listener(st):
         if st.status == "XOFF_RECV":
             # Upload
-            if controller.is_consensus_bwscanner_cc_2:
+            if bwscanner_cc == BWSCANNER_CC2:
                 log.error(
                     "Received XOFF_RECV stream status while uploading data."
                     " The HTTP server is too slow."
                     " Please, replace it with other or contact network-health "
                     "team."
                 )
+                # Even if this event will be received several times while
+                # measuring, store only the last timestamp
+                settings.stream_event[circ_id][
+                    "XOFF_RECV"
+                ] = datetime.datetime.utcnow()
             # Download
+            # Currently, `bwscanner_cc` can only be `1` or `2, therefore,
+            # there is no need to check whether `bwscanner_cc` is equal to
+            # BWSCANNER_CC1 in this `else`.
             else:
                 log.error(
                     "Received XOFF_RECV stream status while downloading"
@@ -53,7 +63,7 @@ def attach_stream_to_circuit_listener(controller, circ_id):
                 )
         elif st.status == "XOFF_SENT":
             # Uploading
-            if controller.is_consensus_bwscanner_cc_2:
+            if bwscanner_cc == BWSCANNER_CC2:
                 log.error(
                     "Received XOFF_SENT stream status while uploading"
                     "data. Is there a bug in tor?"
@@ -66,6 +76,11 @@ def attach_stream_to_circuit_listener(controller, circ_id):
                     " Please, replace it with other or contact network-health "
                     "team."
                 )
+                # Even if this event will be received several times while
+                # measuring, store only the last timestamp
+                settings.stream_event[circ_id][
+                    "XOFF_SENT"
+                ] = datetime.datetime.utcnow()
         elif st.status in ["XON_RECV", "XON_SENT"]:
             log.info(
                 "Received %s stream status for circuit %s.", st.status, circ_id

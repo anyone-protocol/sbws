@@ -12,6 +12,7 @@ from sbws import settings
 from sbws.globals import DESTINATION_VERIFY_CERTIFICATE
 
 from ..globals import (
+    BWSCANNER_CC1,
     DELTA_SECONDS_RETRY_DESTINATION,
     FACTOR_INCREMENT_DESTINATION_RETRY,
     MAX_NUM_DESTINATION_FAILURES,
@@ -108,7 +109,9 @@ def connect_to_destination_over_circuit(dest, circ_id, session, cont, max_dl):
         return False, "Shutting down."
     error_prefix = "When sending HTTP HEAD to {}, ".format(dest.url)
     with stem_utils.stream_building_lock:
-        listener = stem_utils.attach_stream_to_circuit_listener(cont, circ_id)
+        listener = stem_utils.attach_stream_to_circuit_listener(
+            cont, circ_id, BWSCANNER_CC1
+        )
         stem_utils.add_event_listener(cont, listener, EventType.STREAM)
         try:
             head = session.head(dest.url, verify=dest.verify)

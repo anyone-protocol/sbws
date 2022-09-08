@@ -254,8 +254,16 @@ BWLINE_KEYS_V1_4 = [
     # Added in #29853.
     "under_min_report",
 ]
+BWLINE_KEYS_V1_6 = [
+    "xoff_recv",
+    "xoff_sent",
+]
 BWLINE_KEYS_V1 = (
-    BWLINE_KEYS_V0 + BWLINE_KEYS_V1_1 + BWLINE_KEYS_V1_2 + BWLINE_KEYS_V1_4
+    BWLINE_KEYS_V0
+    + BWLINE_KEYS_V1_1
+    + BWLINE_KEYS_V1_2
+    + BWLINE_KEYS_V1_4
+    + BWLINE_KEYS_V1_6
 )
 # NOTE: tech-debt: assign boolean type to vote and unmeasured,
 # when the attributes are defined with a type, as stem does.
@@ -270,6 +278,7 @@ BWLINE_INT_KEYS = (
     ]
     + BWLINE_KEYS_V1_2
     + BWLINE_KEYS_V1_4
+    + BWLINE_KEYS_V1_6
 )
 # This is boolean, not int.
 BWLINE_INT_KEYS.remove("consensus_bandwidth_is_unmeasured")
@@ -749,6 +758,18 @@ class V3BWLine(object):
             if getattr(r, "relay_recent_measurement_attempt", None):
                 ts.update(r.relay_recent_measurement_attempt)
         kwargs["relay_recent_measurement_attempt_count"] = str(len(ts))
+
+        ts = set([])
+        for r in results:
+            if getattr(r, "xoff_recv", None):
+                ts.update(r.xoff_recv)
+        kwargs["xoff_recv"] = str(len(ts))
+
+        ts = set([])
+        for r in results:
+            if getattr(r, "xoff_sent", None):
+                ts.update(r.xoff_sent)
+        kwargs["xoff_sent"] = str(len(ts))
 
         success_results = [r for r in results if isinstance(r, ResultSuccess)]
 

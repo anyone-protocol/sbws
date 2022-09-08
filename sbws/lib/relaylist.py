@@ -86,6 +86,8 @@ class Relay:
         self.relay_recent_measurement_attempt = timestamps.DateTimeSeq(
             [], MAX_RECENT_PRIORITY_LIST_COUNT
         )
+        self.xoff_recv = timestamps.DateTimeSeq([], MAX_RECENT_CONSENSUS_COUNT)
+        self.xoff_sent = timestamps.DateTimeSeq([], MAX_RECENT_CONSENSUS_COUNT)
 
     def _from_desc(self, attr):
         if not self._desc:
@@ -198,6 +200,22 @@ class Relay:
     def relay_in_recent_consensus_count(self):
         """Number of times the relay was in a conensus."""
         return len(self.relay_in_recent_consensus)
+
+    def update_xoff_sent(self, timestamp):
+        if timestamp:
+            self.xoff_sent.update(timestamp)
+
+    @property
+    def xoff_sent_count(self):
+        return len(self.xoff_sent)
+
+    def update_xoff_recv(self, timestamp):
+        if timestamp:
+            self.xoff_recv.update(timestamp)
+
+    @property
+    def xoff_recv_count(self):
+        return len(self.xoff_sent)
 
     def can_exit_to_port(self, port, strict=False):
         """

@@ -29,6 +29,8 @@ class Settings:
         self.end_event = threading.Event()
         # To record the CIRC_BW events of a circuit
         self.circ_bw_event = {}
+        # To store XOFF_RECV, XOFF_SENT stream events
+        self.stream_event = {}
 
     def init_http_headers(self, nickname, uuid, tor_version):
         self.HTTP_HEADERS["Tor-Bandwidth-Scanner-Nickname"] = nickname
