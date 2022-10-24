@@ -13,15 +13,42 @@ well connected machines.
 
 .. _destinations_requirements:
 
-destination requirements
-------------------------------------
+Destination requirements
+------------------------
+
+- TLS support to avoid HTTP content caches at the various exit nodes.
+- Certificates can be self-signed.
+- A fixed IP address or a domain name.
+- Bandwidth: at least 12.5MB/s (100 Mbit/s).
+- Network traffic: around 12-15GB/day.
+- An HTTP Web server, see next subsection.
+
+HTTP server requirements
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 - If the consensus parameter ``bwscanner_cc`` is not set or has a value lower
-  than 2: A Web server installed and running that supports HTTP GET, HEAD and
+  than 2:
+
+  A Web server installed and running that supports HTTP GET, HEAD and
   Range (:rfc:`7233`) requests.
   ``Apache`` HTTP Server and ``Nginx`` support them.
-  If it has value 2: A Web server installed and running that supports HTTP POST
-  either:
+
+  It also needs to allow ```keep-alive``, in order to reuse connections between
+  the sbws HEAD request and the several GET ones.
+
+  .. Note:: if the server is configured with ``keep-alive`` timeout, it'd need
+     to be at least the same timeout as in the sbws HTTP requests, which is 10
+     seconds by default (``http_timeout`` variable in the configuration file,
+     see  more about in the next section).
+
+  It also needs a large file; at the time of writing, at least 1 GiB in size
+  It can be created running::
+
+      head -c $((1024*1024*1024)) /dev/urandom > 1GiB
+
+- If the consensus parameter ``bwscanner_cc`` has value 2:
+
+  A Web server installed and running that supports HTTP POST either:
 
   - via ``Content-Type multipart/form-data`` (:rfc:`2388`) as a file upload.
   - via ``Content-Type multipart/form-data`` RFC 2388 as a raw (text) field
@@ -30,7 +57,28 @@ destination requirements
   If your Web server supports HTTP MQTT binary but not the 2 previous methods,
   open an issue so that we implement the MQTT client part in the scanner.
 
-  An nginx configuration that works for the 3 previous methods can be::
+Example configurations:
+
+- Apache supporting HTTP GET and the three POST methods::
+
+    <Location "/">
+        AllowOverride None
+        Order Deny,Allow
+        Deny from All
+    </Location>
+    <Location "/1G">
+            Allow from All
+    </Location>
+    <Location "/postpath">
+            Allow from All
+    </Location>
+
+  And in the directory of static files served::
+
+    head -c $((1024*1024*1024)) /dev/urandom > 1G
+    echo OK > postpath
+
+- nginx supporting the three POST methods::
 
     location /postpath {
       root /same/path/to/normal/directory;
@@ -45,21 +93,40 @@ destination requirements
 
     echo OK > postpath
 
-  Note that if the server is configured with ``keep-alive`` timeout, it'd need
-  to be at least the same timeout as in the sbws HTTP requests, which is 10
-  seconds by default (``http_timeout`` variable in the configuration file, see
-  more about in the next section).
-- If the consensus parameter ``bwscanner_cc`` is not set or has a value lower
-  than 2: A large file; at the time of writing, at least 1 GiB in size
-  It can be created running::
+You can test your configuration running:
 
-      head -c $((1024*1024*1024)) /dev/urandom > 1GiB
+- HEAD request::
 
-- TLS support to avoid HTTP content caches at the various exit nodes.
-- Certificates can be self-signed.
-- A fixed IP address or a domain name.
-- Bandwidth: at least 12.5MB/s (100 Mbit/s).
-- Network traffic: around 12-15GB/day.
+    curl https://bwauth.httpd.ip/1G -i -H "Range: bytes=0-1023"
+
+  It should reply::
+
+    HTTP/1.1 206 Partial Content
+    Accept-Ranges: bytes
+    Content-Length: 1024
+    Content-Range: bytes 0-1023/1073741824
+
+- GET request::
+
+    curl -v https://bwauth.httpd.ip/1G
+
+  It should reply::
+
+    < HTTP/1.1 200 OK
+    < Accept-Ranges: bytes
+    < Content-Length: 1073741824
+
+- POST request::
+
+    dd if=/dev/zero of=post-20MB.zero bs=1k count=20480
+    curl -F "sbwstest=@post-20MB.zero" https://bwauth.httpd.ip/postpath -O
+    curl -F "sbwstest=<post-20MB.zero" https://bwauth.httpd.ip/postpath -O
+
+  In the `Xferd` column it should show ``20.0M``::
+
+      % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                Dload  Upload   Total   Spent    Left  Speed
+      100 20.0M  100   265  100 20.0M      4   346k  0:01:06  0:00:59  0:00:07    64
 
 If you want, use a `Content delivery network`_ (CDN) in order to make the
 destination IP closer to the scanner exit.
