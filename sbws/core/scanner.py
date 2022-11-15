@@ -385,7 +385,7 @@ def upload_data_multipart(session, conf, dest, cont, circ_id):
     # Measurements when `CIRC_BW SS=0` have been received`
     result = calculate_bw_ss0(circ_id)
     if isinstance(result, str):  # Error with `CIRC_BW` events
-        return (None, result)
+        return None, result
     results = [{"duration": result[0], "amount": result[1]}]
     return results, None
 
