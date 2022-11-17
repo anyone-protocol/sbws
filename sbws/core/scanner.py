@@ -297,11 +297,6 @@ def upload_data_multipart(session, conf, dest, cont, circ_id):
     """
     log.debug("Uploading data...")
     settings.stream_event[circ_id] = {}
-    listener = stem_utils.attach_stream_to_circuit_listener(
-        cont, circ_id, BWSCANNER_CC2
-    )
-    stem_utils.add_event_listener(cont, listener, EventType.STREAM)
-
     settings.circ_bw_event[circ_id] = {}
     circ_bw_listener = functools.partial(stem_utils.handle_circ_bw_event)
     stem_utils.add_event_listener(cont, circ_bw_listener, EventType.CIRC_BW)
@@ -317,6 +312,28 @@ def upload_data_multipart(session, conf, dest, cont, circ_id):
         # Convert the data to str since that is what the encoder expect.
         data = str(data)
     size_ss0 = conf.getint("scanner", "http_post_initial_size_ss0")
+
+    # Block other threads to attach an stream to the same circuit.
+    # Otherwise, if there're measurer threads trying to attach other streams,
+    # the controller will have several listener for the same event type
+    # (stream) and it might (will?) use the same listener (and circuit) for
+    # the new streams.
+    with stem_utils.stream_building_lock:
+        listener = stem_utils.attach_stream_to_circuit_listener(
+            cont, circ_id, BWSCANNER_CC2
+        )
+        stem_utils.add_event_listener(cont, listener, EventType.STREAM)
+        # There must be some stream (HTTP request) to actually attach the
+        # stream.
+        try:
+            session.head(dest.url, verify=dest.verify)
+        except requests.exceptions.RequestException as e:
+            dest.add_failure()
+            return None, "Could not connect to {} over circ {} {}: {}".format(
+                dest.url, circ_id, stem_utils.circuit_str(cont, circ_id), e
+            )
+        finally:
+            stem_utils.remove_event_listener(cont, listener)
 
     # Only used in this piece of code
     from requests_toolbelt.multipart import encoder
@@ -352,7 +369,6 @@ def upload_data_multipart(session, conf, dest, cont, circ_id):
         log.debug(e)
         return None, e
     finally:
-        stem_utils.remove_event_listener(cont, listener)
         stem_utils.remove_event_listener(cont, circ_bw_listener)
 
     if response and response.status_code != requests.codes.ok:
@@ -369,7 +385,7 @@ def upload_data_multipart(session, conf, dest, cont, circ_id):
     # Measurements when `CIRC_BW SS=0` have been received`
     result = calculate_bw_ss0(circ_id)
     if isinstance(result, str):  # Error with `CIRC_BW` events
-        return (None, result)
+        return None, result
     results = [{"duration": result[0], "amount": result[1]}]
     return results, None
 
