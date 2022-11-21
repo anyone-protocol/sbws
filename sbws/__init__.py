@@ -27,8 +27,6 @@ class Settings:
             if setting.isupper():
                 setattr(self, setting, getattr(globals, setting))
         self.end_event = threading.Event()
-        # To record the CIRC_BW events of a circuit
-        self.circ_bw_event = {}
         # To store XOFF_RECV, XOFF_SENT stream events
         self.stream_event = {}
 
