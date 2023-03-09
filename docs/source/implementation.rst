@@ -17,7 +17,7 @@ Possible disadvantages using other software:
 
 - maybe too big
 - maybe introduce security issues
-- maybe is not maintaned
+- maybe is not maintained
 
 sbws version
 ````````````
