@@ -105,6 +105,10 @@ def attach_stream_to_circuit_listener(controller, circ_id, bwscanner_cc):
                     circ_id,
                     e,
                 )
+            else:
+                # Initialize stream events for this circuit for both uploads
+                # and downloads.
+                settings.stream_event[circ_id] = {}
         else:
             pass
 

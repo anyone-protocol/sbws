@@ -240,7 +240,6 @@ def upload_data(session, conf, dest, cont, circ_id):
 
     """
     log.debug("Uploading data...")
-    settings.stream_event[circ_id] = {}
 
     size = conf.getint("scanner", "http_post_initial_size")
     # The data to upload is so far zeros.
