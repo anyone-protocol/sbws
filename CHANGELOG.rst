@@ -7,6 +7,86 @@ The format is based on `Keep a
 Changelog <http://keepachangelog.com/en/1.0.0/>`__ and this project
 adheres to `Semantic Versioning <http://semver.org/spec/v2.0.0.html>`__.
 
+v1.6.0 (2023-03-20)
+-------------------
+
+New
+~~~
+- V3bwfile: Add RelayLine XOFF KeyValues.
+  to show the number of times a relay receives these events while being
+  measured and diagnose bottlenecks at bwauths.
+  Closes #40144.
+- Scanner: do HTTP POST requests instead of GET.
+  when the consensus parameter `bwscanner` is 2.
+  "Using upload instead of download allows the congestion control
+  algorithms to be under control of the sbws Tor client, instead of the
+  Exit relay. This means that sbws can know when `slow start` has exited."
+  This is the 1st optimization for sbws#40130.
+  The testing HTTP server has been replaced by the one implemented in
+  onbasca just cause a first try on implementing `do_POST` was
+  successful only for the 1st sbws request. It only implemnts POST RFC
+  2388.
+
+Changes
+~~~~~~~
+- Scanner: Initialize stream events storage.
+  for downloads too, not only uploads.
+- Scanner: Measure upload without waiting for SS=0.
+  This partly revert "chg: Measure upload bw only when CIRC_BW SS=0",
+  commit a46ec86f318b93575c3aed1c06d8d9c1d6f34c17.
+  Closes #40151
+- Setup: Add package data option.
+  to explicitly include data as a package and avoid warning about
+  future deprecation.
+  https://setuptools.pypa.io/en/latest/userguide/datafiles.html#subdirectory-for-data-files
+  Closes #40141
+- Stem: Log also when XOFF_SENT is received.
+- Measure upload bw only when CIRC_BW SS=0.
+  This is part of the optimizations for #40130.
+- Stem: Log error on stream XOFF_RECV status.
+  This is part of the optimizations for #40130
+- Resultdump: Catch exceptions writing result.
+  So that the `resultdump` threat can continue even if there's an
+  exception and the operator gets notified about the error.
+  There is no need to restart sbws after solving the filesystem issue
+  that caused the exception.
+  Close #40143
+
+Fix
+~~~
+- Explain how to troubleshoot JSONDecodeError.
+  Closes #40153.
+- Typo.
+- Replace tox's whitelist by allowlist.
+  removed in tox 4.0.0rc4.
+  https://tox.wiki/en/latest/changelog.html#deprecations-and-removals-4-0-0rc4
+- Scanner: Stop using parenthesis to return tuple.
+- Scanner: Stop attaching streams to same circuit.
+  Block other threads to attach an stream to the same circuit.
+  Otherwise, if there're measurer threads trying to attach other streams,
+  the controller will have several listener for the same event type
+  (stream) and it might (will?) use the same listener (and circuit) for
+  the new streams.
+  Bugfix #40130.
+  Closes #40150
+- Add keep-alive as a web server requirement.
+  Also:
+  - reorganize list of requirements
+  - add a subsection for the web requirements
+  - add apache2 configuration example
+  - add example commands for testing the web server configuration
+  Closes #40148
+- Globals: typo.
+- Tests: typo.
+- Replace `time.time()` by `time.monotonic()`
+  when calculating time deltas executing part of the code.
+- Tests: Set bwscanner_cc = 2 to the test network `
+- Remove unneeded arg.
+  past to method `only_relays_with_bandwidth` and it's declaration was
+  recently changed.
+  Also fix typo.
+  Closes #40140.
+
 v1.5.2 (2022-05-17)
 -------------------
 
