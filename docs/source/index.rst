@@ -32,6 +32,7 @@ and in ``sbws`` Debian package:
    README
    INSTALL
    DEPLOY
+   troubleshooting
    CHANGELOG
    AUTHORS
    man_sbws

@@ -203,3 +203,9 @@ Gitlab) or `<man_sbws.html>`_ (local build or Read the Docs) or ``man sbws``
 (system package).
 
 .. _Content delivery network: https://en.wikipedia.org/wiki/Content_delivery_network
+
+Troubleshooting
+---------------
+
+See ``./docs/source/troubleshooting.rst`` (in the local directory or Tor Project
+Gitlab) or `<Troubleshooting.html>`_ (local build or Read the Docs)
