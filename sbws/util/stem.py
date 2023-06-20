@@ -281,7 +281,7 @@ def set_torrc_options_can_fail(controller):
 
 def launch_tor(conf):
     os.makedirs(conf.getpath("tor", "datadir"), mode=0o700, exist_ok=True)
-    os.makedirs(conf.getpath("tor", "log"), exist_ok=True)
+    os.makedirs(conf.getpath("tor", "log"), mode=0o700, exist_ok=True)
     os.makedirs(conf.getpath("tor", "run_dpath"), mode=0o700, exist_ok=True)
     # Bare minimum things, more or less
     torrc = copy.deepcopy(TORRC_STARTING_POINT)

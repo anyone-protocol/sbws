@@ -127,7 +127,7 @@ def gen_parser(sub):
 
 
 def main(args, conf):
-    os.makedirs(conf.getpath("paths", "v3bw_dname"), exist_ok=True)
+    os.makedirs(conf.getpath("paths", "v3bw_dname"), mode=0o700, exist_ok=True)
 
     datadir = conf.getpath("paths", "datadir")
     if not os.path.isdir(datadir):

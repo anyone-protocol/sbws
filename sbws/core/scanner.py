@@ -1162,7 +1162,7 @@ def main(args, conf):
             min_dl,
         )
 
-    os.makedirs(conf.getpath("paths", "datadir"), exist_ok=True)
+    os.makedirs(conf.getpath("paths", "datadir"), mode=0o700, exist_ok=True)
 
     # For now, no need to add these variables as config file options or args.
     print("conf", conf)
