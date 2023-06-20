@@ -128,7 +128,6 @@ def get_random_range_string(content_length, size):
     For example, for content_length of 100 and size 10, this function will
     return one of the following: '0-9', '1-10', '2-11', [...] '89-98', '90-99'
     """
-    assert size <= content_length
     # start can be anywhere in the content_length as long as it is **size**
     # bytes away from the end or more. Because range is [start, end) (doesn't
     # include the end value), add 1 to the end.
@@ -140,7 +139,6 @@ def get_random_range_string(content_length, size):
     # the largest index end should ever be should be less than the total length
     # of the content. For example, if content_length is 10, end could be
     # anywhere from 0 to 9.
-    assert end < content_length
     return "bytes={}-{}".format(start, end)
 
 
@@ -169,9 +167,7 @@ def measure_rtt_to_server(session, conf, dest, content_length):
                 data,
             )
             return None, data
-        assert success
         # data is an RTT
-        assert isinstance(data, float) or isinstance(data, int)
         rtts.append(data)
     return rtts, None
 
@@ -194,8 +190,6 @@ def measure_bandwidth_to_server(session, conf, dest, content_length):
         "max": conf.getfloat("scanner", "download_max"),
     }
     while len(results) < num_downloads and not settings.end_event.is_set():
-        assert expected_amount >= min_dl
-        assert expected_amount <= max_dl
         random_range = get_random_range_string(content_length, expected_amount)
         success, data = timed_recv_from_server(session, dest, random_range)
         if not success:
@@ -208,9 +202,7 @@ def measure_bandwidth_to_server(session, conf, dest, content_length):
                 data,
             )
             return None, data
-        assert success
         # data is a download time
-        assert isinstance(data, float) or isinstance(data, int)
         if _should_keep_result(
             expected_amount == max_dl, data, download_times
         ):
@@ -717,8 +709,6 @@ def measure_relay(args, conf, destinations, cb, rl, relay):
                     relay, circ_fps, dest.url, our_nick, msg=usable_data
                 ),
             ]
-        assert is_usable
-        assert "content_length" in usable_data
         # FIRST: measure RTT
         rtts, reason = measure_rtt_to_server(
             s, conf, dest, usable_data["content_length"]

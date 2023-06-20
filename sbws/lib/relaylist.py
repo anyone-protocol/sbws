@@ -5,8 +5,6 @@ from datetime import datetime, timedelta
 from threading import Lock
 
 from stem import ControllerError, DescriptorUnavailable, Flag
-from stem.descriptor.router_status_entry import RouterStatusEntryV3
-from stem.descriptor.server_descriptor import ServerDescriptor
 
 from ..globals import (
     MAX_RECENT_CONSENSUS_COUNT,
@@ -49,10 +47,7 @@ class Relay:
         :param datatime timestamp: the timestamp of a consensus
             (RouterStatusEntryV3) from which this relay has been obtained.
         """
-        assert isinstance(fp, str)
-        assert len(fp) == 40
         if ns is not None:
-            assert isinstance(ns, RouterStatusEntryV3)
             self._ns = ns
         else:
             try:
@@ -61,7 +56,6 @@ class Relay:
                 log.exception("Exception trying to get ns %s", e)
                 self._ns = None
         if desc is not None:
-            assert isinstance(desc, ServerDescriptor)
             self._desc = desc
         else:
             try:
@@ -237,7 +231,6 @@ class Relay:
         to check the EXIT flag too, using this function.
 
         """
-        assert isinstance(port, int)
         # if dind't get the descriptor, there isn't exit policy
         # When the attribute is gotten in getattr(self._desc, "exit_policy"),
         # is possible that stem's _input_rules is None and raises an exception

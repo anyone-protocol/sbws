@@ -9,7 +9,6 @@ from queue import Empty, Queue
 from threading import RLock, Thread
 
 from sbws.globals import RESULT_VERSION, fail_hard
-from sbws.lib.relaylist import Relay
 from sbws.util.filelock import DirectoryLock
 from sbws.util.json import CustomDecoder, CustomEncoder
 
@@ -36,7 +35,6 @@ def load_result_file(fname, success_only=False):
     structures (or subclasses of Result). Optionally only keeps ResultSuccess.
     Returns all kept Results as a result dictionary. This function does not
     care about the age of the results"""
-    assert os.path.isfile(fname)
     d = {}
     num_total = 0
     num_ignored = 0
@@ -74,8 +72,6 @@ def load_result_file(fname, success_only=False):
 def trim_results(fresh_days, result_dict):
     """Given a result dictionary, remove all Results that are no longer valid
     and return the new dictionary"""
-    assert isinstance(fresh_days, int)
-    assert isinstance(result_dict, dict)
     data_period = fresh_days * 24 * 60 * 60
     oldest_allowed = time.time() - data_period
     out_results = {}
@@ -105,7 +101,6 @@ def trim_results_ip_changed(
         IPv6 changes
     :returns: a new results dictionary
     """
-    assert isinstance(result_dict, dict)
     new_results_dict = {}
     if on_changed_ipv4 is True:
         for fp in result_dict.keys():
@@ -146,8 +141,6 @@ def load_recent_results_in_datadir(
     """Given a data directory, read all results files in it that could have
     results in them that are still valid. Trim them, and return the valid
     Results as a list"""
-    assert isinstance(fresh_days, int)
-    assert os.path.isdir(datadir)
     # Inform the results are being loaded, since it takes some seconds.
     log.info("Reading and processing previous measurements.")
     results = {}
@@ -192,8 +185,6 @@ def load_recent_results_in_datadir(
 
 def write_result_to_datadir(result, datadir):
     """Can be called from any thread"""
-    assert isinstance(result, Result)
-    assert os.path.isdir(datadir)
     dt = datetime.utcfromtimestamp(result.time)
     ext = ".txt"
     result_fname = os.path.join(datadir, "{}{}".format(dt.date(), ext))
@@ -448,10 +439,8 @@ class Result:
 
            ``version`` is not being used and should be removed.
         """
-        assert "version" in d
         if d["version"] != RESULT_VERSION:
             return None
-        assert "type" in d
         if d["type"] == _ResultType.Success.value:
             return ResultSuccess.from_dict(d)
         elif d["type"] == _ResultType.Error.value:
@@ -507,7 +496,6 @@ class ResultError(Result):
 
     @staticmethod
     def from_dict(d):
-        assert isinstance(d, dict)
         return ResultError(
             Result.Relay(
                 d["fingerprint"],
@@ -564,7 +552,6 @@ class ResultErrorCircuit(ResultError):
 
     @staticmethod
     def from_dict(d):
-        assert isinstance(d, dict)
         return ResultErrorCircuit(
             Result.Relay(
                 d["fingerprint"],
@@ -605,7 +592,6 @@ class ResultErrorStream(ResultError):
 
     @staticmethod
     def from_dict(d):
-        assert isinstance(d, dict)
         return ResultErrorStream(
             Result.Relay(
                 d["fingerprint"],
@@ -666,7 +652,6 @@ class ResultErrorSecondRelay(ResultError):
 
     @staticmethod
     def from_dict(d):
-        assert isinstance(d, dict)
         return ResultErrorSecondRelay(
             Result.Relay(
                 d["fingerprint"],
@@ -720,7 +705,6 @@ class ResultErrorDestination(ResultError):
 
     @staticmethod
     def from_dict(d):
-        assert isinstance(d, dict)
         return ResultErrorSecondRelay(
             Result.Relay(
                 d["fingerprint"],
@@ -774,7 +758,6 @@ class ResultErrorAuth(ResultError):
 
     @staticmethod
     def from_dict(d):
-        assert isinstance(d, dict)
         return ResultErrorAuth(
             Result.Relay(
                 d["fingerprint"],
@@ -825,7 +808,6 @@ class ResultSuccess(Result):
 
     @staticmethod
     def from_dict(d):
-        assert isinstance(d, dict)
         return ResultSuccess(
             d["rtts"] or [],
             d["downloads"],
@@ -878,7 +860,6 @@ class ResultDump:
     queue. Writes them to daily result files in the data directory"""
 
     def __init__(self, args, conf):
-        assert os.path.isdir(conf.getpath("paths", "datadir"))
         self.conf = conf
         self.fresh_days = conf.getint("general", "data_period")
         self.datadir = conf.getpath("paths", "datadir")
@@ -893,7 +874,6 @@ class ResultDump:
 
     def store_result(self, result):
         """Call from ResultDump thread"""
-        assert isinstance(result, Result)
         with self.data_lock:
             fp = result.fingerprint
             if fp not in self.data:
@@ -908,7 +888,6 @@ class ResultDump:
     def handle_result(self, result):
         """Call from ResultDump thread. If we are shutting down, ignores
         ResultError* types"""
-        assert isinstance(result, Result)
         fp = result.fingerprint
         nick = result.nickname
         if isinstance(result, ResultError) and settings.end_event.is_set():
@@ -995,7 +974,6 @@ class ResultDump:
                 continue
             elif isinstance(data, list):
                 for r in data:
-                    assert isinstance(r, Result)
                     self.handle_result(r)
             elif isinstance(data, Result):
                 self.handle_result(data)
@@ -1008,7 +986,6 @@ class ResultDump:
                 )
 
     def results_for_relay(self, relay):
-        assert isinstance(relay, Relay)
         fp = relay.fingerprint
         with self.data_lock:
             if fp not in self.data:

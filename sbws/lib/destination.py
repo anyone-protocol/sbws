@@ -102,7 +102,6 @@ def connect_to_destination_over_circuit(dest, circ_id, session, cont, max_dl):
     :returns: True and a dictionary if everything is in order and measurements
         should commence.  False and an error string otherwise.
     """
-    assert isinstance(dest, Destination)
     log.debug("Connecting to destination over circuit.")
     # Do not start if sbws is stopping
     if settings.end_event.is_set():
@@ -348,14 +347,10 @@ class Destination:
                 p = 80
             elif scheme == "https":
                 p = 443
-            else:
-                assert None, "Unreachable. Unknown scheme {}".format(scheme)
-        assert p is not None
         return p
 
     @staticmethod
     def from_config(conf_section, max_dl, number_threads):
-        assert "url" in conf_section
         url = conf_section["url"]
         verify = _parse_verify_option(conf_section)
         try:
@@ -376,9 +371,6 @@ class Destination:
 
 class DestinationList:
     def __init__(self, conf, dests, circuit_builder, relay_list, controller):
-        assert len(dests) > 0
-        for dest in dests:
-            assert isinstance(dest, Destination)
         self._rng = random.SystemRandom()
         self._cont = controller
         self._cb = circuit_builder
@@ -391,7 +383,6 @@ class DestinationList:
 
     @staticmethod
     def from_config(conf, circuit_builder, relay_list, controller):
-        assert "destinations" in conf
         section = conf["destinations"]
         dests = []
         for key in section.keys():
@@ -401,7 +392,6 @@ class DestinationList:
                 log.debug("%s is disabled; not loading it", key)
                 continue
             dest_sec = "destinations.{}".format(key)
-            assert dest_sec in conf  # validate_config should require this
             log.debug("Loading info for destination %s", key)
             dests.append(
                 Destination.from_config(

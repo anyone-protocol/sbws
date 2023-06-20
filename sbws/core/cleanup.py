@@ -4,7 +4,6 @@ import logging
 import os
 import shutil
 import time
-import types
 from argparse import ArgumentDefaultsHelpFormatter
 from datetime import datetime, timedelta
 
@@ -45,13 +44,6 @@ def gen_parser(sub):
 def _get_files_mtime_older_than(dname, days_delta, extensions):
     """Return files which modification time is older than days_delta
     and which extension is one of the extensions."""
-    assert os.path.isdir(dname)
-    assert isinstance(days_delta, int)
-    assert isinstance(extensions, list)
-    for ext in extensions:
-        assert isinstance(ext, str)
-        assert ext[0] == "."
-    # Determine oldest allowed date
     today = datetime.utcfromtimestamp(time.time())
     oldest_day = today - timedelta(days=days_delta)
     for root, dirs, files in os.walk(dname):
@@ -76,8 +68,6 @@ def _get_files_mtime_older_than(dname, days_delta, extensions):
 
 def _delete_files(dname, files, dry_run=True):
     """Delete the files passed as argument."""
-    assert os.path.isdir(dname)
-    assert isinstance(files, types.GeneratorType)
     with DirectoryLock(dname):
         for fname in files:
             log.info("Deleting %s", fname)
@@ -87,8 +77,6 @@ def _delete_files(dname, files, dry_run=True):
 
 def _compress_files(dname, files, dry_run=True):
     """Compress the files passed as argument."""
-    assert os.path.isdir(dname)
-    assert isinstance(files, types.GeneratorType)
     with DirectoryLock(dname):
         for fname in files:
             log.info("Compressing %s", fname)

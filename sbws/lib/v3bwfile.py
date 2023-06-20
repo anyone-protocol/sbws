@@ -293,7 +293,6 @@ def round_sig_dig(n, digits=PROP276_ROUND_DIG):
     n must be less than or equal to 2**73, to avoid floating point errors.
     """
     digits = int(digits)
-    assert digits >= 1
     if n <= 1:
         return 1
     digits_in_n = int(math.log10(n)) + 1
@@ -344,9 +343,6 @@ class V3BWHeader(object):
     """
 
     def __init__(self, timestamp, **kwargs):
-        assert isinstance(timestamp, str)
-        for v in kwargs.values():
-            assert isinstance(v, str)
         self.timestamp = timestamp
         # KeyValues with default value when not given by kwargs
         self.version = kwargs.get("version", SPEC_VERSION)
@@ -446,7 +442,6 @@ class V3BWHeader(object):
         :param list lines: list of lines to parse
         :returns: tuple of V3BWHeader object and non-header lines
         """
-        assert isinstance(lines, list)
         try:
             index_terminator = lines.index(TERMINATOR)
         except ValueError:
@@ -471,7 +466,6 @@ class V3BWHeader(object):
         :param str text: text to parse
         :returns: tuple of V3BWHeader object and non-header lines
         """
-        assert isinstance(text, str)
         return self.from_lines_v1(text.split(LINE_SEP))
 
     @classmethod
@@ -480,7 +474,6 @@ class V3BWHeader(object):
         :param list lines: list of lines to parse
         :returns: tuple of V3BWHeader object and non-header lines
         """
-        assert isinstance(lines, list)
         h = cls(lines[0])
         # last line is new line
         return h, lines[1:-1]
@@ -686,8 +679,6 @@ class V3BWLine(object):
     """
 
     def __init__(self, node_id, bw, **kwargs):
-        assert isinstance(node_id, str)
-        assert node_id.startswith("$")
         self.node_id = node_id
         self.bw = bw
         # For now, we do not want to add ``bw_filt`` to the bandwidth file,
@@ -900,12 +891,10 @@ class V3BWLine(object):
 
     @classmethod
     def from_data(cls, data, fingerprint):
-        assert fingerprint in data
         return cls.from_results(data[fingerprint])
 
     @classmethod
     def from_bw_line_v1(cls, line):
-        assert isinstance(line, str)
         kwargs = dict(
             [
                 kv.split(KEYVALUE_SEP_V1)
@@ -1517,8 +1506,6 @@ class V3BWFile(object):
         # network status or descriptors?
         # It will not be updated to the last consensus, but the list of
         # measured relays is not either.
-        assert isinstance(number_consensus_relays, int)
-        assert isinstance(num_bw_lines, int)
         statsd = {}
         statsd["number_eligible_relays"] = num_bw_lines
         statsd["number_consensus_relays"] = number_consensus_relays
