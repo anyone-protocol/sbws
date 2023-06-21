@@ -11,7 +11,7 @@ def test_destination_is_functional():
     four_mins_ago = datetime.utcnow() - timedelta(minutes=4)
     # Make last time tried a bit bigger than the half of the maximum, so that
     # it's bigger than the delta time to retry, and when delta time to retry
-    # is muliplied by a factor (2) it reaches the maximum.
+    # is multiplied by a factor (2) it reaches the maximum.
     long_ago = datetime.utcnow() - timedelta(
         (MAX_SECONDS_RETRY_DESTINATION / 2) + 2
     )
