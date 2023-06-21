@@ -318,7 +318,8 @@ def test_from_results_read(datadir, tmpdir, conf, args):
     raw_bwls = [V3BWLine.from_results(results[fp])[0] for fp in results]
     # Scale BWLines using torflow method, since it's the default and BWLines
     # bandwidth is the raw bandwidth.
-    expected_bwls = V3BWFile.bw_torflow_scale(raw_bwls)
+    expected_bwls, mu, muf = V3BWFile.bw_torflow_scale(raw_bwls)
+    expected_header.add_net_bw_avgs(mu, muf)
     # Since the scaled lines will be less than the 60% relays in the network,
     # set under_min_report.
     expected_bwls[0].under_min_report = 1
@@ -531,7 +532,7 @@ def test_measured_progress_stats(datadir):
         if line is not None:
             bw_lines_raw.append(line)
     assert len(bw_lines_raw) == 3
-    bw_lines = V3BWFile.bw_torflow_scale(bw_lines_raw)
+    bw_lines, _, _ = V3BWFile.bw_torflow_scale(bw_lines_raw)
     assert len(bw_lines) == 3
     statsd, success = V3BWFile.measured_progress_stats(
         len(bw_lines), number_consensus_relays, min_perc_reached_before

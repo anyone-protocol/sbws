@@ -142,6 +142,11 @@ HEADER_KEYS_V1_4 = [
 # Tor version will be obtained from the state file, so it won't be pass as an
 # argument, but will be self-initialized.
 HEADER_KEYS_V1_4_TO_INIT = ["tor_version"]
+# Network averages: network bandwidth mean and network bandwidth filtered.
+HEADER_KEYS_V1_7 = [
+    "mu",
+    "muf",
+]
 
 # KeyValues that are initialized from arguments, not self-initialized.
 HEADER_INIT_KEYS = (
@@ -161,6 +166,7 @@ HEADER_UNORDERED_KEYS = (
     + HEADER_KEYS_V1_2
     + HEADER_KEYS_V1_4
     + HEADER_KEYS_V1_4_TO_INIT
+    + HEADER_KEYS_V1_7
 )
 # List of all the KeyValues currently being used to generate the file
 HEADER_ALL_KEYS = HEADER_KEYS_V1_1_ORDERED + HEADER_UNORDERED_KEYS
@@ -258,12 +264,18 @@ BWLINE_KEYS_V1_6 = [
     "xoff_recv",
     "xoff_sent",
 ]
+# Relays' ratios: stream and stream filtered
+BWLINE_KEYS_V1_7 = [
+    "r_strm",
+    "r_strm_filt",
+]
 BWLINE_KEYS_V1 = (
     BWLINE_KEYS_V0
     + BWLINE_KEYS_V1_1
     + BWLINE_KEYS_V1_2
     + BWLINE_KEYS_V1_4
     + BWLINE_KEYS_V1_6
+    + BWLINE_KEYS_V1_7
 )
 # NOTE: tech-debt: assign boolean type to vote and unmeasured,
 # when the attributes are defined with a type, as stem does.
@@ -671,6 +683,10 @@ class V3BWHeader(object):
         for k, v in exclusion_dict.items():
             setattr(self, k, str(v))
 
+    def add_net_bw_avgs(self, mu, muf):
+        self.mu = "{:d}".format(round(mu))
+        self.muf = "{:d}".format(round(muf))
+
 
 class V3BWLine(object):
     """
@@ -1071,7 +1087,9 @@ class V3BWLine(object):
         spec v1.X.X.
         """
         bw_keyvalue_str = [
-            KEYVALUE_SEP_V1.join([k, str(v)])
+            KEYVALUE_SEP_V1.join(
+                [k, str(v) if not isinstance(v, float) else "{:.2f}".format(v)]
+            )
             for k, v in self.bw_keyvalue_tuple_ls
         ]
         return bw_keyvalue_str
@@ -1202,13 +1220,14 @@ class V3BWFile(object):
             cls.warn_if_not_accurate_enough(bw_lines, scale_constant)
             # log.debug(bw_lines[-1])
         elif scaling_method == TORFLOW_SCALING:
-            bw_lines = cls.bw_torflow_scale(
+            bw_lines, mu, muf = cls.bw_torflow_scale(
                 bw_lines_raw,
                 torflow_obs,
                 torflow_cap,
                 round_digs,
                 router_statuses_d=router_statuses_d,
             )
+            header.add_net_bw_avgs(mu, muf)
             # log.debug(bw_lines[-1])
             # Update the header and log the progress.
             min_perc = cls.update_progress(
@@ -1433,9 +1452,9 @@ class V3BWFile(object):
                 continue
 
             # Torflow's scaling
-            ratio_stream = l.bw_mean / mu
-            ratio_stream_filtered = l.bw_filt / muf
-            ratio = max(ratio_stream, ratio_stream_filtered)
+            l.r_strm = l.bw_mean / mu
+            l.r_strm_filt = l.bw_filt / muf
+            ratio = max(l.r_strm, l.r_strm_filt)
 
             # Assign it to an attribute, so it's not lost before capping and
             # rounding
@@ -1464,7 +1483,11 @@ class V3BWFile(object):
             bw_scaled = min(hlimit, l.bw)
             # round and convert to KB
             l.bw = kb_round_x_sig_dig(bw_scaled, digits=num_round_dig)
-        return sorted(bw_lines_tf, key=lambda x: x.bw, reverse=reverse)
+        return (
+            sorted(bw_lines_tf, key=lambda x: x.bw, reverse=reverse),
+            mu,
+            muf,
+        )
 
     @staticmethod
     def read_number_consensus_relays(consensus_path):
