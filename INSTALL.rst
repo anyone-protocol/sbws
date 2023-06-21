@@ -51,7 +51,7 @@ should be used in production)
 and install it::
 
     cd sbws
-    python3 setup.py install
+    pip install .
 
 Installing sbws for development or testing
 ------------------------------------------
