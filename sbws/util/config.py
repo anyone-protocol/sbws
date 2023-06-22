@@ -672,7 +672,9 @@ def _validate_url(section, key):
     # when verifying certificate:
     # https://github.com/requests/requests/blob/master/requests/adapters.py#L215  # noqa
     # When the scheme is https but the protocol is not TLS, requests will hang.
-    if url.scheme != "https" and not url.netloc.startswith("127.0.0.1"):
+    # For tests we use 127.0.0.1, allow this address without https scheme.
+
+    if url.scheme != "https" and url.netloc.split(":")[0] != "127.0.0.1":
         return False, "URL scheme must be HTTPS (except for the test server)"
     return True, ""
 
