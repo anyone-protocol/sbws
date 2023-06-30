@@ -159,7 +159,7 @@ def configure_logging(args, conf):
         # the sbws command (like 'scanner' or 'generate') if possible, or to
         # 'sbws' failing that.
         dname = conf.getpath("paths", "log_dname")
-        os.makedirs(dname, exist_ok=True)
+        os.makedirs(dname, mode=0o700, exist_ok=True)
         fname = os.path.join(dname, "{}.log".format(args.command or "sbws"))
         # The second argument is the file mode, and it should be left alone
         mode = "a"

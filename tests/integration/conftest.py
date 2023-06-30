@@ -40,14 +40,16 @@ def tmpdir(tmpdir_factory, request):
 def sbwshome_empty(tmpdir):
     """Create sbws home inside of the test net tmp dir without initializing."""
     home = "/tmp/.sbws"
-    os.makedirs(home, exist_ok=True)
+    os.makedirs(home, mode=0o700, exist_ok=True)
     return home
 
 
 @pytest.fixture(scope="session")
 def sbwshome_dir(sbwshome_empty):
     """Create sbws home inside of the test net tmp dir without initializing."""
-    os.makedirs(os.path.join(sbwshome_empty, "datadir"), exist_ok=True)
+    os.makedirs(
+        os.path.join(sbwshome_empty, "datadir"), mode=0o700, exist_ok=True
+    )
     return sbwshome_empty
 
 
