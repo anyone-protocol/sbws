@@ -11,7 +11,6 @@ def dt_obj_to_isodt_str(dt):
     :param datetime dt: datetime object in UTC timezone
     :returns: ISO 8601 string
     """
-    assert isinstance(dt, datetime)
     # Using naive datetime object without timezone, assumed utc
     return dt.replace(microsecond=0).isoformat()
 
@@ -34,7 +33,6 @@ def unixts_to_dt_obj(unixts):
             unixts = float(unixts)
     if isinstance(unixts, float):
         unixts = int(unixts)
-    assert isinstance(unixts, int)
     return datetime.utcfromtimestamp(unixts)
 
 
@@ -71,7 +69,6 @@ def unixts_to_str(unixts):
     """Convert unix timestamp integer or float to string"""
     # even if it is only converting to str, ensure that input is nothing else
     # than int or float
-    assert isinstance(unixts, int) or isinstance(unixts, float)
     return str(unixts)
 
 

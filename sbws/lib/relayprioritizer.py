@@ -4,8 +4,7 @@ import time
 from decimal import Decimal
 
 from ..globals import MAX_RECENT_PRIORITY_RELAY_COUNT
-from ..lib.relaylist import RelayList
-from ..lib.resultdump import ResultDump, ResultError
+from ..lib.resultdump import ResultError
 from ..util import state, timestamps
 
 log = logging.getLogger(__name__)
@@ -13,8 +12,6 @@ log = logging.getLogger(__name__)
 
 class RelayPrioritizer:
     def __init__(self, args, conf, relay_list, result_dump):
-        assert isinstance(relay_list, RelayList)
-        assert isinstance(result_dump, ResultDump)
         self.fresh_seconds = (
             conf.getint("general", "data_period") * 24 * 60 * 60
         )

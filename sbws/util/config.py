@@ -75,8 +75,6 @@ def _get_user_config(args, conf=None):
             interpolation=ExtendedInterpolation(),
             converters={"path": _expand_path},
         )
-    else:
-        assert isinstance(conf, ConfigParser)
     if args.config:
         if not os.path.isfile(args.config):
             # XXX: The logger is not configured at this stage,
@@ -105,8 +103,6 @@ def _get_default_logging_config(conf=None):
             interpolation=ExtendedInterpolation(),
             converters={"path": _expand_path},
         )
-    else:
-        assert isinstance(conf, ConfigParser)
     return _extend_config(conf, DEFAULT_LOG_CONFIG_PATH)
 
 
@@ -140,7 +136,6 @@ def _can_log_to_file(conf):
 
 
 def configure_logging(args, conf):
-    assert isinstance(conf, ConfigParser)
     logger = "logger_sbws"
     # Set the correct handler(s) based on [logging] options
     handlers = set()
@@ -463,7 +458,6 @@ def _validate_destinations(conf):
                 err_tmpl.substitute(sec=sec, key=key, val=value, e=error_msg)
             )
             continue
-        assert valid
         if section.getboolean(key):
             dest_sections.append("{}.{}".format(sec, key))
     urls = {
@@ -683,11 +677,9 @@ def _validate_int(section, key, minimum=None, maximum=None):
     except ValueError as e:
         return False, e
     if minimum is not None:
-        assert isinstance(minimum, int)
         if value < minimum:
             return False, "Cannot be less than {}".format(minimum)
     if maximum is not None:
-        assert isinstance(maximum, int)
         if value > maximum:
             return False, "Cannot be greater than {}".format(maximum)
     return True, ""
@@ -707,11 +699,9 @@ def _validate_float(section, key, minimum=None, maximum=None):
     except ValueError as e:
         return False, e
     if minimum is not None:
-        assert isinstance(minimum, float)
         if value < minimum:
             return False, "Cannot be less than {}".format(minimum)
     if maximum is not None:
-        assert isinstance(maximum, float)
         if value > maximum:
             return False, "Cannot be greater than {}".format(maximum)
     return True, ""

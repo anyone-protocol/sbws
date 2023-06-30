@@ -108,7 +108,6 @@ def _results_into_bandwidths(results, limit=5):
     """
     downloads = []
     for result in results:
-        assert isinstance(result, ResultSuccess)
         for dl in result.downloads:
             downloads.append(dl["amount"] / dl["duration"])
     return sorted(downloads, reverse=True)[:limit]
@@ -126,7 +125,6 @@ def print_stats(args, data):
     results = []
     for fp in data:
         results.extend(data[fp])
-    assert len([r for r in results if not isinstance(r, Result)]) == 0
     error_results = [r for r in results if isinstance(r, ResultError)]
     success_results = [r for r in results if isinstance(r, ResultSuccess)]
     percent_success_results = 100 * len(success_results) / len(results)

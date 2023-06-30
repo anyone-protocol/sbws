@@ -47,7 +47,6 @@ class DirectoryLock(_FLock):
     """
 
     def __init__(self, dname):
-        assert os.path.isdir(dname)
         lock_fname = os.path.join(dname, ".lockfile")
         super().__init__(lock_fname)
 

@@ -162,7 +162,6 @@ def is_bootstrapped(c):
 
 
 def _init_controller_port(port):
-    assert isinstance(port, int)
     try:
         c = Controller.from_port(port=port)
         c.authenticate()
@@ -174,7 +173,6 @@ def _init_controller_port(port):
 
 
 def _init_controller_socket(socket):
-    assert isinstance(socket, str)
     try:
         c = Controller.from_socket_file(path=socket)
         c.authenticate()
@@ -228,7 +226,6 @@ def parse_user_torrc_config(torrc, torrc_text):
             if isinstance(existing_val, str):
                 torrc_dict.update({key: [existing_val, value]})
             else:
-                assert isinstance(existing_val, list)
                 existing_val.append(value)
                 torrc_dict.update({key: existing_val})
         log.debug(
@@ -357,11 +354,8 @@ def only_relays_with_bandwidth(relays, min_bw=None, max_bw=None):
     min_bw nor max_bw are given, essentially just returns the input list of
     relays.
     """
-    assert min_bw is None or min_bw >= 0
-    assert max_bw is None or max_bw >= 0
     ret = []
     for relay in relays:
-        assert hasattr(relay, "consensus_bandwidth")
         if min_bw is not None and relay.consensus_bandwidth < min_bw:
             continue
         if max_bw is not None and relay.consensus_bandwidth > max_bw:
@@ -371,7 +365,6 @@ def only_relays_with_bandwidth(relays, min_bw=None, max_bw=None):
 
 
 def circuit_str(controller, circ_id):
-    assert isinstance(circ_id, str)
     int(circ_id)
     try:
         circ = controller.get_circuit(circ_id)
