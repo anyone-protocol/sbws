@@ -46,6 +46,8 @@ def _get_files_mtime_older_than(dname, days_delta, extensions):
     and which extension is one of the extensions."""
     today = datetime.utcfromtimestamp(time.time())
     oldest_day = today - timedelta(days=days_delta)
+    # By default, `os.walk`` doesn't follow symlinks.
+    # (https://docs.python.org/3/library/os.html#os.walk)
     for root, dirs, files in os.walk(dname):
         for f in files:
             fname = os.path.join(root, f)
@@ -59,6 +61,8 @@ def _get_files_mtime_older_than(dname, days_delta, extensions):
                 continue
             # using file modification time instead of parsing the name
             # of the file.
+            # `os.stat` follows sysmlinks by default
+            # (https://docs.python.org/3/library/os.html#os.stat)
             filedt = unixts_to_dt_obj(
                 os.stat(fname, follow_symlinks=False).st_mtime
             )
@@ -71,7 +75,9 @@ def _delete_files(dname, files, dry_run=True):
     with DirectoryLock(dname):
         for fname in files:
             log.info("Deleting %s", fname)
-            if not dry_run:
+            # Ensure fname isn't a symlink even if `files` are obtained via
+            # `os.walk`.
+            if not dry_run and not os.path.islink(fname):
                 os.remove(fname)
 
 
@@ -80,7 +86,9 @@ def _compress_files(dname, files, dry_run=True):
     with DirectoryLock(dname):
         for fname in files:
             log.info("Compressing %s", fname)
-            if dry_run:
+            # Ensure fname isn't a symlink even if `files` are obtained via
+            # `os.walk`.
+            if dry_run or os.path.islink(fname):
                 continue
             with open(fname, "rt") as in_fd:
                 out_fname = fname + ".gz"
