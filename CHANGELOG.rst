@@ -7,6 +7,50 @@ The format is based on `Keep a
 Changelog <http://keepachangelog.com/en/1.0.0/>`__ and this project
 adheres to `Semantic Versioning <http://semver.org/spec/v2.0.0.html>`__.
 
+v1.7.0 (2023-07-12)
+-------------------
+
+New
+~~~
+- Config: Stop allowing 127.0.0.1 as subdomain.
+  pen-torproject
+  Closes #3
+
+Changes
+~~~~~~~
+- Create directories with less privileges.
+  so that log directory doesn't potentially leak control socket
+  credentials or data that could deanonimize circuits.
+  pen-torproject
+  Closes #7
+- Cleanup: Ensure not following sysmlinks.
+  when removing or compressing files.
+  pen-torproject
+  Closes #5
+- V3bwfile: Add ratios KeyValues in RelayLines.
+  and network bandwidth averages KeyValues in the Header.
+  Closes #40156
+
+Fix
+~~~
+- Remove asserts outside of tests.
+  because they're removed anyway when using optimized mode and i don't
+  know why they were introduced.
+  Some of this code might need instead some checking or raising
+  exceptions, but this version is in maintenance status.
+  In case this causes new errors, it can be detected by sbws hanging or
+  no progressing with measurements.
+  Now it's even possible to check the code with `bandit`.
+  Closes #40061.
+- Cleanup: Stop using asserts.
+  pen-torproject
+  Closes #4.
+- CI: Replace deprecated invocation to setup.py.
+  with pip install.
+- Typo.
+- CI: Update tor, Python and Debian versions.
+- Add renovate.json.
+
 v1.6.0 (2023-03-20)
 -------------------
 
