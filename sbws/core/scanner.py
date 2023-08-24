@@ -264,6 +264,7 @@ def upload_data(session, conf, dest, cont, circ_id):
             dest.url,
             files={conf.get("scanner", "payload_key"): data},
             verify=dest.verify,
+            allow_redirects=False,
         )
     except requests.exceptions.RequestException as e:
         dest.add_failure()

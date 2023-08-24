@@ -9,12 +9,18 @@ class TimedSession(requests.Session):
 
     def get(self, url, **kwargs):
         return super().get(
-            url, timeout=getattr(self, "_timeout", None), **kwargs
+            url,
+            timeout=getattr(self, "_timeout", None),
+            allow_redirects=False,
+            **kwargs,
         )
 
     def head(self, url, **kwargs):
         return super().head(
-            url, timeout=getattr(self, "_timeout", None), **kwargs
+            url,
+            timeout=getattr(self, "_timeout", None),
+            allow_redirects=False,
+            **kwargs,
         )
 
 
