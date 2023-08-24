@@ -55,7 +55,7 @@ def test_create_list_datetime_seq(conf):
     dts = [now - timedelta(days=x) for x in range(6, 0, -1)]
     dt_seq = DateTimeSeq(dts)
     new_dts = dt_seq.list()
-    assert type(new_dts) == list
+    assert isinstance(new_dts, list)
 
 
 def test_create_list_dt_int_seq(conf):
@@ -65,7 +65,7 @@ def test_create_list_dt_int_seq(conf):
     dt_int_seq = DateTimeIntSeq(dts)
     new_dt_int_seq = dt_int_seq.list()
 
-    assert type(new_dt_int_seq) == list
+    assert isinstance(new_dt_int_seq, list)
 
 
 def test_last_dt_int_seq(conf):
