@@ -246,6 +246,8 @@ def test_validate_url():
         "http://",
         "http:///",
         "http://example.com",
+        "http://127.0.0.1:@attacker.com",
+        "http://127.0.0.1.attacker.com",
     ]
     for val in goods:
         d = {"": val}
