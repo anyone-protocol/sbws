@@ -1,6 +1,7 @@
 """Utils file system functions"""
 
 import logging
+import os
 import shutil
 
 log = logging.getLogger(__name__)
@@ -14,6 +15,33 @@ tor directory: the space required is ~{mb_tor} MB.
 code and dependencies: the space required is ~{mb_code} MB
 Total disk space required is: ~{mb_total} MB
 """
+
+
+def check_create_path(path: str) -> (None, str):
+    process_uid = os.getuid()
+    parent_dir = os.path.abspath(os.path.dirname(path))
+    try:
+        os.makedirs(parent_dir, mode=0o700, exist_ok=True)
+    except PermissionError as e:
+        log.error(e)
+        return None
+    if (
+        os.stat(parent_dir).st_uid == process_uid
+        and oct(os.stat(parent_dir).st_mode)[-3:] == "700"
+    ):
+        log.debug("Parent dir correct.")
+        if os.path.exists(path) and not os.path.islink(path):
+            log.debug("File exists.")
+            if (
+                os.stat(path).st_uid == process_uid
+                and oct(os.stat(path).st_mode)[-3:] == "600"
+            ):
+                log.debug("File has correct permissions.")
+                return path
+        else:
+            log.debug("File doesn't exits.")
+            return path
+    return None
 
 
 def sbws_required_disk_space(conf):

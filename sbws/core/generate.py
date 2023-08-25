@@ -1,5 +1,6 @@
 import logging
 import os
+import sys
 from argparse import ArgumentDefaultsHelpFormatter
 from math import ceil
 
@@ -17,6 +18,7 @@ from sbws.globals import (
 from sbws.lib import destination
 from sbws.lib.resultdump import load_recent_results_in_datadir
 from sbws.lib.v3bwfile import V3BWFile
+from sbws.util.fs import check_create_path
 from sbws.util.timestamp import now_fname
 
 log = logging.getLogger(__name__)
@@ -127,8 +129,19 @@ def gen_parser(sub):
 
 
 def main(args, conf):
-    os.makedirs(conf.getpath("paths", "v3bw_dname"), mode=0o700, exist_ok=True)
-
+    # Create all files and directories with permissions only for the current
+    # user.
+    os.umask(0o077)
+    output = args.output or conf.getpath("paths", "v3bw_fname").format(
+        now_fname()
+    )
+    valid_output = check_create_path(output)
+    if not valid_output:
+        sys.exit(
+            "{} does not have the right permissions."
+            "The file and parent dir must be owned by the user running this "
+            "process and have permissions only for that user.".format(output)
+        )
     datadir = conf.getpath("paths", "datadir")
     if not os.path.isdir(datadir):
         fail_hard("%s does not exist", datadir)
@@ -185,9 +198,5 @@ def main(args, conf):
         min_num=args.min_num,
         consensus_path=consensus_path,
     )
-
-    output = args.output or conf.getpath("paths", "v3bw_fname").format(
-        now_fname()
-    )
-    bw_file.write(output)
+    bw_file.write(valid_output)
     bw_file.info_stats
