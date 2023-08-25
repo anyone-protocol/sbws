@@ -70,8 +70,9 @@ destinations
 
 destinations.STR
   url = STR
-    The URL to the destination. It must include a file path.
-    It can use both http or https.
+    The URL to the destination. It must include a file path and use ``https``,
+    except for ``127.0.0.1`` that accepts ``http`` to run the integration
+    tests.
   verify = BOOL
     Whether or not to verify the destination certificate.
     (Default: True)
