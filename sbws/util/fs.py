@@ -44,6 +44,28 @@ def check_create_path(path: str) -> (None, str):
     return None
 
 
+def check_create_dir(path: str) -> (None, str):
+    process_uid = os.getuid()
+    try:
+        os.makedirs(path, mode=0o700, exist_ok=True)
+    except PermissionError as e:
+        log.critical("Can not create %s: %s", path, e)
+        return None
+    if not os.stat(path).st_uid == process_uid:
+        try:
+            os.chown(path, process_uid, os.getgid())
+        except PermissionError as e:
+            log.critical("Can not change owner of %s: %s", path, e)
+            return None
+    if not oct(os.stat(path).st_mode)[-3:] == "700":
+        try:
+            os.chmod(path, 0o700)
+        except PermissionError as e:
+            log.critical("Can not change permissions of %s: %s", path, e)
+            return None
+    return path
+
+
 def sbws_required_disk_space(conf):
     """Disk space required by sbws files.
     Rough calculations.

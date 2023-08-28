@@ -3,12 +3,15 @@ import gzip
 import logging
 import os
 import shutil
+import stat
+import sys
 import time
 from argparse import ArgumentDefaultsHelpFormatter
 from datetime import datetime, timedelta
 
 from sbws.globals import fail_hard
 from sbws.util.filelock import DirectoryLock
+from sbws.util.fs import check_create_dir
 from sbws.util.timestamp import unixts_to_dt_obj
 
 log = logging.getLogger(__name__)
@@ -42,7 +45,7 @@ def gen_parser(sub):
 
 
 def _get_files_mtime_older_than(dname, days_delta, extensions):
-    """Return files which modification time is older than days_delta
+    """Return file descriptors which modification time is older than days_delta
     and which extension is one of the extensions."""
     today = datetime.utcfromtimestamp(time.time())
     oldest_day = today - timedelta(days=days_delta)
@@ -67,34 +70,40 @@ def _get_files_mtime_older_than(dname, days_delta, extensions):
                 os.stat(fname, follow_symlinks=False).st_mtime
             )
             if filedt < oldest_day:
-                yield fname
+                try:
+                    fileobj = open(fname, "r")
+                except FileNotFoundError:  # eg: symlink to non existing file.
+                    pass
+                else:
+                    yield fileobj
 
 
-def _delete_files(dname, files, dry_run=True):
+def _delete_files(dname, file_descriptors, dry_run=True):
     """Delete the files passed as argument."""
     with DirectoryLock(dname):
-        for fname in files:
-            log.info("Deleting %s", fname)
+        for fd in file_descriptors:
+            log.info("Deleting %s", fd.name)
             # Ensure fname isn't a symlink even if `files` are obtained via
             # `os.walk`.
-            if not dry_run and not os.path.islink(fname):
-                os.remove(fname)
+            if not dry_run and not stat.S_ISLNK(os.stat(fd.fileno()).st_mode):
+                fd.close()
+                os.remove(fd.name)
 
 
-def _compress_files(dname, files, dry_run=True):
+def _compress_files(dname, file_descriptors, dry_run=True):
     """Compress the files passed as argument."""
     with DirectoryLock(dname):
-        for fname in files:
-            log.info("Compressing %s", fname)
+        for fd in file_descriptors:
+            log.info("Compressing %s", fd.name)
             # Ensure fname isn't a symlink even if `files` are obtained via
             # `os.walk`.
-            if dry_run or os.path.islink(fname):
+            if dry_run or stat.S_ISLNK(os.stat(fd.fileno()).st_mode):
                 continue
-            with open(fname, "rt") as in_fd:
-                out_fname = fname + ".gz"
-                with gzip.open(out_fname, "wt") as out_fd:
-                    shutil.copyfileobj(in_fd, out_fd)
-            os.remove(fname)
+            out_fname = fd.name + ".gz"
+            with gzip.open(out_fname, "wt") as out_fd:
+                shutil.copyfileobj(fd, out_fd)
+            fd.close()
+            os.remove(fd.name)
 
 
 def _check_validity_periods_v3bw(compress_after_days, delete_after_days):
@@ -108,30 +117,32 @@ def _check_validity_periods_v3bw(compress_after_days, delete_after_days):
 
 def _clean_v3bw_files(args, conf):
     v3bw_dname = conf.getpath("paths", "v3bw_dname")
-    if not os.path.isdir(v3bw_dname):
-        fail_hard("%s does not exist", v3bw_dname)
+    if not check_create_dir(v3bw_dname):
+        sys.exit(1)
     compress_after_days = conf.getint(
         "cleanup", "v3bw_files_compress_after_days"
     )
     delete_after_days = conf.getint("cleanup", "v3bw_files_delete_after_days")
     _check_validity_periods_v3bw(compress_after_days, delete_after_days)
     # first delete so that the files to be deleted are not compressed first
-    files_to_delete = _get_files_mtime_older_than(
+    file_descriptors_to_delete = _get_files_mtime_older_than(
         v3bw_dname, delete_after_days, [".v3bw", ".gz"]
     )
-    _delete_files(v3bw_dname, files_to_delete, dry_run=args.dry_run)
-    files_to_compress = _get_files_mtime_older_than(
+    _delete_files(v3bw_dname, file_descriptors_to_delete, dry_run=args.dry_run)
+    file_descriptors_to_compress = _get_files_mtime_older_than(
         v3bw_dname, compress_after_days, [".v3bw"]
     )
     # when dry_run is true, compress will also show all the files that
     # would have been deleted, since they are not really deleted
-    _compress_files(v3bw_dname, files_to_compress, dry_run=args.dry_run)
+    _compress_files(
+        v3bw_dname, file_descriptors_to_compress, dry_run=args.dry_run
+    )
 
 
 def _clean_result_files(args, conf):
     datadir = conf.getpath("paths", "datadir")
-    if not os.path.isdir(datadir):
-        fail_hard("%s does not exist", datadir)
+    if not check_create_dir(datadir):
+        sys.exit(1)
     compress_after_days = conf.getint(
         "cleanup", "data_files_compress_after_days"
     )

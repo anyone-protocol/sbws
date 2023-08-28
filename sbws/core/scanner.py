@@ -25,6 +25,7 @@ from sbws.globals import (
     SOCKET_TIMEOUT,
     fail_hard,
 )
+from sbws.util.fs import check_create_dir
 
 from .. import settings
 from ..lib.circuitbuilder import GapsCircuitBuilder as CB
@@ -1152,9 +1153,8 @@ def main(args, conf):
             max_dl,
             min_dl,
         )
-
-    os.makedirs(conf.getpath("paths", "datadir"), mode=0o700, exist_ok=True)
-
+    if not check_create_dir(conf.getpath("paths", "datadir")):
+        sys.exit(1)
     # For now, no need to add these variables as config file options or args.
     print("conf", conf)
     conf["scanner"]["payload_key"] = str(HTTP_POST_UL_KEY)
