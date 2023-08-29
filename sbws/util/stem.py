@@ -2,6 +2,7 @@ import copy
 import datetime
 import logging
 import os
+import sys
 from threading import RLock
 
 import socks
@@ -27,6 +28,7 @@ from sbws.globals import (
     TORRC_STARTING_POINT,
     fail_hard,
 )
+from sbws.util.fs import check_create_dir
 
 log = logging.getLogger(__name__)
 stream_building_lock = RLock()
@@ -277,9 +279,12 @@ def set_torrc_options_can_fail(controller):
 
 
 def launch_tor(conf):
-    os.makedirs(conf.getpath("tor", "datadir"), mode=0o700, exist_ok=True)
-    os.makedirs(conf.getpath("tor", "log"), mode=0o700, exist_ok=True)
-    os.makedirs(conf.getpath("tor", "run_dpath"), mode=0o700, exist_ok=True)
+    if (
+        not check_create_dir(conf.getpath("tor", "datadir"))
+        or not check_create_dir(conf.getpath("tor", "log"))
+        or not check_create_dir(conf.getpath("tor", "run_dpath"))
+    ):
+        sys.exit(1)
     # Bare minimum things, more or less
     torrc = copy.deepcopy(TORRC_STARTING_POINT)
     # Very important and/or common settings that we don't know until runtime

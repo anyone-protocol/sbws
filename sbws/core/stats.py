@@ -1,10 +1,8 @@
 import logging
-import os
 from argparse import ArgumentDefaultsHelpFormatter
 from datetime import datetime, timedelta
 from statistics import mean
 
-from sbws.globals import fail_hard
 from sbws.lib.resultdump import (
     Result,
     ResultError,
@@ -188,8 +186,6 @@ def main(args, conf):
     """
 
     datadir = conf.getpath("paths", "datadir")
-    if not os.path.isdir(datadir):
-        fail_hard("%s does not exist", datadir)
 
     fresh_days = conf.getint("general", "data_period")
     results = load_recent_results_in_datadir(

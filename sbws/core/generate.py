@@ -18,7 +18,7 @@ from sbws.globals import (
 from sbws.lib import destination
 from sbws.lib.resultdump import load_recent_results_in_datadir
 from sbws.lib.v3bwfile import V3BWFile
-from sbws.util.fs import check_create_path
+from sbws.util.fs import check_create_dir, check_create_file
 from sbws.util.timestamp import now_fname
 
 log = logging.getLogger(__name__)
@@ -131,20 +131,16 @@ def gen_parser(sub):
 def main(args, conf):
     # Create all files and directories with permissions only for the current
     # user.
-    os.umask(0o077)
     output = args.output or conf.getpath("paths", "v3bw_fname").format(
         now_fname()
     )
-    valid_output = check_create_path(output)
+    valid_parent = check_create_dir(os.path.abspath(os.path.dirname(output)))
+    if not valid_parent:
+        sys.exit(1)
+    valid_output = check_create_file(output)
     if not valid_output:
-        sys.exit(
-            "{} does not have the right permissions."
-            "The file and parent dir must be owned by the user running this "
-            "process and have permissions only for that user.".format(output)
-        )
+        sys.exit(1)
     datadir = conf.getpath("paths", "datadir")
-    if not os.path.isdir(datadir):
-        fail_hard("%s does not exist", datadir)
     if args.scale_constant < 1:
         fail_hard("--scale-constant must be positive")
     if args.torflow_bw_margin < 0:

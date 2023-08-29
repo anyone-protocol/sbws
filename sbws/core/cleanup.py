@@ -4,14 +4,12 @@ import logging
 import os
 import shutil
 import stat
-import sys
 import time
 from argparse import ArgumentDefaultsHelpFormatter
 from datetime import datetime, timedelta
 
 from sbws.globals import fail_hard
 from sbws.util.filelock import DirectoryLock
-from sbws.util.fs import check_create_dir
 from sbws.util.timestamp import unixts_to_dt_obj
 
 log = logging.getLogger(__name__)
@@ -117,8 +115,6 @@ def _check_validity_periods_v3bw(compress_after_days, delete_after_days):
 
 def _clean_v3bw_files(args, conf):
     v3bw_dname = conf.getpath("paths", "v3bw_dname")
-    if not check_create_dir(v3bw_dname):
-        sys.exit(1)
     compress_after_days = conf.getint(
         "cleanup", "v3bw_files_compress_after_days"
     )
@@ -141,8 +137,6 @@ def _clean_v3bw_files(args, conf):
 
 def _clean_result_files(args, conf):
     datadir = conf.getpath("paths", "datadir")
-    if not check_create_dir(datadir):
-        sys.exit(1)
     compress_after_days = conf.getint(
         "cleanup", "data_files_compress_after_days"
     )

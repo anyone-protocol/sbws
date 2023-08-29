@@ -1,6 +1,6 @@
 import logging
-import os
 import platform
+import sys
 
 from requests.__version__ import __version__ as requests_version
 from stem import __version__ as stem_version
@@ -12,7 +12,7 @@ import sbws.core.scanner
 import sbws.core.stats
 from sbws import __version__ as version
 from sbws.util.config import configure_logging, get_config, validate_config
-from sbws.util.fs import sbws_required_disk_space
+from sbws.util.fs import check_create_dir, sbws_required_disk_space
 from sbws.util.parser import create_parser
 
 log = logging.getLogger(__name__)
@@ -22,9 +22,14 @@ def _ensure_dirs(conf):
     log.debug("Ensuring all dirs exists.")
     # it is not needed to check sbws_home dir, since the following
     # will create parent dirs too (in case they don't exist)
-    os.makedirs(conf.getpath("paths", "datadir"), mode=0o700, exist_ok=True)
-    os.makedirs(conf.getpath("paths", "v3bw_dname"), mode=0o700, exist_ok=True)
-    os.makedirs(conf.getpath("paths", "log_dname"), mode=0o700, exist_ok=True)
+    # Create all files and directories with permissions only for the current
+    # user.
+    if (
+        not check_create_dir(conf.getpath("paths", "datadir"))
+        or not check_create_dir(conf.getpath("paths", "v3bw_dname"))
+        or not check_create_dir(conf.getpath("paths", "log_dname"))
+    ):
+        sys.exit(1)
 
 
 def _adjust_log_level(args, conf):

@@ -17,34 +17,29 @@ Total disk space required is: ~{mb_total} MB
 """
 
 
-def check_create_path(path: str) -> (None, str):
-    process_uid = os.getuid()
-    parent_dir = os.path.abspath(os.path.dirname(path))
-    try:
-        os.makedirs(parent_dir, mode=0o700, exist_ok=True)
-    except PermissionError as e:
-        log.error(e)
+def check_create_file(path: str) -> (None, str):
+    if not os.path.exists(path):
+        return path
+    if os.path.islink(path):
+        log.critical("Path %s is a symlink.", path)
         return None
-    if (
-        os.stat(parent_dir).st_uid == process_uid
-        and oct(os.stat(parent_dir).st_mode)[-3:] == "700"
-    ):
-        log.debug("Parent dir correct.")
-        if os.path.exists(path) and not os.path.islink(path):
-            log.debug("File exists.")
-            if (
-                os.stat(path).st_uid == process_uid
-                and oct(os.stat(path).st_mode)[-3:] == "600"
-            ):
-                log.debug("File has correct permissions.")
-                return path
-        else:
-            log.debug("File doesn't exits.")
-            return path
-    return None
+    if not os.stat(path).st_uid == os.getuid():
+        try:
+            os.chown(path, os.getuid(), os.getgid())
+        except PermissionError as e:
+            log.critical("Can not change owner of %s: %s", path, e)
+            return None
+    if not oct(os.stat(path).st_mode)[-3:] == "600":
+        try:
+            os.chmod(path, 0o600)
+        except PermissionError as e:
+            log.critical("Can not change permissions of %s: %s", path, e)
+            return None
+    return path
 
 
 def check_create_dir(path: str) -> (None, str):
+    os.umask(0o077)
     process_uid = os.getuid()
     try:
         os.makedirs(path, mode=0o700, exist_ok=True)

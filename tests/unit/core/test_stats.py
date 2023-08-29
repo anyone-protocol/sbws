@@ -1,5 +1,4 @@
 import logging
-import os.path
 from unittest.mock import patch
 
 import sbws.core.stats
@@ -8,19 +7,11 @@ from tests.unit.globals import monotonic_time
 
 def test_stats_initted(sbwshome_empty, args, conf, caplog):
     """
-    An initialized but rather empty .sbws directory should fail about missing
-    ~/.sbws/datadir
+    An initialized .sbws directory with all the needed dirs inside
     """
-    try:
-        sbws.core.stats.main(args, conf)
-    except SystemExit as e:
-        assert e.code == 1
-    else:
-        assert None, "Should have failed"
-    assert (
-        "{}/datadir does not exist".format(os.path.abspath(sbwshome_empty))
-        == caplog.records[-1].getMessage()
-    )
+    # sbws.main create all the needed directories.
+    sbws.core.stats.main(args, conf)
+    assert "No fresh results" == caplog.records[-1].getMessage()
 
 
 def test_stats_stale_result(args, conf, caplog, sbwshome_success_result):
