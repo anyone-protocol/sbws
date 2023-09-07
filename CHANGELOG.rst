@@ -7,6 +7,40 @@ The format is based on `Keep a
 Changelog <http://keepachangelog.com/en/1.0.0/>`__ and this project
 adheres to `Semantic Versioning <http://semver.org/spec/v2.0.0.html>`__.
 
+v1.8.0 (2023-09-07)
+-------------------
+
+Changes
+~~~~~~~
+- Restrict datadir permissions.
+  also use file descriptors instead of file names so that the
+  "Time-of-check" is the same as the "Time-of-use".
+  pen-project#5
+  Closes #40164
+- V3bwfile: restrict files/dirs permissions.
+  and give permissions only to the user running the process when creating
+  or using files/dirs.
+  pen-torproject#2
+  Closes #40162
+
+Fix
+~~~
+- Create/check dirs at the beginning.
+  instead of doing it at different points in the code.
+- Requests: stop allowing redirections.
+  pen-torproject#28
+  Closes #40165
+- Only allow 127.0.0.1 as hostname.
+  for test server destination, instead of something that starts by
+  127.0.0.1 as hostname.
+  Port can be still assigned.
+  Part of pen-torproject#3.
+  Closes #40163.
+- Docs: Clarify that http is only accepted for 127.0.0.1.
+  as destination, to run the integration tests.
+  Closes #40166
+- CI: flake8 E721, stop comparing types.
+
 v1.7.0 (2023-07-12)
 -------------------
 
