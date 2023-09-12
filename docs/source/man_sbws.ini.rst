@@ -7,9 +7,9 @@ DESCRIPTION
 Tor bandwidth scanner configuration file.
 
 **sbws** (1) ``scanner`` command requires a configuration file with the
-"[scanner]", "[destinations]" "[destination.<name>]" sections.
+"[scanner]", "[destinations]" "[destinations.<name>]" sections.
 
-There must be at least one "[destination.<name>]".
+There must be at least one "[destinations.<name>]".
 
 See an **EXAMPLES** below for a minimal configuration.
 
