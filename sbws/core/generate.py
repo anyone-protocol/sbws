@@ -134,10 +134,12 @@ def main(args, conf):
     output = args.output or conf.getpath("paths", "v3bw_fname").format(
         now_fname()
     )
-    valid_parent = check_create_dir(os.path.abspath(os.path.dirname(output)))
+    valid_parent = check_create_dir(
+        os.path.abspath(os.path.dirname(output)), v3bw=True
+    )
     if not valid_parent:
         sys.exit(1)
-    valid_output = check_create_file(output)
+    valid_output = check_create_file(output, v3bw=True)
     if not valid_output:
         sys.exit(1)
     datadir = conf.getpath("paths", "datadir")

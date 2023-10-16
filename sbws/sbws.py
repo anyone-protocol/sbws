@@ -20,13 +20,15 @@ log = logging.getLogger(__name__)
 
 def _ensure_dirs(conf):
     log.debug("Ensuring all dirs exists.")
-    # it is not needed to check sbws_home dir, since the following
-    # will create parent dirs too (in case they don't exist)
+    # It is needed to check sbws_home dir too to ensure that it has read
+    # permission for other users, so that the bandwidth files can be read by
+    # these other users.
     # Create all files and directories with permissions only for the current
     # user.
     if (
-        not check_create_dir(conf.getpath("paths", "datadir"))
-        or not check_create_dir(conf.getpath("paths", "v3bw_dname"))
+        not check_create_dir(conf.getpath("paths", "sbws_home"), v3bw=True)
+        or not check_create_dir(conf.getpath("paths", "datadir"))
+        or not check_create_dir(conf.getpath("paths", "v3bw_dname"), v3bw=True)
         or not check_create_dir(conf.getpath("paths", "log_dname"))
     ):
         sys.exit(1)

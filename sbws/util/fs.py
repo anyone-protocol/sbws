@@ -17,7 +17,7 @@ Total disk space required is: ~{mb_total} MB
 """
 
 
-def check_create_file(path: str) -> (None, str):
+def check_create_file(path: str, v3bw: bool = False) -> (None, str):
     if not os.path.exists(path):
         return path
     if os.path.islink(path):
@@ -29,7 +29,14 @@ def check_create_file(path: str) -> (None, str):
         except PermissionError as e:
             log.critical("Can not change owner of %s: %s", path, e)
             return None
-    if not oct(os.stat(path).st_mode)[-3:] == "600":
+    if v3bw:
+        if not oct(os.stat(path).st_mode)[-3:] == "644":
+            try:
+                os.chmod(path, 0o644)
+            except PermissionError as e:
+                log.critical("Can not change permissions of %s: %s", path, e)
+                return None
+    elif not oct(os.stat(path).st_mode)[-3:] == "600":
         try:
             os.chmod(path, 0o600)
         except PermissionError as e:
@@ -38,8 +45,7 @@ def check_create_file(path: str) -> (None, str):
     return path
 
 
-def check_create_dir(path: str) -> (None, str):
-    os.umask(0o077)
+def check_create_dir(path: str, v3bw: bool = False) -> (None, str):
     process_uid = os.getuid()
     try:
         os.makedirs(path, mode=0o700, exist_ok=True)
@@ -52,7 +58,24 @@ def check_create_dir(path: str) -> (None, str):
         except PermissionError as e:
             log.critical("Can not change owner of %s: %s", path, e)
             return None
-    if not oct(os.stat(path).st_mode)[-3:] == "700":
+    # `/var/lib/sbws` (not `.sbws`), is created by the system so do not change
+    # permissions
+    if path == "/var/lib/sbws":
+        st = os.stat(path)
+        if not (oct(st.st_mode)[-1] == "5" or oct(st.st_mode)[-1] == "7"):
+            log.critical("Parent dir is not readable or executable")
+            return None
+    elif v3bw:
+        if not oct(os.stat(path).st_mode)[-3:] == "755":
+            try:
+                # bandit report Severity: Medium, CWE: CWE-732 on this line,
+                # but other users other than the one running this must be able
+                # to read the files to publish them.
+                os.chmod(path, 0o755)  # nosec
+            except PermissionError as e:
+                log.critical("Can not change permissions of %s: %s", path, e)
+                return None
+    elif not oct(os.stat(path).st_mode)[-3:] == "700":
         try:
             os.chmod(path, 0o700)
         except PermissionError as e:
