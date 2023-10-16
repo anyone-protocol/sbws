@@ -3,11 +3,11 @@
 # 0.4.8 Feature freeze, June 1st, 2023
 # 0.4.7 stable by March 15, 2022
 # Python stable releases: https://www.python.org/downloads/
+# 3.12 EOL 2028-10, PEP 693
 # 3.11 EOL 2027-10, PEP 664
 # 3.10 EOL 2026-10, PEP 619
 # 3.9 EOL 2025-10, PEP 596
 # 3.8 EOL 2024-10, PEP 569
-# 3.7 EOL 2023-06-27, PEP 537
 
 variables:
   BASE_IMAGE: python:3.11
@@ -40,13 +40,6 @@ before_script:
 
 after_script:
   - tox -e stats
-
-python37:
-  variables:
-    BASE_IMAGE: python:3.7
-  script:
-    - tox -e py37
-    - tox -e integration
 
 python38:
   variables:
