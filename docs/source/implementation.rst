@@ -1,5 +1,5 @@
-Implementation decissions
-=========================
+Implementation decisions
+========================
 
 Dependencies
 ------------

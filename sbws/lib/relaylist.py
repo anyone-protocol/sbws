@@ -192,7 +192,7 @@ class Relay:
 
     @property
     def relay_in_recent_consensus_count(self):
-        """Number of times the relay was in a conensus."""
+        """Number of times the relay was in a consensus."""
         return len(self.relay_in_recent_consensus)
 
     def update_xoff_sent(self, timestamp):
@@ -469,7 +469,7 @@ class RelayList:
                 # already added to the new list.
                 new_relays_dict.pop(fp)
 
-            # In #30727, the relay that is not in the current conensus but is
+            # In #30727, the relay that is not in the current consensus but is
             # not "old", was added to the new list of relays too.
             # In #40037 we think it should not be measured, as it might cause
             # many circuit errors. It's already added to the generator.

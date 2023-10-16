@@ -1613,7 +1613,7 @@ class V3BWFile(object):
         self, num_bw_lines, header, number_consensus_relays, state
     ):
         """
-        Returns True if the minimim percent of Bandwidth Lines was reached
+        Returns True if the minimum percent of Bandwidth Lines was reached
         and False otherwise.
         Update the header with the progress.
         """

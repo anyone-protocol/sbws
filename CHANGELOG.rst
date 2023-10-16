@@ -102,7 +102,7 @@ New
   This is the 1st optimization for sbws#40130.
   The testing HTTP server has been replaced by the one implemented in
   onbasca just cause a first try on implementing `do_POST` was
-  successful only for the 1st sbws request. It only implemnts POST RFC
+  successful only for the 1st sbws request. It only implements POST RFC
   2388.
 
 Changes
