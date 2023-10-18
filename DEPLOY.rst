@@ -226,6 +226,28 @@ Gitlab) or `<man_sbws.html>`_ (local build or Read the Docs) or ``man sbws``
 
 .. _Content delivery network: https://en.wikipedia.org/wiki/Content_delivery_network
 
+
+Reading BandwidthFiles from the directory authority
+---------------------------------------------------
+
+The directory authority tor's configuration (torrc) must include
+``V3BandwidthsFile`` option with the whole path to the ``latest.v3bw`` files
+that the ``scanner`` generates.
+
+.. note:: the user running the directory authority tor's daemon must have
+   permissions to read this path. If the daemon is launched by a ``systemd``
+   service, you would need to add a ``ReadOnlyDirectories`` entry with the
+   directory where the ``latest.v3bw`` is generated.
+
+.. note:: During the ~5 first days the ``scanner`` has been running, the
+  ``generator`` will mark all the ``RelayLines`` with ``vote=0``
+  until the scanner has measured more than the ~60% of the network.
+  The directory authority tor's daemon `ignore these lines`_ and warn about
+  `Empty bandwidth file`_
+
+.. _ignore these lines: https://gitlab.torproject.org/tpo/core/tor/-/blob/cc31724f409ee5cff10d82ca05d43e04a85a44e1/src/feature/dirauth/bwauth.c#L413
+.. _Empty bandwidth file: https://gitlab.torproject.org/tpo/core/tor/-/blob/cc31724f409ee5cff10d82ca05d43e04a85a44e1/src/feature/dirauth/bwauth.c#L258
+
 Troubleshooting
 ---------------
 
