@@ -131,6 +131,28 @@ You can test your configuration running:
 If you want, use a `Content delivery network`_ (CDN) in order to make the
 destination IP closer to the scanner exit.
 
+
+Configuring an HTTP server ``destination`` in a testing network
+---------------------------------------------------------------
+
+For development and integration tests, we use `chutney`_ to bootstrap a Tor
+network and `a minimal HTTP server`_ in localhost. ``sbws`` only accepts the
+``HTTP`` scheme (without TLS) for the destination, when its address is
+``127.0.0.1``. In this case, ``sbws`` also `detects`_ that
+the Tor network is a ``TestingTorNetwork`` and stops after the first ``loop``.
+
+If you need an HTTP server running in other address other than localhost, you
+would need it to support TLS.
+
+For this, you can create a self-signed certificate and configure ``sbws`` to
+use it by adding the certificate to its `verify configuration option`_
+
+.. _chutney: https://gitlab.torproject.org/tpo/core/chutney
+.. _a minimal HTTP server: https://gitlab.torproject.org/tpo/network-health/sbws/-/blob/3a9f523a410d657f12650f1f8828abc5caf6f93b/tests/integration/async_https_server.py
+.. _detects: https://gitlab.torproject.org/tpo/network-health/sbws/-/blob/3a9f523a410d657f12650f1f8828abc5caf6f93b/sbws/core/scanner.py#L987
+.. _verify configuration option: https://gitlab.torproject.org/tpo/network-health/sbws/-/blob/3a9f523a410d657f12650f1f8828abc5caf6f93b/docs/source/man_sbws.ini.rst#L76
+
+
 scanner setup
 ----------------------
 
