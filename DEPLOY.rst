@@ -193,13 +193,37 @@ Gitlab) or `<man_sbws.ini.html>`_  (local build or Read the Docs) or
 generator setup
 ---------------
 
-The Debian package also includes a cron job to run the ``generator``.
-If sbws is installed in some other way, there should be cron job. For example::
+The Debian package from version 1.6.0 replaces cron jobs by `systemd.timer`_
+to run the ``generator`` and the ``cleanup`` command to clean the old data.
+
+After the package is installed, it's needed to enable and start the timers
+(Debian policy is not to start/enable services by default)::
+
+  systemctl enable --now sbws_cleanup.timer
+  systemctl enable --now sbws_generate.timer
+
+To ensure they are enabled run::
+
+  systemctl list-timers
+
+It should show the next time the ``generator`` or cleanup timer is going to
+run::
+
+  Wed 2023-10-18 08:35:00 GMT 19min left    Wed 2023-10-18 07:35:02 GMT 40min ago         sbws_generate.timer          sbws_generate.service
+
+You can check that the timer service is working by invoking it directly::
+
+  systemctl start sbws_generate.service
+
+If sbws is installed in some other way, you would need to create the timers or
+cron jobs. Example cron jobs::
 
   35 *     * * *   sbws  /usr/local/bin/sbws -c /etc/sbws/sbws.ini generate
   05 0     * * *   sbws  /usr/local/bin/sbws -c /etc/sbws/sbws.ini cleanup
 
-(Note that there is also a command to clean the old data).
+You can modify the timers or cron jobs to get emails on failures.
+For the cron jobs, use ``MAILTO``, for the timers, use ``OnFailure`` to call an
+email service.
 
 If the cron job is configured to send Email alerts on errors, it's probably
 better to configure the log level to ``ERROR`` instead of ``WARNING``.
@@ -225,6 +249,7 @@ Gitlab) or `<man_sbws.html>`_ (local build or Read the Docs) or ``man sbws``
 (system package).
 
 .. _Content delivery network: https://en.wikipedia.org/wiki/Content_delivery_network
+.. _systemd.timer: https://www.freedesktop.org/software/systemd/man/systemd.timer.html
 
 
 Reading BandwidthFiles from the directory authority
