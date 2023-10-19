@@ -7,6 +7,32 @@ The format is based on `Keep a
 Changelog <http://keepachangelog.com/en/1.0.0/>`__ and this project
 adheres to `Semantic Versioning <http://semver.org/spec/v2.0.0.html>`__.
 
+v1.8.1 (2023-10-19)
+-------------------
+
+Fix
+~~~
+- Remove warning about language not set.
+  Part of #40186
+- Add how to start the systemd timers.
+  and clarify the replace the cron jobs.
+  Closes #40186
+- Add how to read bwfiles from dirauth.
+  which option to use in torrc and how to fix permissions.
+  Part of #40186
+- How to run https server in testing network.
+  using a self-signed certificate or an http server in localhost.
+  Part of #40186
+- CI: Remove python 3.7 since it's now EOL.
+  Closes #40180
+- Generate Add read permissions to v3bw files.
+  so that other users (tor or rsyc) can read them.
+  This has been introduced by #40162 fix, to avoid that they could be
+  overwritten via symlinks.
+  Now they can still be read, but can't be overwritten.
+  Closes #40179
+- Typos.
+
 v1.8.0 (2023-09-13)
 -------------------
 
