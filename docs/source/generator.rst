@@ -60,5 +60,5 @@ Writing the bandwidth file
 The bandwidth file format is defined in the bandwidth_file_spec_.
 
 
-.. _torflow_scaling: https://gitweb.torproject.org/torflow.git/tree/NetworkScanners/BwAuthority/README.spec.txt#n298
-.. _bandwidth_file_spec: https://gitweb.torproject.org/torspec.git/tree/bandwidth-file-spec.txt
+.. _torflow_scaling: https://gitlab.torproject.org/tpo/network-health/torflow/-/blob/main/NetworkScanners/BwAuthority/README.spec.txt?ref_type=heads#L298
+.. _bandwidth_file_spec: https://spec.torproject.org/bandwidth-file-spec/

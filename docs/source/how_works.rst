@@ -134,7 +134,7 @@ Source code: :func:`sbws.lib.resultdump.ResultDump.enter`
 
 .. seealso:: :ref:`generator`.
 
-.. _torflow: https://gitweb.torproject.org/torflow.git
+.. _torflow: https://gitlab.torproject.org/tpo/network-health/torflow
 .. _stem: https://stem.torproject.org
 .. https://github.com/requests/requests/issues/4885
 .. _requests: http://docs.python-requests.org/

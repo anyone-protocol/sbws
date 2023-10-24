@@ -469,9 +469,9 @@ Finally, the new scaled bandwidth is expressed in kilobytes and rounded a number
 of digits.
 
 
-.. _README.spec.txt: https://gitweb.torproject.org/torflow.git/tree/NetworkScanners/BwAuthority/README.spec.txt
+.. _README.spec.txt: https://gitlab.torproject.org/tpo/network-health/torflow/-/blob/main/NetworkScanners/BwAuthority/README.spec.txt
 .. _PID Controller: https://en.wikipedia.org/wiki/PID_controller
-.. _SQLSupport.py: https://gitweb.torproject.org/pytorctl.git/tree/SQLSupport.py#n493
-.. _bandwidth file spec: https://gitweb.torproject.org/torspec.git/tree/bandwidth-file-spec.txt
-.. _aggregate.py: https://gitweb.torproject.org/torflow.git/tree/NetworkScanners/BwAuthority/aggregate.py
-.. _TorCtl.py: https://gitweb.torproject.org/pytorctl.git/tree/TorCtl.py
+.. _SQLSupport.py: https://gitlab.torproject.org/tpo/network-health/pytorctl/-/blob/main/SQLSupport.py?ref_type=heads#L493
+.. _bandwidth file spec: https://spec.torproject.org/bandwidth-file-spec/
+.. _aggregate.py: https://gitlab.torproject.org/tpo/network-health/torflow/-/blob/main/NetworkScanners/BwAuthority/aggregate.py
+.. _TorCtl.py: https://gitlab.torproject.org/tpo/network-health/pytorctl/-/blob/main/TorCtl.py

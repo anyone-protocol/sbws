@@ -20,8 +20,6 @@ It should be approximately equal for all bwauths.
 
 https://consensus-health.torproject.org/graphs.html#votedaboutgraphs
 
-http://tgnv2pssfumdedyw.onion/graphs.html#votedaboutgraphs
-
 Total consensus weights across bandwidth authorities
 ----------------------------------------------------
 

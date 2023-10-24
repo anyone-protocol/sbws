@@ -35,4 +35,4 @@ Code: :func:`sbws.lib.v3bwfile.torflow_scale`
 .. image:: images/20180901_164014.png
    :alt: sbws torflow scaling
 
-.. _bandwidth_file_spec: https://gitweb.torproject.org/torspec.git/tree/bandwidth-file-spec.txt
+.. _bandwidth_file_spec: https://spec.torproject.org/bandwidth-file-spec/
