@@ -101,7 +101,7 @@ External link: `Code Style <https://docs.python-guide.org/writing/style/>`_
 All functions, methods and classes should have :pep:`0257`
 (except ``__repr__`` and ``__str__``).
 Before release 1.0.0, some docstrigs do not have 3 double quotes ``"""``
-(:pep:`0257#id15`).
+(:pep:`0257#what-is-a-docstring`).
 
 External link: `Documentation <https://docs.python-guide.org/writing/documentation/>`_
 
@@ -181,7 +181,7 @@ When a MR is being reviewed, new changes might be needed:
 
 - If the change does not modify a previous change, create new commits and push.
 - If the change modifies a previous change and it's small,
-  `git commit fixup <https://git-scm.com/docs/git-commit#Documentation/git-commit.txt---fixupltcommitgt>`_
+  `git commit fixup <https://git-scm.com/docs/git-commit#Documentation/git-commit.txt---fixupamendrewordltcommitgt>`_
   should be used. When it is agreed that the MR is ready, create a new branch
   named ``mybranch_02`` and run:
 
@@ -316,8 +316,8 @@ Example commit message
 
 .. [DIST] https://git-scm.com/book/en/v2/Distributed-Git-Contributing-to-a-Project
 .. [MERG] https://www.atlassian.com/git/tutorials/merging-vs-rebasing
-.. [REVI] https://doc.sagemath.org/html/en/developer/reviewer_checklist.html
-.. [FUNC] https://medium.com/@rohanrony/functional-programming-in-python-1-lambda-map-filter-reduce-zip-8739ea144186
+.. [REVI] https://doc.sagemath.org/html/en/developer/review.html#reviewing-and-closing-prs
+.. [FUNC] https://docs.python.org/3/howto/functional.html
 .. _tim pope: https://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html
 .. _`keep a changelog`: https://keepachangelog.com/en/1.0.0/
 .. _`semantic versioning`: https://semver.org/

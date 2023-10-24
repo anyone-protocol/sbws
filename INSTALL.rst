@@ -107,7 +107,7 @@ It will not increase further.
 If ``sbws`` is configured to log to files, logs will be rotated after they
 are 10MB and it will keep 50 rotated log files.
 
-.. _virtualenv: https://virtualenv.pypa.io/en/stable/installation/
+.. _virtualenv: https://virtualenv.pypa.io/en/latest/installation.html
 .. _Stem: https://stem.torproject.org/
 .. _socks: http://docs.python-requests.org/en/master/user/advanced/#socks
 .. https://readthedocs.org/projects/requests/ redirect to this, but the

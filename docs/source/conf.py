@@ -198,3 +198,14 @@ epub_exclude_files = ['search.html']
 todo_include_todos = True
 
 numfig = True
+
+linkcheck_ignore = [
+    # Ignore links pointing to local directories or build source
+    r"./_images/.*",
+    r"/docs/source/.*",
+    r"^((?!http).)*html$",
+]
+linkcheck_anchors_ignore_for_url =[
+    # Ignore anchors created by js
+    r"https://gitlab.torproject.org/tpo.*",
+]
