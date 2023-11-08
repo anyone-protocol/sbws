@@ -1,5 +1,7 @@
+.. _code_design:
+
 Code design
-=================
+===========
 
 .. todo::
    - Link to refactor proposal.
