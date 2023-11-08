@@ -1,0 +1,28 @@
+/* SPDX-FileCopyrightText: 2023 The Tor Project, Inc.
+
+SPDX-License-Identifier: CC0-1.0 */
+
+.navbar-default {
+    background-color: #7D4698;
+    border-color: #7D4698;
+}
+
+.navbar-default .navbar-nav>li>a {
+    /* color: #F8F9FA; */
+    color: #333A41;
+    /* color: #59316B; */
+}
+.navbar-default .navbar-text {
+    color: #333A41;
+}
+a:hover {
+    color: #333A41;
+}
+
+a {
+    color: #68B030;
+}
+
+code {
+    color: #7D4698;
+}

@@ -12,23 +12,17 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-import os
-def find_version():
-    with open(os.path.join("..", "..", "sbws", "__init__.py")) as fp:
-        for line in fp:
-            if "__version__" in line.strip():
-                version = line.split("=", 1)[1].strip().strip("'")
-                return version
-
 
 # -- Project information -----------------------------------------------------
+
+from sbws import __version__
 
 project = 'sbws'
 copyright = 'CC0'
 author = 'Matt Traudt [sirmatt at ksu dot edu], juga [juga at riseup dot net]'
 
 # The short X.Y version
-version = find_version()
+version = __version__
 # The full version, including alpha/beta/rc tags
 release = version
 
@@ -86,7 +80,9 @@ pygments_style = 'sphinx'
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'nature'
+# html_theme = 'nature'
+
+html_theme = 'bootstrap'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -94,10 +90,32 @@ html_theme = 'nature'
 #
 # html_theme_options = {}
 
+html_theme_options = {
+
+    # Location of link to source.
+    # Options are "nav" (default), "footer" or anything else to exclude.
+    'source_link_position': "nav",
+
+    # Bootswatch (http://bootswatch.com/) theme.
+    #
+    # Options are nothing (default) or the name of a valid theme such
+    # such as "cosmo" or "sandstone".
+    #
+    # Example themes:
+    # * flatly
+    # * sandstone (v3 only)
+    # * united
+    # * yeti (v3 only)
+    'bootswatch_theme': "sandstone",
+
+    # Choose Bootstrap version.
+    # Values: "3" (default) or "2" (in quotes)
+    'bootstrap_version': "3",
+}
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = []
+html_static_path = ['_static']
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
