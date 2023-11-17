@@ -727,7 +727,7 @@ class V3BWLine(object):
         bw = data (Bytes) / time (seconds)
         """
         # log.debug("Len success_results %s", len(success_results))
-        node_id = "$" + results[0].fingerprint
+        node_id = results[0].fingerprint
         kwargs = dict()
         kwargs["nick"] = results[0].nickname
         if getattr(results[0], "master_key_ed25519"):

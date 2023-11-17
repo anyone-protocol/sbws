@@ -105,7 +105,7 @@ raw_bwl_str = (
     "error_second_relay=0 error_stream=2 "
     "master_key_ed25519=g+Shk00y9Md0hg1S6ptnuc/wWKbADBgdjT0Kg+TSF3s "
     "nick=A "
-    "node_id=$AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA "
+    "node_id=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA "
     "relay_in_recent_consensus_count=3 "
     "relay_recent_measurement_attempt_count=2 "
     "relay_recent_measurements_excluded_error_count=2 "
