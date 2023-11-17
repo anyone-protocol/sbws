@@ -328,6 +328,27 @@ def test_country(conf):
     assert not errors
 
 
+def test_dirauth_nickname(conf):
+    from string import Template
+
+    err_tmpl = Template("$sec/$key ($val): $e")
+
+    # Invalid default dirauth_nickname in scanner section
+    errors = con._validate_dirauth_nickname(
+        conf, "scanner", "dirauth_nickname", err_tmpl
+    )
+    assert (
+        errors[0] == "scanner/dirauth_nickname (dirauth_nickname): "
+        "Not a valid dirauth_nickname."
+    )
+    # Valid dirauth_nickname in scanner section
+    conf["scanner"]["dirauth_nickname"] = "longclaw"
+    errors = con._validate_dirauth_nickname(
+        conf, "scanner", "dirauth_nickname", err_tmpl
+    )
+    assert not errors
+
+
 def test_config_arg_provided_but_no_found(args, conf):
     args.config = "non_existing_file"
     user_conf = con._get_user_config(args, conf)

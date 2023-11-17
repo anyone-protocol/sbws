@@ -147,6 +147,9 @@ HEADER_KEYS_V1_7 = [
     "mu",
     "muf",
 ]
+HEADER_KEYS_V1_8 = [
+    "dirauth_nickname",
+]
 
 # KeyValues that are initialized from arguments, not self-initialized.
 HEADER_INIT_KEYS = (
@@ -155,6 +158,7 @@ HEADER_INIT_KEYS = (
     + HEADER_KEYS_V1_2
     + HEADER_KEYS_V1_4
     + HEADER_KEYS_V1_4_TO_INIT
+    + HEADER_KEYS_V1_8
 )
 
 HEADER_INT_KEYS = HEADER_KEYS_V1_2 + HEADER_KEYS_V1_4
@@ -167,6 +171,7 @@ HEADER_UNORDERED_KEYS = (
     + HEADER_KEYS_V1_4
     + HEADER_KEYS_V1_4_TO_INIT
     + HEADER_KEYS_V1_7
+    + HEADER_KEYS_V1_8
 )
 # List of all the KeyValues currently being used to generate the file
 HEADER_ALL_KEYS = HEADER_KEYS_V1_1_ORDERED + HEADER_UNORDERED_KEYS
@@ -379,6 +384,7 @@ class V3BWHeader(object):
     def from_results(
         cls,
         results,
+        dirauth_nickname=None,
         scanner_country=None,
         destinations_countries=None,
         state_fpath="",
@@ -403,6 +409,8 @@ class V3BWHeader(object):
         kwargs["earliest_bandwidth"] = unixts_to_isodt_str(earliest_bandwidth)
         if generator_started is not None:
             kwargs["generator_started"] = generator_started
+        if dirauth_nickname:
+            kwargs["dirauth_nickname"] = dirauth_nickname
         # To be compatible with older bandwidth files, do not require it.
         if scanner_country is not None:
             kwargs["scanner_country"] = scanner_country
@@ -1121,6 +1129,7 @@ class V3BWFile(object):
     def from_results(
         cls,
         results,
+        dirauth_nickname=None,
         scanner_country=None,
         destinations_countries=None,
         state_fpath="",
@@ -1155,7 +1164,11 @@ class V3BWFile(object):
         """
         log.info("Processing results to generate a bandwidth list file.")
         header = V3BWHeader.from_results(
-            results, scanner_country, destinations_countries, state_fpath
+            results,
+            dirauth_nickname,
+            scanner_country,
+            destinations_countries,
+            state_fpath,
         )
         bw_lines_raw = []
         bw_lines_excluded = []
