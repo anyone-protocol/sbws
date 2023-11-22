@@ -35,6 +35,10 @@ from sbws.util.timestamp import now_fname, now_isodt_str, now_unixts
 timestamp = 1523974147
 timestamp_l = str(timestamp)
 version_l = KEYVALUE_SEP_V1.join(["version", SPEC_VERSION])
+dirauth_nickname = "longclaw"
+dirauth_nickname_l = KEYVALUE_SEP_V1.join(
+    ["dirauth_nickname", dirauth_nickname]
+)
 scanner_country = "US"
 scanner_country_l = KEYVALUE_SEP_V1.join(["scanner_country", scanner_country])
 destinations_countries = "00,DE"
@@ -59,6 +63,7 @@ header_ls = [
     timestamp_l,
     version_l,
     destinations_countries_l,
+    dirauth_nickname_l,
     file_created_l,
     latest_bandwidth_l,
     # attempts_l, failure_l,
@@ -121,6 +126,7 @@ def test_v3bwheader_str():
     """Test header str"""
     header = V3BWHeader(
         timestamp_l,
+        dirauth_nickname=dirauth_nickname,
         scanner_country=scanner_country,
         destinations_countries=destinations_countries,
         file_created=file_created,
@@ -374,18 +380,14 @@ def test_torflow_scale(mock_consensus, datadir, tmpdir, conf):
     # Obtain it from conf, so that the root directory exists.
     v3bwfile = V3BWFile.from_results(
         results,
-        "",
-        "",
-        state_fpath,
+        state_fpath=state_fpath,
         scaling_method=TORFLOW_SCALING,
         round_digs=TORFLOW_ROUND_DIG,
     )
     assert v3bwfile.bw_lines[0].bw == 6
     v3bwfile = V3BWFile.from_results(
         results,
-        "",
-        "",
-        state_fpath,
+        state_fpath=state_fpath,
         scaling_method=TORFLOW_SCALING,
         torflow_cap=0.0001,
         round_digs=TORFLOW_ROUND_DIG,
@@ -394,9 +396,7 @@ def test_torflow_scale(mock_consensus, datadir, tmpdir, conf):
     assert v3bwfile.bw_lines[0].bw == 1
     v3bwfile = V3BWFile.from_results(
         results,
-        "",
-        "",
-        state_fpath,
+        state_fpath=state_fpath,
         scaling_method=TORFLOW_SCALING,
         torflow_cap=1,
         round_digs=TORFLOW_ROUND_DIG,
@@ -404,9 +404,7 @@ def test_torflow_scale(mock_consensus, datadir, tmpdir, conf):
     assert v3bwfile.bw_lines[0].bw == 123
     v3bwfile = V3BWFile.from_results(
         results,
-        "",
-        "",
-        state_fpath,
+        state_fpath=state_fpath,
         scaling_method=TORFLOW_SCALING,
         torflow_cap=1,
         round_digs=PROP276_ROUND_DIG,
@@ -418,7 +416,7 @@ def test_torflow_scale_no_desc_bw_avg(datadir, conf, caplog):
     state_fpath = conf["paths"]["state_fpath"]
     results = load_result_file(str(datadir.join("results_no_desc_bw_avg.txt")))
     caplog.set_level(logging.DEBUG)
-    v3bwfile = V3BWFile.from_results(results, "", "", state_fpath)
+    v3bwfile = V3BWFile.from_results(results, state_fpath=state_fpath)
     assert v3bwfile.bw_lines[0].bw == 26
 
 
@@ -426,7 +424,7 @@ def test_torflow_scale_no_desc_bw_obs(datadir, conf, caplog):
     state_fpath = conf["paths"]["state_fpath"]
     results = load_result_file(str(datadir.join("results_no_desc_bw_obs.txt")))
     caplog.set_level(logging.DEBUG)
-    v3bwfile = V3BWFile.from_results(results, "", "", state_fpath)
+    v3bwfile = V3BWFile.from_results(results, state_fpath=state_fpath)
     assert v3bwfile.bw_lines[0].bw == 1
 
 
@@ -436,7 +434,7 @@ def test_torflow_scale_no_desc_bw_avg_obs(datadir, conf, caplog):
         str(datadir.join("results_no_desc_bw_avg_obs.txt"))
     )
     caplog.set_level(logging.DEBUG)
-    v3bwfile = V3BWFile.from_results(results, "", "", state_fpath)
+    v3bwfile = V3BWFile.from_results(results, state_fpath=state_fpath)
     assert v3bwfile.bw_lines[0].bw == 1
 
 
@@ -446,7 +444,7 @@ def test_torflow_scale_no_consensus_bw(datadir, conf, caplog):
         str(datadir.join("results_no_consensus_bw.txt"))
     )
     caplog.set_level(logging.DEBUG)
-    v3bwfile = V3BWFile.from_results(results, "", "", state_fpath)
+    v3bwfile = V3BWFile.from_results(results, state_fpath=state_fpath)
     assert v3bwfile.bw_lines[0].bw == 26
 
 
@@ -454,7 +452,7 @@ def test_torflow_scale_0_consensus_bw(datadir, conf, caplog):
     state_fpath = conf["paths"]["state_fpath"]
     results = load_result_file(str(datadir.join("results_0_consensus_bw.txt")))
     caplog.set_level(logging.DEBUG)
-    v3bwfile = V3BWFile.from_results(results, "", "", state_fpath)
+    v3bwfile = V3BWFile.from_results(results, state_fpath=state_fpath)
     assert v3bwfile.bw_lines[0].bw == 26
 
 
@@ -612,7 +610,7 @@ def test_set_under_min_report(mock_consensus, conf, datadir):
     mock_consensus.return_value = 1
     state_fpath = conf["paths"]["state_fpath"]
     results = load_result_file(str(datadir.join("results.txt")))
-    v3bwfile = V3BWFile.from_results(results, "", "", state_fpath)
+    v3bwfile = V3BWFile.from_results(results, state_fpath=state_fpath)
     bwl = v3bwfile.bw_lines[0]
     assert not hasattr(bwl, "vote")
     assert not hasattr(bwl, "under_min_report")
@@ -623,7 +621,9 @@ def test_set_under_min_report(mock_consensus, conf, datadir):
     # and unmeasured was also set to 1.
     # After filtering the relay is excluded because there's only 1 success
     # result and it should have at least 2 (min_num)
-    v3bwfile = V3BWFile.from_results(results, "", "", state_fpath, min_num=2)
+    v3bwfile = V3BWFile.from_results(
+        results, state_fpath=state_fpath, min_num=2
+    )
     bwl = v3bwfile.bw_lines[0]
     assert bwl.vote == 0
     assert bwl.under_min_report == 1
@@ -633,7 +633,7 @@ def test_set_under_min_report(mock_consensus, conf, datadir):
     # The number of relays after scaling is than the 60% in the network,
     # therefore the relays are excluded and under_min_report is set to 1.
     mock_consensus.return_value = 3
-    v3bwfile = V3BWFile.from_results(results, "", "", state_fpath)
+    v3bwfile = V3BWFile.from_results(results, state_fpath=state_fpath)
     bwl = v3bwfile.bw_lines[0]
     assert bwl.vote == 0
     assert bwl.under_min_report == 1
@@ -648,7 +648,7 @@ def test_generator_started(root_data_path, datadir):
     )
     # `results` does not matter here, using them to not have an empty list.
     results = load_result_file(str(datadir.join("results.txt")))
-    header = V3BWHeader.from_results(results, "", "", state_fpath)
+    header = V3BWHeader.from_results(results, state_fpath=state_fpath)
     # And the header is correct
     assert "2020-02-29T10:00:00" == header.generator_started
 
@@ -659,7 +659,7 @@ def test_recent_consensus_count(root_data_path, datadir):
     assert "1" == V3BWHeader.consensus_count_from_file(state_fpath)
     # `results` does not matter here, using them to not have an empty list.
     results = load_result_file(str(datadir.join("results.txt")))
-    header = V3BWHeader.from_results(results, "", "", state_fpath)
+    header = V3BWHeader.from_results(results, state_fpath=state_fpath)
     assert "1" == header.recent_consensus_count
 
 
@@ -671,7 +671,7 @@ def test_recent_measurement_attempt_count(root_data_path, datadir):
     )
     # `results` does not matter here, using them to not have an empty list.
     results = load_result_file(str(datadir.join("results.txt")))
-    header = V3BWHeader.from_results(results, "", "", state_fpath)
+    header = V3BWHeader.from_results(results, state_fpath=state_fpath)
     assert "15" == header.recent_measurement_attempt_count
 
 
@@ -681,7 +681,7 @@ def test_recent_priority_list_count(root_data_path, datadir):
     assert 1 == V3BWHeader.recent_priority_list_count_from_file(state_fpath)
     # `results` does not matter here, using them to don't have an empty list.
     results = load_result_file(str(datadir.join("results.txt")))
-    header = V3BWHeader.from_results(results, "", "", state_fpath)
+    header = V3BWHeader.from_results(results, state_fpath=state_fpath)
     assert "1" == header.recent_priority_list_count
 
 
@@ -691,7 +691,7 @@ def test_recent_priority_relay_count(root_data_path, datadir):
     assert 15 == V3BWHeader.recent_priority_relay_count_from_file(state_fpath)
     # `results` does not matter here, using them to don't have an empty list.
     results = load_result_file(str(datadir.join("results.txt")))
-    header = V3BWHeader.from_results(results, "", "", state_fpath)
+    header = V3BWHeader.from_results(results, state_fpath=state_fpath)
     assert "15" == header.recent_priority_relay_count
 
 

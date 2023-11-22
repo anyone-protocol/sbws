@@ -15,6 +15,7 @@ from urllib.parse import urlparse
 from sbws.globals import (
     DEFAULT_CONFIG_PATH,
     DEFAULT_LOG_CONFIG_PATH,
+    DIRAUTH_NICKNAMES,
     SUPERVISED_RUN_DPATH,
     SUPERVISED_USER_CONFIG_PATH,
     USER_CONFIG_PATH,
@@ -319,6 +320,31 @@ def _validate_country(conf, sec, key, err_tmpl):
     return errors
 
 
+def _validate_dirauth_nickname(conf, sec, key, err_tmpl):
+    errors = []
+    if conf[sec].get(key, None) is None:
+        errors.append(
+            err_tmpl.substitute(
+                sec=sec,
+                key=key,
+                val=None,
+                e="Missing dirauth_nickname in configuration file.",
+            )
+        )
+        return errors
+    valid = conf[sec]["dirauth_nickname"] in DIRAUTH_NICKNAMES
+    if not valid:
+        errors.append(
+            err_tmpl.substitute(
+                sec=sec,
+                key=key,
+                val=conf[sec][key],
+                e="Not a valid dirauth_nickname.",
+            )
+        )
+    return errors
+
+
 def _validate_scanner(conf):
     errors = []
     sec = "scanner"
@@ -338,7 +364,9 @@ def _validate_scanner(conf):
         "download_max": {"minimum": 0.001, "maximum": None},
     }
     all_valid_keys = (
-        list(ints.keys()) + list(floats.keys()) + ["nickname", "country"]
+        list(ints.keys())
+        + list(floats.keys())
+        + ["nickname", "country", "dirauth_nickname"]
     )
     errors.extend(_validate_section_keys(conf, sec, all_valid_keys, err_tmpl))
     errors.extend(_validate_section_ints(conf, sec, ints, err_tmpl))
@@ -351,6 +379,9 @@ def _validate_scanner(conf):
             )
         )
     errors.extend(_validate_country(conf, sec, "country", err_tmpl))
+    errors.extend(
+        _validate_dirauth_nickname(conf, sec, "dirauth_nickname", err_tmpl)
+    )
     return errors
 
 

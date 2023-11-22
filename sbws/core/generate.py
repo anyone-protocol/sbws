@@ -179,11 +179,13 @@ def main(args, conf):
     consensus_path = os.path.join(
         conf.getpath("tor", "datadir"), "cached-consensus"
     )
+    dirauth_nickname = conf["scanner"].get("dirauth_nickname", None)
     # Accept None as scanner_country to be compatible with older versions.
     scanner_country = conf["scanner"].get("country")
     destinations_countries = destination.parse_destinations_countries(conf)
     bw_file = V3BWFile.from_results(
         results,
+        dirauth_nickname,
         scanner_country,
         destinations_countries,
         state_fpath,

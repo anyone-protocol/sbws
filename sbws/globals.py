@@ -74,6 +74,18 @@ SUPERVISED_RUN_DPATH = "/run/sbws/tor"
 
 SOCKET_TIMEOUT = 60  # seconds
 
+# Possible `dirauth_nickname`s for BandithFiles in 2023
+DIRAUTH_NICKNAMES = [
+    "longclaw",
+    "gabelmoo",
+    "maatuska",
+    "bastet",
+    "moria1",
+    "dannenberg",
+    "dizum",
+    "tor26",
+    "test",
+]
 SBWS_SCALE_CONSTANT = 7500
 TORFLOW_SCALING = 1
 SBWS_SCALING = 2
