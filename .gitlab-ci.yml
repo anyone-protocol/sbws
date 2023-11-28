@@ -106,7 +106,7 @@ release_job:
     tag_name: "$CI_COMMIT_TAG"
     ref: "$CI_COMMIT_TAG"
     milestones:
-      - "sbws: 1.8.x-final"
+      - "sbws: 1.9.x-final"
 
 pages:
   stage: deploy

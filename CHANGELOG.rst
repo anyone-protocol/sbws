@@ -7,6 +7,53 @@ The format is based on `Keep a
 Changelog <http://keepachangelog.com/en/1.0.0/>`__ and this project
 adheres to `Semantic Versioning <http://semver.org/spec/v2.0.0.html>`__.
 
+v1.9.0 (2023-12-07)
+-------------------
+New
+~~~
+
+- V3bwfile: Remove `$` from `node_id` KeyValue.
+  Closes #40175
+
+Changes
+~~~~~~~
+
+- Remove docs and tests from source distribution.
+  to stop system packages build warning `Package 'tests.*' is absent
+  from the `packages` configuration`.
+- Remove Python 3.7 support.
+  becaue this version is deprecated
+- V3bwfile: Update `version` KeyValue header.
+  Closes #40193
+- V3bwfile: Add dirauth_nickname KeyValue.
+  both in the configuration and BandwidthFiles.
+  Also remove KeyValues that no longer mandatory in the example
+  configuration files and add documentation on which files need to be
+  modified when adding a `KeyValue`.
+  Closes #40177
+
+Fix
+~~~
+- Update versioneer files with 0.29 `vendored`
+- Update versioneer files with 0.29 version
+- Update black configuration.
+- Add black isort profile as it no longer fails.
+- Enable tox configurations that no longer fail.
+- Add missing Python 3.11 in some files.
+- Add metrics Library.
+  in the list of repositories to change when adding a header KeyValue
+  Closes #40194
+- Add forgotten bootstrap theme.
+- Add sphinx labels to pages.
+  to get intersphinx working when linking from other project.
+- Replace links to gitweb.tpo.
+  and links to obsolete v2 onions.
+  Closes #40189
+- Update/replace broken links.
+  and ignore anchors created by js and local directory or build source
+  links.
+- Torify style.
+
 v1.8.1 (2023-10-19)
 -------------------
 
