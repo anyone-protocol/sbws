@@ -2,14 +2,7 @@
 [tool.black]
 line-length = 79
 target-version = ['py38', 'py39', 'py310', 'py311']
-exclude = '''
-/(
-  docs
-  | .*__init__\.py
-  | .*_version\.py
-)/
-'''
-
+force-exclude = "sbws/_version.py"
 
 [tool.isort]
 line_length = 79
