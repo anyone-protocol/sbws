@@ -1,11 +1,8 @@
-from ._version import get_versions
+import threading
 
-__version__ = get_versions()["version"]
-del get_versions
+from . import _version
 
-import threading  # noqa
-
-from . import globals  # noqa
+__version__ = _version.get_versions()["version"]
 
 
 class Settings:
@@ -22,6 +19,9 @@ class Settings:
     """
 
     def __init__(self):
+        # Importing globals here to avoid circular import
+        from . import globals  # noqa
+
         # update this dict from globals (but only for ALL_CAPS settings)
         for setting in dir(globals):
             if setting.isupper():
