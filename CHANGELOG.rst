@@ -22,7 +22,7 @@ Changes
   to stop system packages build warning `Package 'tests.*' is absent
   from the `packages` configuration`.
 - Remove Python 3.7 support.
-  becaue this version is deprecated
+  because this version is deprecated
 - V3bwfile: Update `version` KeyValue header.
   Closes #40193
 - V3bwfile: Add dirauth_nickname KeyValue.
