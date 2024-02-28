@@ -1,0 +1,5 @@
+User debian-anon
+DataDirectory /var/lib/anon
+ControlSocket /var/lib/anon/control
+Nickname AnonSBWS
+FetchUselessDescriptors 1

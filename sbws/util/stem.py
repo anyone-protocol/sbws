@@ -305,14 +305,15 @@ def launch_tor(conf):
 
     torrc = parse_user_torrc_config(torrc, conf["tor"]["extra_lines"])
     # Finally launch Tor
-    try:
-        # If there is already a tor process running with the same control
-        # socket, this will exit here.
-        stem.process.launch_tor_with_config(
-            torrc, init_msg_handler=log.debug, take_ownership=True
-        )
-    except Exception as e:
-        fail_hard("Error trying to launch tor: %s", e)
+    # todo - do not launch own tor (anon)
+    # try:
+    #     # If there is already a tor process running with the same control
+    #     # socket, this will exit here.
+    #     stem.process.launch_tor_with_config(
+    #         torrc, init_msg_handler=log.debug, take_ownership=True
+    #     )
+    # except Exception as e:
+    #     fail_hard("Error trying to launch tor: %s", e)
     log.info("Started own tor.")
     # And return a controller to it
     cont = _init_controller_socket(conf.getpath("tor", "control_socket"))

@@ -15,7 +15,7 @@ job "sbws-dev" {
     network {
 #      mode = "bridge"
       port "http-port" {
-        static = 9000
+        static = 8888
         to     = 80
 #        host_network = "wireguard"
       }
@@ -43,7 +43,7 @@ job "sbws-dev" {
         image   = "svforte/sbws-scanner:latest-dev"
         volumes = [
           "local/.sbws.ini:/root/.sbws.ini:ro",
-          "local/data:/app/scanner/data"
+          "local/anonrc:/etc/anon/anonrc:ro"
         ]
       }
 
@@ -76,7 +76,7 @@ foo = on
 
 [destinations.foo]
 # the domain and path to the 1GB file or POST URL.
-url = http://host.docker.internal:8888/1GiB
+url = http://5.78.90.106:8888/1GiB
 # Whether to verify or not the TLS certificate. Default True
 verify = False
 # ISO 3166-1 alpha-2 country code where the Web server destination is located.
@@ -117,6 +117,19 @@ country = ZZ
         destination = "local/.sbws.ini"
       }
     }
+
+    template {
+      change_mode = "noop"
+      data        = <<EOH
+User debian-anon
+DataDirectory /var/lib/anon
+ControlSocket /var/lib/anon/control
+Nickname AnonSBWS
+FetchUselessDescriptors 1
+        EOH
+      destination = "local/anonrc"
+    }
+  }
 
     task "sbws-destination-dev-task" {
       driver = "docker"
