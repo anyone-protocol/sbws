@@ -20,7 +20,7 @@ runs:
       uses: docker/build-push-action@v2
       with:
         context: .
-        file: ./docker/Dockerfile
+        file: ./docker/scanner/Dockerfile
         push: true
         tags: ${{ inputs.docker-username }}/sbws-scanner:${{ github.sha }},${{ inputs.docker-username }}/sbws-scanner:${{ inputs.docker-tag }}
 
