@@ -1,0 +1,24 @@
+name: 'Deploy new version'
+inputs:
+  environment:
+    required: true
+  nomad-cacert:
+    required: true
+  nomad-token:
+    required: true
+  nomad-addr:
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Deploy new version
+      shell: bash
+      env:
+        NOMAD_CACERT: ${{ inputs.nomad-cacert }}
+        NOMAD_TOKEN: ${{ inputs.nomad-token }}
+        NOMAD_ADDR: ${{ inputs.nomad-addr }}
+      run: |
+        curl -L https://releases.hashicorp.com/nomad/1.6.3/nomad_1.6.3_linux_amd64.zip -o nomad.zip
+        unzip nomad.zip
+        ./nomad job run operations/deploy-${{ inputs.environment }}.hcl

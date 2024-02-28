@@ -85,6 +85,8 @@ DIRAUTH_NICKNAMES = [
     "dizum",
     "tor26",
     "test",
+    # TODO - add DA nicknames or make configurable
+    "Anon",
 ]
 SBWS_SCALE_CONSTANT = 7500
 TORFLOW_SCALING = 1

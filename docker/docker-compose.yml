@@ -1,0 +1,16 @@
+version: '2.2'
+services:
+  sbws-scanner:
+    image: sbws-scanner
+    restart: always
+    volumes:
+      - ./scanner/.sbws.ini:/root/.sbws.ini
+      - ./scanner/data/:/app/scanner/data
+  sbws-destination:
+    image: sbws-destination
+    restart: always
+    ports:
+      - "8888:80"
+    volumes:
+      - ./destination/default.conf:/etc/nginx/conf.d/default.conf
+      - ./destination/data/:/app/destination/data
