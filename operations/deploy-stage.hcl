@@ -41,9 +41,11 @@ job "sbws-stage" {
 
       config {
         image   = "svforte/sbws-scanner:latest"
+        force_pull = true
         volumes = [
           "local/.sbws.ini:/root/.sbws.ini:ro",
-          "local/data:/app/scanner/data"
+          "local/anonrc:/etc/anon/anonrc:ro",
+          "local/data:/root/.sbws"
         ]
       }
 
@@ -66,55 +68,35 @@ country = DE
 dirauth_nickname = Anon
 
 [destinations]
-# With several destinations, the scanner can continue even if some of them
-# fail, which can be caused by a network problem on their side.
-# If all of them fail, the scanner will stop, which
-# will happen if there is network problem on the scanner side.
-
 # A destination can be disabled changing `on` by `off`
-foo = on
+dest = on
 
-[destinations.foo]
-# the domain and path to the 1GB file or POST URL.
+[destinations.dest]
+# the domain and path to the 1GB file.
 url = http://host.docker.internal:8888/1GiB
-# Whether to verify or not the TLS certificate. Default True
+# Whether to verify or not the TLS certificate. Default True.
 verify = False
 # ISO 3166-1 alpha-2 country code where the Web server destination is located.
 # Default AA, to detect it was not edited.
 # Use ZZ if the location is unknown (for instance, a CDN).
 country = ZZ
 
-## The following logging options are set by default.
-## There is no need to change them unless other options are preferred.
-; [logging]
-; # Whether or not to log to a rotating file the directory paths.log_dname
-; to_file = yes
-; # Whether or not to log to stdout
-; to_stdout = yes
-; # Whether or not to log to syslog
-; # NOTE that when sbws is launched by systemd, stdout goes to journal and
-; # syslog.
-; to_syslog = no
-
-; # Level to log at. Debug, info, warning, error, critical.
-; # `level` must be set to the lower of all the handler levels.
-; level = debug
-; to_file_level = debug
-; to_stdout_level = info
-; to_syslog_level = info
-; # Format string to use when logging
-; format = %(module)s[%(process)s]: <%(levelname)s> %(message)s
-; # verbose formatter useful for debugging
-; to_file_format = %(asctime)s %(levelname)s %(threadName)s %(filename)s:%(lineno)s - %(funcName)s - %(message)s
-; # Not adding %(asctime)s to to stdout since it'll go to syslog when using
-; # systemd, and it'll have already the date.
-; to_stdout_format = ${format}
-; to_syslog_format = ${format}
-
-# To disable certificate validation, uncomment the following
-# verify = False
+[tor]
+control_socket = /var/lib/anon/control
         EOH
         destination = "local/.sbws.ini"
+      }
+
+      template {
+        change_mode = "noop"
+        data        = <<EOH
+User debian-anon
+DataDirectory /var/lib/anon
+ControlSocket /var/lib/anon/control
+Nickname AnonSBWS
+FetchUselessDescriptors 1
+        EOH
+        destination = "local/anonrc"
       }
     }
 
@@ -129,6 +111,7 @@ country = ZZ
 
       config {
         image   = "svforte/sbws-destination:latest"
+        force_pull = true
         volumes = [
           "local/nginx-sbws:/etc/nginx/conf.d/default.conf:ro"
         ]
