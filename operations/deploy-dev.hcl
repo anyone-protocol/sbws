@@ -73,7 +73,7 @@ dest = on
 
 [destinations.dest]
 # the domain and path to the 1GB file.
-url = http://host.docker.internal:8888/1GiB
+url = http://5.78.90.106:8888/1GiB
 # Whether to verify or not the TLS certificate. Default True.
 verify = False
 # ISO 3166-1 alpha-2 country code where the Web server destination is located.
