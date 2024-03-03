@@ -6,11 +6,11 @@ job "sbws-dev" {
   group "sbws-dev-group" {
     count = 1
 
-    #    volume "sbws-data" {
-    #       type      = "host"
-    #       read_only = false
-    #       source    = "sbws-dev"
-    #    }
+#    volume "dir-auth-dev" {
+#      type      = "host"
+#      read_only = false
+#      source    = "dir-auth-dev"
+#    }
 
     network {
       #      mode = "bridge"
@@ -26,12 +26,48 @@ job "sbws-dev" {
       sticky  = true
     }
 
-    task "sbws-scanner-dev-task" {
+    task "sbws-relay-dev-task" {
       driver = "docker"
 
-      #      env {
-      #        LOGBASE = "data/logs"
-      #      }
+#      volume_mount {
+#        volume      = "anon-check-data"
+#        destination = "/var/lib/anon"
+#        read_only   = false
+#      }
+
+      config {
+        image      = "svforte/anon-dev"
+        force_pull = true
+        volumes    = [
+          "local/anonrc:/etc/anon/anonrc"
+        ]
+      }
+
+      resources {
+        cpu    = 256
+        memory = 256
+      }
+
+      template {
+        change_mode = "noop"
+        data        = <<EOH
+User anond
+
+Nickname AnonSBWS
+
+DataDirectory /var/lib/anon
+
+ControlPort 0.0.0.0:9051
+HashedControlPassword 16:3ACE689A3BC1B7D06025EA6BC9CB1C9B99EB21FE4877ECD803E6EAD9BE
+
+FetchUselessDescriptors 1
+        EOH
+        destination = "local/anonrc"
+      }
+    }
+
+    task "sbws-scanner-dev-task" {
+      driver = "docker"
 
       #      volume_mount {
       #         volume      = "sbws-data"
@@ -44,7 +80,6 @@ job "sbws-dev" {
         force_pull = true
         volumes = [
           "local/.sbws.ini:/root/.sbws.ini:ro",
-          "local/anonrc:/etc/anon/anonrc:ro",
           "local/data:/root/.sbws"
         ]
       }
@@ -82,22 +117,12 @@ verify = False
 country = ZZ
 
 [tor]
-control_socket = /var/lib/anon/control
+external_control_ip = 127.0.0.1
+external_control_port = 9051
         EOH
         destination = "local/.sbws.ini"
       }
 
-      template {
-        change_mode = "noop"
-        data        = <<EOH
-User debian-anon
-DataDirectory /var/lib/anon
-ControlSocket /var/lib/anon/control
-Nickname AnonSBWS
-FetchUselessDescriptors 1
-        EOH
-        destination = "local/anonrc"
-      }
     }
 
     task "sbws-destination-dev-task" {

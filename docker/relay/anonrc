@@ -1,0 +1,10 @@
+User anond
+
+Nickname AnonSBWS
+
+DataDirectory /var/lib/anon
+
+ControlPort 0.0.0.0:9051
+HashedControlPassword 16:3ACE689A3BC1B7D06025EA6BC9CB1C9B99EB21FE4877ECD803E6EAD9BE
+
+FetchUselessDescriptors 1

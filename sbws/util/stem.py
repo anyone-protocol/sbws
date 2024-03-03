@@ -166,7 +166,7 @@ def is_bootstrapped(c):
 def _init_controller_port(port):
     try:
         c = Controller.from_port(port=port)
-        c.authenticate()
+        c.authenticate(password="password")
     except (IncorrectSocketType, SocketError):
         fail_hard("Unable to connect to control port %s.", port)
     # TODO: Allow for auth via more than just CookieAuthentication
@@ -177,7 +177,7 @@ def _init_controller_port(port):
 def _init_controller_socket(socket):
     try:
         c = Controller.from_socket_file(path=socket)
-        c.authenticate()
+        c.authenticate(password="password")
     except (IncorrectSocketType, SocketError):
         log.debug("Error initting controller socket: socket error.")
         return None
@@ -305,15 +305,15 @@ def launch_tor(conf):
 
     torrc = parse_user_torrc_config(torrc, conf["tor"]["extra_lines"])
     # Finally launch Tor
-    # todo - do not launch own tor (anon)
-    # try:
-    #     # If there is already a tor process running with the same control
-    #     # socket, this will exit here.
-    #     stem.process.launch_tor_with_config(
-    #         torrc, init_msg_handler=log.debug, take_ownership=True
-    #     )
-    # except Exception as e:
-    #     fail_hard("Error trying to launch tor: %s", e)
+    log.info(torrc)
+    try:
+        # If there is already a tor process running with the same control
+        # socket, this will exit here.
+        stem.process.launch_tor_with_config(
+            torrc, tor_cmd="anon", init_msg_handler=log.debug, take_ownership=True
+        )
+    except Exception as e:
+        fail_hard("Error trying to launch tor: %s", e)
     log.info("Started own tor.")
     # And return a controller to it
     cont = _init_controller_socket(conf.getpath("tor", "control_socket"))

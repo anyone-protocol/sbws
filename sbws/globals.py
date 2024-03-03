@@ -23,7 +23,7 @@ TORRC_STARTING_POINT = {
     # means a lower chance of conflict
     "SocksPort": "auto",
     # Easier than password authentication
-    "CookieAuthentication": "1",
+    "CookieAuthentication": "0",
     # To avoid path bias warnings
     "UseEntryGuards": "0",
     # Because we need things from full server descriptors (namely for now: the
