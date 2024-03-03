@@ -396,6 +396,7 @@ def _validate_tor(conf):
         "control_socket",
         "pid",
         "log",
+        "external_control_ip",
         "external_control_port",
         "extra_lines",
     ]
