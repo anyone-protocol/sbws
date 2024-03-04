@@ -20,17 +20,17 @@ job "sbws-stage" {
       }
     }
 
-    volume "dir-auth-stage" {
+    volume "sbws-stage" {
       type      = "host"
       read_only = false
-      source    = "dir-auth-stage"
+      source    = "sbws-stage"
     }
 
     network {
       mode = "bridge"
 
       port "http-port" {
-        static = 9177
+        static = 9077
         to     = 80
         #        host_network = "wireguard"
       }
@@ -94,7 +94,7 @@ LearnCircuitBuildTimeout 0
       driver = "docker"
 
       volume_mount {
-        volume      = "dir-auth-stage"
+        volume      = "sbws-stage"
         destination = "/root/.sbws"
         read_only   = false
       }
