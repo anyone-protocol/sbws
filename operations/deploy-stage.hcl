@@ -41,11 +41,6 @@ job "sbws-stage" {
       }
     }
 
-    ephemeral_disk {
-      migrate = true
-      sticky  = true
-    }
-
     task "sbws-relay-stage-task" {
       driver = "docker"
 

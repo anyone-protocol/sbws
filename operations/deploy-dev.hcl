@@ -20,10 +20,10 @@ job "sbws-dev" {
       }
     }
 
-    volume "dir-auth-dev" {
+    volume "sbws-dev" {
       type      = "host"
       read_only = false
-      source    = "dir-auth-dev"
+      source    = "sbws-dev"
     }
 
     network {
@@ -39,11 +39,6 @@ job "sbws-dev" {
         static = 9051
         host_network = "wireguard"
       }
-    }
-
-    ephemeral_disk {
-      migrate = true
-      sticky  = true
     }
 
     task "sbws-relay-dev-task" {
@@ -99,7 +94,7 @@ LearnCircuitBuildTimeout 0
       driver = "docker"
 
       volume_mount {
-        volume      = "dir-auth-dev"
+        volume      = "sbws-dev"
         destination = "/root/.sbws"
         read_only   = false
       }
