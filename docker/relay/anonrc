@@ -7,4 +7,13 @@ DataDirectory /var/lib/anon
 ControlPort 0.0.0.0:9051
 HashedControlPassword 16:3ACE689A3BC1B7D06025EA6BC9CB1C9B99EB21FE4877ECD803E6EAD9BE
 
+SocksPort auto
+SafeLogging 1
+UseEntryGuards 0
+ProtocolWarnings 1
+FetchDirInfoEarly 1
+LogTimeGranularity 1
+UseMicrodescriptors 0
+FetchDirInfoExtraEarly 1
 FetchUselessDescriptors 1
+LearnCircuitBuildTimeout 0

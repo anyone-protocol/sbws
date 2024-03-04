@@ -4,20 +4,40 @@ job "sbws-dev" {
   namespace   = "ator-network"
 
   group "sbws-dev-group" {
-    count = 1
+    count = 3
 
-#    volume "dir-auth-dev" {
-#      type      = "host"
-#      read_only = false
-#      source    = "dir-auth-dev"
-#    }
+    spread {
+      attribute = "${node.unique.id}"
+      weight    = 100
+      target "067a42a8-d8fe-8b19-5851-43079e0eabb4" {
+        percent = 34
+      }
+      target "16be0723-edc1-83c4-6c02-193d96ec308a" {
+        percent = 33
+      }
+      target "e6e0baed-8402-fd5c-7a15-8dd49e7b60d9" {
+        percent = 33
+      }
+    }
+
+    volume "dir-auth-dev" {
+      type      = "host"
+      read_only = false
+      source    = "dir-auth-dev"
+    }
 
     network {
-      #      mode = "bridge"
+      mode = "bridge"
+
       port "http-port" {
-        static = 8888
+        static = 9077
         to     = 80
         #        host_network = "wireguard"
+      }
+
+      port "control-port" {
+        static = 9051
+        host_network = "wireguard"
       }
     }
 
@@ -28,12 +48,6 @@ job "sbws-dev" {
 
     task "sbws-relay-dev-task" {
       driver = "docker"
-
-#      volume_mount {
-#        volume      = "anon-check-data"
-#        destination = "/var/lib/anon"
-#        read_only   = false
-#      }
 
       config {
         image      = "svforte/anon-dev"
@@ -57,30 +71,44 @@ Nickname AnonSBWS
 
 DataDirectory /var/lib/anon
 
-ControlPort 0.0.0.0:9051
-HashedControlPassword 16:3ACE689A3BC1B7D06025EA6BC9CB1C9B99EB21FE4877ECD803E6EAD9BE
+ControlPort {{ env `NOMAD_PORT_control_port` }}
 
+SocksPort auto
+SafeLogging 1
+UseEntryGuards 0
+ProtocolWarnings 1
+FetchDirInfoEarly 1
+LogTimeGranularity 1
+UseMicrodescriptors 0
+FetchDirInfoExtraEarly 1
 FetchUselessDescriptors 1
+LearnCircuitBuildTimeout 0
         EOH
         destination = "local/anonrc"
+      }
+
+      service {
+        name     = "sbws-relay-dev"
+        provider = "nomad"
+        tags     = ["sbws"]
+        port     = "control-port"
       }
     }
 
     task "sbws-scanner-dev-task" {
       driver = "docker"
 
-      #      volume_mount {
-      #         volume      = "sbws-data"
-      #         destination = "/srv/sbws/data"
-      #         read_only   = false
-      #      }
+      volume_mount {
+        volume      = "dir-auth-dev"
+        destination = "/root/.sbws"
+        read_only   = false
+      }
 
       config {
         image   = "svforte/sbws-scanner:latest-dev"
         force_pull = true
         volumes = [
-          "local/.sbws.ini:/root/.sbws.ini:ro",
-          "local/data:/root/.sbws"
+          "local/.sbws.ini:/root/.sbws.ini:ro"
         ]
       }
 
@@ -96,7 +124,7 @@ FetchUselessDescriptors 1
 [scanner]
 # ISO 3166-1 alpha-2 country code where the scanner is located.
 # Default AA, to detect it was not edited.
-country = DE
+country = ZZ
 # A human-readable string with chars in a-zA-Z0-9 to identify the dirauth
 # nickname that will publish the BandwidthFiles generated from this scanner.
 # Default to a non existing dirauth_nickname to detect it was not edited.
@@ -108,7 +136,7 @@ dest = on
 
 [destinations.dest]
 # the domain and path to the 1GB file.
-url = http://5.78.90.106:8888/1GiB
+url = http://{{ env `NOMAD_HOST_ADDR_http-port` }}/1GiB
 # Whether to verify or not the TLS certificate. Default True.
 verify = False
 # ISO 3166-1 alpha-2 country code where the Web server destination is located.
@@ -117,8 +145,8 @@ verify = False
 country = ZZ
 
 [tor]
-external_control_ip = 127.0.0.1
-external_control_port = 9051
+external_control_ip = {{ env `NOMAD_IP_control_port` }}
+external_control_port = {{ env `NOMAD_PORT_control_port` }}
         EOH
         destination = "local/.sbws.ini"
       }
@@ -127,12 +155,6 @@ external_control_port = 9051
 
     task "sbws-destination-dev-task" {
       driver = "docker"
-
-      #      volume_mount {
-      #        volume      = "sbws-data"
-      #        destination = "/var/www/sbws-destination/data"
-      #        read_only   = true
-      #      }
 
       config {
         image   = "svforte/sbws-destination:latest-dev"
