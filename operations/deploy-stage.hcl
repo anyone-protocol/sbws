@@ -36,7 +36,7 @@ job "sbws-stage" {
       }
 
       port "control-port" {
-        static = 9051
+        static = 9151
         host_network = "wireguard"
       }
     }
