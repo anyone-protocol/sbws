@@ -30,7 +30,7 @@ job "sbws-stage" {
       mode = "bridge"
 
       port "http-port" {
-        static = 9077
+        static = 9177
         to     = 80
         #        host_network = "wireguard"
       }
