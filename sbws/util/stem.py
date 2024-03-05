@@ -166,6 +166,7 @@ def is_bootstrapped(c):
 def _init_controller_port(port):
     try:
         c = Controller.from_port(port=port)
+        # todo - extract password to config
         c.authenticate(password="password")
     except (IncorrectSocketType, SocketError):
         fail_hard("Unable to connect to control port %s.", port)
@@ -177,6 +178,7 @@ def _init_controller_port(port):
 def _init_controller_socket(socket):
     try:
         c = Controller.from_socket_file(path=socket)
+        # todo - extract password to config
         c.authenticate(password="password")
     except (IncorrectSocketType, SocketError):
         log.debug("Error initting controller socket: socket error.")
@@ -305,7 +307,6 @@ def launch_tor(conf):
 
     torrc = parse_user_torrc_config(torrc, conf["tor"]["extra_lines"])
     # Finally launch Tor
-    log.info(torrc)
     try:
         # If there is already a tor process running with the same control
         # socket, this will exit here.

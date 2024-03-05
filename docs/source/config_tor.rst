@@ -10,7 +10,8 @@ connection to an existing Tor daemon.
 Default configuration:
 
 - ``SocksPort auto``: To proxy requests over Tor.
-- ``CookieAuthentication 1``: The easiest way to authenticate to Tor.
+- ``CookieAuthentication 0``: The easiest way to authenticate to Tor.
+- ``HashedControlPassword``: The how to authenticate using password
 - ``UseEntryGuards 0``: To avoid path bias warnings.
 - ``UseMicrodescriptors 0``: Because full server descriptors are needed.
 - ``SafeLogging 0``: Useful for logging, since there's no need for anonymity.
