@@ -44,6 +44,16 @@ job "sbws-dev" {
     task "sbws-relay-dev-task" {
       driver = "docker"
 
+      env {
+        ANON_USER = "root"
+      }
+
+      volume_mount {
+        volume      = "sbws-dev"
+        destination = "/var/lib/anon"
+        read_only   = false
+      }
+
       config {
         image      = "svforte/anon-dev"
         force_pull = true
@@ -60,11 +70,11 @@ job "sbws-dev" {
       template {
         change_mode = "noop"
         data        = <<EOH
-User anond
+User root
 
 Nickname AnonSBWS
 
-DataDirectory /var/lib/anon
+DataDirectory /var/lib/anon/anon-data
 
 ControlPort {{ env `NOMAD_PORT_control_port` }}
 
@@ -140,6 +150,7 @@ verify = False
 country = ZZ
 
 [tor]
+datadir = /root/.sbws/anon-data
 external_control_ip = {{ env `NOMAD_IP_control_port` }}
 external_control_port = {{ env `NOMAD_PORT_control_port` }}
         EOH
