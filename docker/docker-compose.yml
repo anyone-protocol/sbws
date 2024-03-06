@@ -1,0 +1,42 @@
+version: '2.2'
+services:
+  sbws-relay:
+    image: svforte/anon-dev
+    restart: always
+    expose:
+      - "9051"
+    volumes:
+      - ./data/:/var/lib/anon
+      - ./relay/anonrc:/etc/anon/anonrc
+    networks:
+      local:
+        ipv4_address: 172.18.0.2
+  sbws-scanner:
+    image: sbws-scanner
+    restart: always
+    depends_on:
+      - sbws-relay
+    volumes:
+      - ./scanner/.sbws.ini:/root/.sbws.ini
+      - ./data:/root/.sbws
+    networks:
+      local:
+        ipv4_address: 172.18.0.3
+  sbws-destination:
+    image: sbws-destination
+    restart: always
+    ports:
+      - "8888:80"
+    volumes:
+      - ./destination/default.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      local:
+        ipv4_address: 172.18.0.4
+
+networks:
+  local:
+    ipam:
+      driver: default
+      config:
+        - subnet: "172.18.0.0/24"
+          gateway: "172.18.0.1"
