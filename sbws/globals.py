@@ -23,7 +23,7 @@ TORRC_STARTING_POINT = {
     # means a lower chance of conflict
     "SocksPort": "auto",
     # Easier than password authentication
-    "CookieAuthentication": "1",
+    "CookieAuthentication": "0",
     # To avoid path bias warnings
     "UseEntryGuards": "0",
     # Because we need things from full server descriptors (namely for now: the
@@ -85,6 +85,8 @@ DIRAUTH_NICKNAMES = [
     "dizum",
     "tor26",
     "test",
+    # TODO - add DA nicknames or make configurable
+    "Anon",
 ]
 SBWS_SCALE_CONSTANT = 7500
 TORFLOW_SCALING = 1

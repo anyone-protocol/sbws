@@ -396,6 +396,7 @@ def _validate_tor(conf):
         "control_socket",
         "pid",
         "log",
+        "external_control_ip",
         "external_control_port",
         "extra_lines",
     ]
@@ -698,8 +699,9 @@ def _validate_url(section, key):
     # When the scheme is https but the protocol is not TLS, requests will hang.
     # For tests we use 127.0.0.1, allow this address without https scheme.
 
-    if url.scheme != "https" and url.hostname != "127.0.0.1":
-        return False, "URL scheme must be HTTPS (except for the test server)"
+    # todo - add http support config
+    # if url.scheme != "https" and url.hostname != "127.0.0.1":
+    #     return False, "URL scheme must be HTTPS (except for the test server)"
     return True, ""
 
 

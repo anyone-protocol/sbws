@@ -1,0 +1,34 @@
+name: Build and Push Docker Image
+inputs:
+  docker-username:
+    required: true
+  docker-password:
+    required: true
+  docker-tag:
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v1
+      with:
+        username: ${{ inputs.docker-username }}
+        password: ${{ inputs.docker-password }}
+
+    - name: Build and push Docker image of scanner
+      uses: docker/build-push-action@v2
+      with:
+        context: .
+        file: ./docker/scanner/Dockerfile
+        push: true
+        tags: ${{ inputs.docker-username }}/sbws-scanner:${{ github.sha }},${{ inputs.docker-username }}/sbws-scanner:${{ inputs.docker-tag }}
+
+    - name: Build and push Docker image of destination
+      uses: docker/build-push-action@v2
+      with:
+        context: ./docker/destination
+        file: ./docker/destination/Dockerfile
+        push: true
+        tags: ${{ inputs.docker-username }}/sbws-destination:${{ github.sha }},${{ inputs.docker-username }}/sbws-destination:${{ inputs.docker-tag }}
+

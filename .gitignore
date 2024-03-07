@@ -13,3 +13,5 @@ dist
 build
 *.lockfile
 chutney
+.idea
+docker/data
