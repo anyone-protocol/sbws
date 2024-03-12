@@ -1,9 +1,9 @@
-job "sbws-stage" {
+job "sbws-live" {
   datacenters = ["ator-fin"]
   type        = "service"
   namespace   = "ator-network"
 
-  group "sbws-stage-group" {
+  group "sbws-live-group" {
     count = 3
 
     spread {
@@ -20,28 +20,28 @@ job "sbws-stage" {
       }
     }
 
-    volume "sbws-stage" {
+    volume "sbws-live" {
       type      = "host"
       read_only = false
-      source    = "sbws-stage"
+      source    = "sbws-live"
     }
 
     network {
       mode = "bridge"
 
       port "http-port" {
-        static = 9177
+        static = 9277
         to     = 80
         #        host_network = "wireguard"
       }
 
       port "control-port" {
-        static = 9151
+        static = 9251
         host_network = "wireguard"
       }
     }
 
-    task "sbws-relay-stage-task" {
+    task "sbws-relay-live-task" {
       driver = "docker"
 
       env {
@@ -49,13 +49,13 @@ job "sbws-stage" {
       }
 
       volume_mount {
-        volume      = "sbws-stage"
+        volume      = "sbws-live"
         destination = "/var/lib/anon"
         read_only   = false
       }
 
       config {
-        image      = "svforte/anon-stage"
+        image      = "svforte/anon-live"
         force_pull = true
         volumes    = [
           "local/anonrc:/etc/anon/anonrc"
@@ -93,24 +93,24 @@ LearnCircuitBuildTimeout 0
       }
 
       service {
-        name     = "sbws-relay-stage"
+        name     = "sbws-relay-live"
         provider = "nomad"
         tags     = ["sbws"]
         port     = "control-port"
       }
     }
 
-    task "sbws-scanner-stage-task" {
+    task "sbws-scanner-live-task" {
       driver = "docker"
 
       volume_mount {
-        volume      = "sbws-stage"
+        volume      = "sbws-live"
         destination = "/root/.sbws"
         read_only   = false
       }
 
       config {
-        image   = "svforte/sbws-scanner:latest-stage"
+        image   = "svforte/sbws-scanner"
         force_pull = true
         volumes = [
           "local/.sbws.ini:/root/.sbws.ini:ro"
@@ -159,7 +159,7 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
 
     }
 
-    task "sbws-destination-stage-task" {
+    task "sbws-destination-live-task" {
       driver = "docker"
 
       config {
@@ -177,7 +177,7 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
       }
 
       service {
-        name     = "sbws-destination-stage"
+        name     = "sbws-destination-live"
         provider = "nomad"
         tags     = ["sbws"]
         port     = "http-port"
