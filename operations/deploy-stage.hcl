@@ -103,6 +103,10 @@ LearnCircuitBuildTimeout 0
     task "sbws-scanner-stage-task" {
       driver = "docker"
 
+      env {
+        INTERVAL_MINUTES = "60"
+      }
+
       volume_mount {
         volume      = "sbws-stage"
         destination = "/root/.sbws"
