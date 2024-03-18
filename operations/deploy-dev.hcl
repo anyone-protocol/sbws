@@ -63,8 +63,8 @@ job "sbws-dev" {
       }
 
       resources {
-        cpu    = 256
-        memory = 256
+        cpu    = 64
+        memory = 64
       }
 
       template {
@@ -123,7 +123,7 @@ LearnCircuitBuildTimeout 0
 
       resources {
         cpu    = 256
-        memory = 1024
+        memory = 256
       }
 
       template {
@@ -183,7 +183,7 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
 
       resources {
         cpu    = 256
-        memory = 256
+        memory = 1024
       }
 
       service {
