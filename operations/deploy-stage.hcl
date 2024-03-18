@@ -104,7 +104,7 @@ LearnCircuitBuildTimeout 0
       driver = "docker"
 
       env {
-        INTERVAL_MINUTES = "60"
+        INTERVAL_MINUTES = "5"
       }
 
       volume_mount {
@@ -114,7 +114,7 @@ LearnCircuitBuildTimeout 0
       }
 
       config {
-        image   = "svforte/sbws-scanner:latest-stage"
+        image   = "svforte/sbws-scanner"
         force_pull = true
         volumes = [
           "local/.sbws.ini:/root/.sbws.ini:ro"
@@ -165,6 +165,12 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
 
     task "sbws-destination-stage-task" {
       driver = "docker"
+
+      volume_mount {
+        volume      = "sbws-stage"
+        destination = "/app/destination/data"
+        read_only   = false
+      }
 
       config {
         image   = "svforte/sbws-destination"

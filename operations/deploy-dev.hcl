@@ -166,6 +166,12 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
     task "sbws-destination-dev-task" {
       driver = "docker"
 
+      volume_mount {
+        volume      = "sbws-dev"
+        destination = "/app/destination/data"
+        read_only   = false
+      }
+
       config {
         image   = "svforte/sbws-destination:latest-dev"
         force_pull = true

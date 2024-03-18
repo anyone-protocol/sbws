@@ -55,7 +55,7 @@ job "sbws-live" {
       }
 
       config {
-        image      = "svforte/anon-live"
+        image      = "svforte/anon:v0.4.9.0"
         force_pull = true
         volumes    = [
           "local/anonrc:/etc/anon/anonrc"
@@ -165,6 +165,12 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
 
     task "sbws-destination-live-task" {
       driver = "docker"
+
+      volume_mount {
+        volume      = "sbws-live"
+        destination = "/app/destination/data"
+        read_only   = false
+      }
 
       config {
         image   = "svforte/sbws-destination"
