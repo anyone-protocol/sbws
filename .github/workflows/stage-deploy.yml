@@ -1,4 +1,4 @@
-name: Build and Deploy
+name: STAGE - Build and Deploy
 
 on:
   push:
@@ -18,7 +18,7 @@ jobs:
         with:
           docker-username: ${{ secrets.DOCKER_HUB_USERNAME }}
           docker-password: ${{ secrets.DOCKER_HUB_PASSWORD }}
-          docker-tag: latest-stage
+          docker-tag: latest
       - name: Deploy
         uses: ./.github/actions/deploy
         with:
