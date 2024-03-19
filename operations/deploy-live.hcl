@@ -39,6 +39,10 @@ job "sbws-live" {
         static = 9251
         host_network = "wireguard"
       }
+
+      port "orport" {
+        static = 9291
+      }
     }
 
     task "sbws-relay-live-task" {
@@ -88,6 +92,8 @@ UseMicrodescriptors 0
 FetchDirInfoExtraEarly 1
 FetchUselessDescriptors 1
 LearnCircuitBuildTimeout 0
+
+ORPort 9291
         EOH
         destination = "local/anonrc"
       }
@@ -104,7 +110,7 @@ LearnCircuitBuildTimeout 0
       driver = "docker"
 
       env {
-        INTERVAL_MINUTES = "60"
+        INTERVAL_MINUTES = "5"
       }
 
       volume_mount {

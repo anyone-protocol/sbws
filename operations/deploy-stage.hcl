@@ -39,6 +39,10 @@ job "sbws-stage" {
         static = 9151
         host_network = "wireguard"
       }
+
+      port "orport" {
+        static = 9191
+      }
     }
 
     task "sbws-relay-stage-task" {
@@ -88,6 +92,8 @@ UseMicrodescriptors 0
 FetchDirInfoExtraEarly 1
 FetchUselessDescriptors 1
 LearnCircuitBuildTimeout 0
+
+ORPort 9191
         EOH
         destination = "local/anonrc"
       }
