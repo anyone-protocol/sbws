@@ -128,7 +128,7 @@ ORPort 9191
       }
 
       resources {
-        cpu    = 512
+        cpu    = 256
         memory = 128
       }
 
