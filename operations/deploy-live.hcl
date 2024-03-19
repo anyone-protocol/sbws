@@ -93,7 +93,7 @@ FetchDirInfoExtraEarly 1
 FetchUselessDescriptors 1
 LearnCircuitBuildTimeout 0
 
-ORPort 9291
+ORPort {{ env `NOMAD_PORT_orport` }}
         EOH
         destination = "local/anonrc"
       }
@@ -216,6 +216,8 @@ server {
   root /app/destination/data/index;
 
   autoindex on;
+
+  index index.html;
 
   listen 0.0.0.0:80;
 
