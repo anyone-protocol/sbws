@@ -67,8 +67,8 @@ job "sbws-live" {
       }
 
       resources {
-        cpu    = 256
-        memory = 256
+        cpu    = 64
+        memory = 64
       }
 
       template {
@@ -128,8 +128,8 @@ ORPort 9291
       }
 
       resources {
-        cpu    = 256
-        memory = 1024
+        cpu    = 512
+        memory = 128
       }
 
       template {
@@ -189,7 +189,7 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
 
       resources {
         cpu    = 256
-        memory = 256
+        memory = 1024
       }
 
       service {

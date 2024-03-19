@@ -128,8 +128,8 @@ ORPort 9091
       }
 
       resources {
-        cpu    = 256
-        memory = 256
+        cpu    = 512
+        memory = 128
       }
 
       template {
