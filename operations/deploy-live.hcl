@@ -213,7 +213,7 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
         change_mode = "noop"
         data        = <<EOH
 server {
-  root /app/destination/data;
+  root /app/destination/data/index;
 
   autoindex on;
 
