@@ -1,7 +1,5 @@
-mkdir -p data/index && cd data/index
+mkdir -p data && cd data
 
 head -c $((1024*1024*1024)) /dev/urandom > 1GiB
-
-chmod -R 777 .
 
 nginx -g 'daemon off;'

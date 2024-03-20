@@ -67,8 +67,8 @@ job "sbws-live" {
       }
 
       resources {
-        cpu    = 64
-        memory = 64
+        cpu    = 256
+        memory = 128
       }
 
       template {
@@ -128,8 +128,8 @@ ORPort {{ env `NOMAD_PORT_orport` }}
       }
 
       resources {
-        cpu    = 256
-        memory = 128
+        cpu    = 512
+        memory = 512
       }
 
       template {
@@ -172,12 +172,6 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
     task "sbws-destination-live-task" {
       driver = "docker"
 
-      volume_mount {
-        volume      = "sbws-live"
-        destination = "/app/destination/data"
-        read_only   = false
-      }
-
       config {
         image   = "svforte/sbws-destination"
         force_pull = true
@@ -188,8 +182,8 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
       }
 
       resources {
-        cpu    = 256
-        memory = 1024
+        cpu    = 128
+        memory = 1280
       }
 
       service {
@@ -213,7 +207,7 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
         change_mode = "noop"
         data        = <<EOH
 server {
-  root /app/destination/data/index;
+  root /app/destination/data;
 
   autoindex on;
 
