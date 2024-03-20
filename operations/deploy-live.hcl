@@ -110,7 +110,7 @@ ORPort {{ env `NOMAD_PORT_orport` }}
       driver = "docker"
 
       env {
-        INTERVAL_MINUTES = "5"
+        INTERVAL_MINUTES = "30"
       }
 
       volume_mount {
