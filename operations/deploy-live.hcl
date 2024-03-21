@@ -110,7 +110,7 @@ ORPort {{ env `NOMAD_PORT_orport` }}
       driver = "docker"
 
       env {
-        INTERVAL_MINUTES = "5"
+        INTERVAL_MINUTES = "60"
       }
 
       volume_mount {
@@ -120,7 +120,7 @@ ORPort {{ env `NOMAD_PORT_orport` }}
       }
 
       config {
-        image   = "svforte/sbws-scanner"
+        image   = "svforte/sbws-scanner:latest"
         force_pull = true
         volumes = [
           "local/.sbws.ini:/root/.sbws.ini:ro"
@@ -173,7 +173,7 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
       driver = "docker"
 
       config {
-        image   = "svforte/sbws-destination"
+        image   = "svforte/sbws-destination:latest"
         force_pull = true
         volumes = [
           "local/nginx-sbws:/etc/nginx/conf.d/default.conf:ro"
