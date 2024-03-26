@@ -1,9 +1,9 @@
-job "sbws-dev" {
+job "sbws-live" {
   datacenters = ["ator-fin"]
   type        = "service"
   namespace   = "ator-network"
 
-  group "sbws-dev-group" {
+  group "sbws-live-group" {
     count = 3
 
     spread {
@@ -20,32 +20,32 @@ job "sbws-dev" {
       }
     }
 
-    volume "sbws-dev" {
+    volume "sbws-live" {
       type      = "host"
       read_only = false
-      source    = "sbws-dev"
+      source    = "sbws-live"
     }
 
     network {
       mode = "bridge"
 
       port "http-port" {
-        static = 9077
+        static = 9277
         to     = 80
         #        host_network = "wireguard"
       }
 
       port "control-port" {
-        static = 9051
+        static = 9251
         host_network = "wireguard"
       }
 
       port "orport" {
-        static = 9091
+        static = 9291
       }
     }
 
-    task "sbws-relay-dev-task" {
+    task "sbws-relay-live-task" {
       driver = "docker"
 
       env {
@@ -53,13 +53,13 @@ job "sbws-dev" {
       }
 
       volume_mount {
-        volume      = "sbws-dev"
+        volume      = "sbws-live"
         destination = "/var/lib/anon"
         read_only   = false
       }
 
       config {
-        image      = "svforte/anon-dev"
+        image      = "svforte/anon:v0.4.9.0"
         force_pull = true
         volumes    = [
           "local/anonrc:/etc/anon/anonrc"
@@ -99,28 +99,28 @@ ORPort {{ env `NOMAD_PORT_orport` }}
       }
 
       service {
-        name     = "sbws-relay-dev"
+        name     = "sbws-relay-live"
         provider = "nomad"
         tags     = ["sbws"]
         port     = "control-port"
       }
     }
 
-    task "sbws-scanner-dev-task" {
+    task "sbws-scanner-live-task" {
       driver = "docker"
 
       env {
-        INTERVAL_MINUTES = "5"
+        INTERVAL_MINUTES = "60"
       }
 
       volume_mount {
-        volume      = "sbws-dev"
+        volume      = "sbws-live"
         destination = "/root/.sbws"
         read_only   = false
       }
 
       config {
-        image   = "svforte/sbws-scanner:latest-dev"
+        image   = "svforte/sbws-scanner:latest"
         force_pull = true
         volumes = [
           "local/.sbws.ini:/root/.sbws.ini:ro"
@@ -169,11 +169,11 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
 
     }
 
-    task "sbws-destination-dev-task" {
+    task "sbws-destination-live-task" {
       driver = "docker"
 
       config {
-        image   = "svforte/sbws-destination:latest-dev"
+        image   = "svforte/sbws-destination:latest"
         force_pull = true
         volumes = [
           "local/nginx-sbws:/etc/nginx/conf.d/default.conf:ro"
@@ -187,7 +187,7 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
       }
 
       service {
-        name     = "sbws-destination-dev"
+        name     = "sbws-destination-live"
         provider = "nomad"
         tags     = ["sbws"]
         port     = "http-port"

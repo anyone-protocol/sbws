@@ -1,9 +1,9 @@
-name: Build and Push Docker Image
+name: DEV - Build and Deploy
 
 on:
   push:
     branches:
-      - main
+      - development
   workflow_dispatch:
 
 jobs:
@@ -18,11 +18,11 @@ jobs:
         with:
           docker-username: ${{ secrets.DOCKER_HUB_USERNAME }}
           docker-password: ${{ secrets.DOCKER_HUB_PASSWORD }}
-          docker-tag: latest
+          docker-tag: latest-dev
       - name: Deploy
         uses: ./.github/actions/deploy
         with:
-          environment: stage
+          environment: dev
           nomad-cacert: operations/admin-ui-ca.crt
           nomad-token: ${{ secrets.NOMAD_TOKEN_SBWS_DEPLOY }}
           nomad-addr: ${{ secrets.NOMAD_DEPLOY_ADDR }}
