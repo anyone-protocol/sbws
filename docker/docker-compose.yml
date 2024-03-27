@@ -19,6 +19,8 @@ services:
     volumes:
       - ./scanner/.sbws.ini:/root/.sbws.ini
       - ./data:/root/.sbws
+    environment:
+      INTERVAL_MINUTES: 5
     networks:
       local:
         ipv4_address: 172.18.0.3

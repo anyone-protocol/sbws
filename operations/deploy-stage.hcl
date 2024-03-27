@@ -39,6 +39,10 @@ job "sbws-stage" {
         static = 9151
         host_network = "wireguard"
       }
+
+      port "orport" {
+        static = 9191
+      }
     }
 
     task "sbws-relay-stage-task" {
@@ -64,7 +68,7 @@ job "sbws-stage" {
 
       resources {
         cpu    = 256
-        memory = 256
+        memory = 128
       }
 
       template {
@@ -88,6 +92,8 @@ UseMicrodescriptors 0
 FetchDirInfoExtraEarly 1
 FetchUselessDescriptors 1
 LearnCircuitBuildTimeout 0
+
+ORPort {{ env `NOMAD_PORT_orport` }}
         EOH
         destination = "local/anonrc"
       }
@@ -103,6 +109,10 @@ LearnCircuitBuildTimeout 0
     task "sbws-scanner-stage-task" {
       driver = "docker"
 
+      env {
+        INTERVAL_MINUTES = "60"
+      }
+
       volume_mount {
         volume      = "sbws-stage"
         destination = "/root/.sbws"
@@ -110,7 +120,7 @@ LearnCircuitBuildTimeout 0
       }
 
       config {
-        image   = "svforte/sbws-scanner"
+        image   = "svforte/sbws-scanner:latest-stage"
         force_pull = true
         volumes = [
           "local/.sbws.ini:/root/.sbws.ini:ro"
@@ -118,8 +128,8 @@ LearnCircuitBuildTimeout 0
       }
 
       resources {
-        cpu    = 256
-        memory = 1024
+        cpu    = 512
+        memory = 512
       }
 
       template {
@@ -163,7 +173,7 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
       driver = "docker"
 
       config {
-        image   = "svforte/sbws-destination"
+        image   = "svforte/sbws-destination:latest-stage"
         force_pull = true
         volumes = [
           "local/nginx-sbws:/etc/nginx/conf.d/default.conf:ro"
@@ -172,8 +182,8 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
       }
 
       resources {
-        cpu    = 256
-        memory = 256
+        cpu    = 128
+        memory = 1280
       }
 
       service {
@@ -200,6 +210,8 @@ server {
   root /app/destination/data;
 
   autoindex on;
+
+  index index.html;
 
   listen 0.0.0.0:80;
 
