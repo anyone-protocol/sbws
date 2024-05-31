@@ -556,8 +556,10 @@ def measure_relay(args, conf, destinations, cb, rl, relay):
     """
     log.debug("Measuring %s %s", relay.nickname, relay.fingerprint)
     our_nick = conf["scanner"]["nickname"]
+    timeout = conf.getfloat("general", "http_timeout")
+    log.error("Timeout is set to %s", timeout)
     s = requests_utils.make_session(
-        cb.controller, conf.getfloat("general", "http_timeout")
+        cb.controller, timeout
     )
     # Probably because the scanner is stopping.
     if s is None:
