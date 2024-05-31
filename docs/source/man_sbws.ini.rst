@@ -174,9 +174,9 @@ logging
   to_file_level = {debug, info, warning, error, critical}
     Level to log at when using files. (Default: debug)
   to_stdout_level = {debug, info, warning, error, critical}
-    Level to log at when using stdout. (Default: info)
+    Level to log at when using stdout. (Default: debug)
   to_syslog_level = {debug, info, warning, error, critical}
-    Level to log at when using syslog. (Default: info)
+    Level to log at when using syslog. (Default: debug)
   format = STR
     Format string to use when logging.
     (Default: %(asctime)s %(module)s[%(process)s]: <%(levelname)s> %(message)s)
