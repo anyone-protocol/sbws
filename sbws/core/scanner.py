@@ -115,7 +115,7 @@ def timed_recv_from_server(session, dest, byte_range):
     # does not catch all the ssl exceptions and urllib3 doesn't seem to have
     # a base exception class.
     except Exception as e:
-        log.debug(e)
+        log.error(e)
         return False, e
     end_time = time.monotonic()
     return True, end_time - start_time
@@ -161,7 +161,7 @@ def measure_rtt_to_server(session, conf, dest, content_length):
         success, data = timed_recv_from_server(session, dest, random_range)
         if not success:
             # data is an exception
-            log.debug(
+            log.warning(
                 "While measuring the RTT to %s we hit an exception "
                 "(does the webserver support Range requests?): %s",
                 dest.url,
@@ -195,7 +195,7 @@ def measure_bandwidth_to_server(session, conf, dest, content_length):
         success, data = timed_recv_from_server(session, dest, random_range)
         if not success:
             # data is an exception
-            log.debug(
+            log.warning(
                 "While measuring the bandwidth to %s we hit an "
                 "exception (does the webserver support Range "
                 "requests?): %s",
@@ -272,11 +272,11 @@ def upload_data(session, conf, dest, cont, circ_id):
         msg = "Could not connect to {} over circ {} {}: {}".format(
             dest.url, circ_id, stem_utils.circuit_str(cont, circ_id), e
         )
-        log.debug("%s: %s", msg, e)
+        log.error("%s: %s", msg, e)
         return None, msg
     except Exception as e:
         dest.add_failure()
-        log.debug(e)
+        log.error(e)
         return None, e
     finally:
         log.debug("Finished uploading data.")
@@ -287,7 +287,7 @@ def upload_data(session, conf, dest, cont, circ_id):
             "When sending HTTP POST to {}, we expected HTTP code {} "
             "not {}".format(dest.url, requests.codes.ok, response.status_code)
         )
-        log.debug(msg)
+        log.error(msg)
         return None, msg
 
     dest.add_success()
@@ -368,7 +368,7 @@ def _pick_ideal_second_hop(relay, rl, relay_as_entry, candidates):
 
 def error_no_helper(relay, dest, our_nick=""):
     reason = "Unable to select a second relay"
-    log.debug(
+    log.error(
         reason + " to help measure %s (%s)", relay.fingerprint, relay.nickname
     )
     return [
@@ -401,7 +401,7 @@ def create_path_relay(relay, dest, rl, relay_as_entry, candidates):
 
 
 def error_no_circuit(circ_fps, nicknames, reason, relay, dest, our_nick):
-    log.debug(
+    log.error(
         "Could not build circuit with path %s (%s): %s ",
         circ_fps,
         nicknames,
@@ -694,7 +694,7 @@ def measure_relay(args, conf, destinations, cb, rl, relay):
                 dest, circ_id, s, cb.controller, dest._max_dl
             )
         if not is_usable:
-            log.debug(
+            log.error(
                 "Failed to connect to %s to measure %s (%s) via circuit "
                 "%s (%s). Exit policy: %s. Reason: %s.",
                 dest.url,
@@ -716,7 +716,7 @@ def measure_relay(args, conf, destinations, cb, rl, relay):
             s, conf, dest, usable_data["content_length"]
         )
         if rtts is None:
-            log.debug(
+            log.warning(
                 "Unable to measure RTT for %s (%s) to %s via circuit "
                 "%s (%s): %s",
                 relay.fingerprint,
@@ -790,7 +790,7 @@ def dispatch_worker_thread(*a, **kw):
     # In case the arguments or the method change, catch the possible exceptions
     # but ignore here that there are not destinations.
     except (IndexError, TypeError):
-        log.debug("Wrong argument or attribute.")
+        log.error("Wrong argument or attribute.")
         functional_destinations = True
     if not functional_destinations or settings.end_event.is_set():
         return None

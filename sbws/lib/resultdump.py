@@ -891,7 +891,7 @@ class ResultDump:
         fp = result.fingerprint
         nick = result.nickname
         if isinstance(result, ResultError) and settings.end_event.is_set():
-            log.debug(
+            log.error(
                 "Ignoring %s for %s %s because we are shutting down",
                 type(result).__name__,
                 nick,

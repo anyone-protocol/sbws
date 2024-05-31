@@ -1499,7 +1499,7 @@ class V3BWFile(object):
         try:
             num = len(list(parse_file(consensus_path)))
         except (FileNotFoundError, AttributeError):
-            log.info(
+            log.warning(
                 "It is not possible to obtain statistics about the "
                 "percentage of measured relays because the cached "
                 "consensus file is not found."
