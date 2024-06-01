@@ -156,7 +156,7 @@ def measure_rtt_to_server(session, conf, dest, content_length):
     rtts = []
     size = conf.getint("scanner", "min_download_size")
     for _ in range(0, conf.getint("scanner", "num_rtts")):
-        log.debug("Measuring RTT to %s", dest.url)
+        log.info("Measuring RTT to %s", dest.url)
         random_range = get_random_range_string(content_length, size)
         success, data = timed_recv_from_server(session, dest, random_range)
         if not success:
@@ -556,10 +556,8 @@ def measure_relay(args, conf, destinations, cb, rl, relay):
     """
     log.debug("Measuring %s %s", relay.nickname, relay.fingerprint)
     our_nick = conf["scanner"]["nickname"]
-    timeout = conf.getfloat("general", "http_timeout")
-    log.error("Timeout is set to %s", timeout)
     s = requests_utils.make_session(
-        cb.controller, timeout
+        cb.controller, conf.getfloat("general", "http_timeout")
     )
     # Probably because the scanner is stopping.
     if s is None:
