@@ -809,15 +809,15 @@ def _should_keep_result(did_request_maximum, result_time, download_times):
         and result_time >= download_times["min"]
         and result_time < download_times["max"]
     ):
-        log.debug(msg)
+        log.info(msg)
         return True
     # If we did request the maximum amount, we should keep the result as long
     # as it took less than the maximum amount of time
     if did_request_maximum and result_time < download_times["max"]:
-        log.debug(msg)
+        log.info(msg)
         return True
     # In all other cases, return false
-    log.debug(
+    log.info(
         "Not keeping result time %f.%s",
         result_time,
         ""
