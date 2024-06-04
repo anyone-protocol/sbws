@@ -648,7 +648,7 @@ def measure_relay(args, conf, destinations, cb, rl, relay):
         # would always fail when there's only one Web server.
 
         if not is_usable and not relay_as_entry:
-            log.debug(
+            log.warning(
                 "Exit %s (%s) that can't exit all ips, with exit policy %s, "
                 "failed to connect to %s via circuit %s (%s). Reason: %s. "
                 "Trying again with it as entry.",
@@ -671,7 +671,7 @@ def measure_relay(args, conf, destinations, cb, rl, relay):
             circ_fps, nicknames, exit_policy = r
             circ_id, reason = cb.build_circuit(circ_fps)
             if not circ_id:
-                log.info(
+                log.warning(
                     "Exit %s (%s) that can't exit all ips, failed to create "
                     " circuit as entry: %s (%s).",
                     relay.fingerprint,
@@ -747,7 +747,7 @@ def measure_relay(args, conf, destinations, cb, rl, relay):
     relay_update_xoff(relay, circ_id)
 
     if bw_results is None:
-        log.debug(
+        log.error(
             "Failed to measure %s (%s) via circuit %s (%s) to %s. Exit"
             " policy: %s. Reason: %s.",
             relay.fingerprint,
