@@ -128,8 +128,8 @@ ORPort {{ env `NOMAD_PORT_orport` }}
       }
 
       resources {
-        cpu    = 512
-        memory = 512
+        cpu    = 1000
+        memory = 1000
       }
 
       template {
@@ -183,7 +183,7 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
 
       resources {
         cpu    = 128
-        memory = 1280
+        memory = 1500
       }
 
       service {
@@ -208,10 +208,6 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
         data        = <<EOH
 server {
   root /app/destination/data;
-
-  proxy_force_ranges on;
-
-  keepalive_timeout 300s;
 
   autoindex on;
 

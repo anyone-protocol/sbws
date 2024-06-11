@@ -209,10 +209,6 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
 server {
   root /app/destination/data;
 
-  proxy_force_ranges on;
-
-  keepalive_timeout 300s;
-
   autoindex on;
 
   index index.html;
