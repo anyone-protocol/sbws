@@ -51,7 +51,7 @@ class CircuitBuilder:
             self.controller.close_circuit(circ_id)
         # SocketClosed will be raised when stopping sbws
         except (InvalidArguments, InvalidRequest, SocketClosed) as e:
-            log.debug(e)
+            log.error(e)
         self.built_circuits.discard(circ_id)
 
     def _build_circuit_impl(self, path):

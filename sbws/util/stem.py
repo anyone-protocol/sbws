@@ -101,7 +101,7 @@ def attach_stream_to_circuit_listener(controller, circ_id, bwscanner_cc):
                 InvalidRequest,
                 OperationFailed,
             ) as e:
-                log.debug(
+                log.error(
                     "Error attaching stream %s to circ %s: %s",
                     st.id,
                     circ_id,
@@ -129,7 +129,7 @@ def remove_event_listener(controller, func):
         controller.remove_event_listener(func)
     except SocketClosed as e:
         if not settings.end_event.is_set():
-            log.debug(e)
+            log.error(e)
         else:
             log.exception(e)
     except ProtocolError as e:
@@ -181,7 +181,7 @@ def _init_controller_socket(socket):
         # todo - extract password to config
         c.authenticate(password="password")
     except (IncorrectSocketType, SocketError):
-        log.debug("Error initting controller socket: socket error.")
+        log.error("Error initting controller socket: socket error.")
         return None
     except Exception as e:
         log.exception("Error initting controller socket: %s", e)
@@ -272,7 +272,7 @@ def set_torrc_options_can_fail(controller):
         try:
             controller.set_conf(k, v)
         except (InvalidArguments, InvalidRequest) as error:
-            log.debug(
+            log.error(
                 "Ignoring option not supported by this Tor version. %s", error
             )
         except ControllerError as e:
@@ -347,11 +347,11 @@ def get_socks_info(controller):
         return socks_ports[0]
     except SocketClosed as e:
         if not settings.end_event.is_set():
-            log.debug(e)
+            log.error(e)
     # This might need to return the exception if this happen in other cases
     # than when stopping the scanner.
     except ControllerError as e:
-        log.debug(e)
+        log.error(e)
 
 
 def only_relays_with_bandwidth(relays, min_bw=None, max_bw=None):
@@ -385,7 +385,7 @@ def circuit_str(controller, circ_id):
         return None
     # exceptions raised when stopping the scanner
     except (ControllerError, SocketClosed, socks.GeneralProxyError) as e:
-        log.debug(e)
+        log.error(e)
         return None
     return (
         "["
