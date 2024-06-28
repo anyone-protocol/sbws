@@ -101,7 +101,7 @@ ORPort {{ env `NOMAD_PORT_orport` }}
       service {
         name     = "sbws-relay-stage"
         provider = "nomad"
-        tags     = ["sbws"]
+        tags     = ["sbws", "logging"]
         port     = "control-port"
       }
     }
@@ -125,6 +125,12 @@ ORPort {{ env `NOMAD_PORT_orport` }}
         volumes = [
           "local/.sbws.ini:/root/.sbws.ini:ro"
         ]
+      }
+
+      service {
+        name     = "sbws-scanner-stage-task"
+        provider = "nomad"
+        tags     = ["logging"]
       }
 
       resources {
@@ -189,7 +195,7 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
       service {
         name     = "sbws-destination-stage"
         provider = "nomad"
-        tags     = ["sbws"]
+        tags     = ["sbws", "logging"]
         port     = "http-port"
         check {
           name     = "sbws destination nginx http server alive"
