@@ -79,8 +79,8 @@ job "sbws-live" {
       }
 
       resources {
-        cpu    = 256
-        memory = 128
+        cpu    = 512
+        memory = 1024
       }
 
       template {
