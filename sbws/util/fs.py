@@ -33,12 +33,14 @@ def check_create_file(path: str, v3bw: bool = False) -> (None, str):
         if not oct(os.stat(path).st_mode)[-3:] == "644":
             try:
                 os.chmod(path, 0o644)
+                log.critical("4")
             except PermissionError as e:
                 log.critical("Can not change permissions of %s: %s", path, e)
                 return None
     elif not oct(os.stat(path).st_mode)[-3:] == "600":
         try:
             os.chmod(path, 0o600)
+            log.critical("3")
         except PermissionError as e:
             log.critical("Can not change permissions of %s: %s", path, e)
             return None
@@ -72,12 +74,14 @@ def check_create_dir(path: str, v3bw: bool = False) -> (None, str):
                 # but other users other than the one running this must be able
                 # to read the files to publish them.
                 os.chmod(path, 0o755)  # nosec
+                log.error("2")
             except PermissionError as e:
                 log.critical("Can not change permissions of %s: %s", path, e)
                 return None
     elif not oct(os.stat(path).st_mode)[-3:] == "700":
         try:
             os.chmod(path, 0o700)
+            log.error("1")
         except PermissionError as e:
             log.critical("Can not change permissions of %s: %s", path, e)
             return None
