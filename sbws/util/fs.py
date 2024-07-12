@@ -32,17 +32,13 @@ def check_create_file(path: str, v3bw: bool = False) -> (None, str):
     if v3bw:
         if not oct(os.stat(path).st_mode)[-3:] == "644":
             try:
-                log.critical("644")
                 os.chmod(path, 0o644)
-                log.critical("4")
             except PermissionError as e:
                 log.critical("Can not change permissions of %s: %s", path, e)
                 return None
     elif not oct(os.stat(path).st_mode)[-3:] == "600":
         try:
-            log.critical("600")
             os.chmod(path, 0o600)
-            log.critical("3")
         except PermissionError as e:
             log.critical("Can not change permissions of %s: %s", path, e)
             return None
@@ -58,7 +54,6 @@ def check_create_dir(path: str, v3bw: bool = False) -> (None, str):
         return None
     if not os.stat(path).st_uid == process_uid:
         try:
-            log.critical("chown")
             os.chown(path, process_uid, os.getgid())
         except PermissionError as e:
             log.critical("Can not change owner of %s: %s", path, e)
@@ -76,14 +71,12 @@ def check_create_dir(path: str, v3bw: bool = False) -> (None, str):
                 # bandit report Severity: Medium, CWE: CWE-732 on this line,
                 # but other users other than the one running this must be able
                 # to read the files to publish them.
-                log.critical("755")
                 os.chmod(path, 0o755)  # nosec
             except PermissionError as e:
                 log.critical("Can not change permissions of %s: %s", path, e)
                 return None
     elif not oct(os.stat(path).st_mode)[-3:] == "700":
         try:
-            log.critical("700")
             os.chmod(path, 0o700)
         except PermissionError as e:
             log.critical("Can not change permissions of %s: %s", path, e)

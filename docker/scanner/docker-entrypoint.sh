@@ -7,6 +7,6 @@ crontab -l | { cat; echo "35  0 * * * /usr/local/bin/sbws -c /root/.sbws.ini cle
 
 service cron start
 
-chmod -R 755 /root/.sbws/v3bw
+chmod -R 644 /root/.sbws/v3bw
 
 sbws scanner
