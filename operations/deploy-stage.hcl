@@ -68,7 +68,7 @@ job "sbws-stage" {
 
       resources {
         cpu    = 256
-        memory = 128
+        memory = 512
       }
 
       template {

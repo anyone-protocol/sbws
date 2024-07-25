@@ -1504,7 +1504,7 @@ class V3BWFile(object):
                 "percentage of measured relays because the cached "
                 "consensus file is not found."
             )
-        log.debug("Number of relays in the network %s", num)
+        log.info("Number of relays in the network %s", num)
         return num
 
     @staticmethod
