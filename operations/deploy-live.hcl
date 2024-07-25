@@ -100,7 +100,6 @@ ORPort {{ env `NOMAD_PORT_orport` }}
 
       service {
         name     = "sbws-relay-live"
-        provider = "nomad"
         tags     = ["sbws", "logging"]
         port     = "control-port"
       }
@@ -129,7 +128,6 @@ ORPort {{ env `NOMAD_PORT_orport` }}
 
       service {
         name     = "sbws-scanner-live-task"
-        provider = "nomad"
         tags     = ["logging"]
       }
 
@@ -194,7 +192,6 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
 
       service {
         name     = "sbws-destination-live"
-        provider = "nomad"
         tags     = ["sbws", "logging"]
         port     = "http-port"
         check {
