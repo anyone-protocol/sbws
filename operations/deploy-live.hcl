@@ -49,6 +49,12 @@ job "sbws-live" {
       source    = "sbws-live"
     }
 
+    volume "sbws-destination-live" {
+      type      = "host"
+      read_only = true
+      source    = "sbws-destination-live"
+    }
+
     network {
       mode = "bridge"
 
@@ -200,8 +206,11 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
       driver = "docker"
 
       config {
-        image   = "svforte/sbws-destination:latest"
-        force_pull = true
+        image   = "nginx:1.27"
+        command = "nginx"
+        args = [
+          "-g", "'daemon off;'"
+        ]
         volumes = [
           "local/nginx-sbws:/etc/nginx/conf.d/default.conf:ro"
         ]
@@ -213,18 +222,25 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
         memory = 1500
       }
 
+      volume_mount {
+        volume      = "sbws-destination-live"
+        destination = "/data"
+        read_only   = false
+      }
+
       service {
         name     = "sbws-destination-live"
         tags     = ["sbws", "logging"]
         port     = "http-port"
         check {
-          name     = "sbws destination nginx http server alive"
-          type     = "tcp"
+          name     = "sbws live destination nginx alive"
+          type     = "http"
+          path     = "/"
           interval = "10s"
           timeout  = "10s"
           check_restart {
-            limit = 10
-            grace = "30s"
+            limit = 3
+            grace = "10s"
           }
         }
       }
@@ -232,22 +248,71 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
       template {
         change_mode = "noop"
         data        = <<EOH
-server {
-  root /app/destination/data;
+user  www www;
+worker_processes  2;
+pid /var/run/nginx.pid;
+error_log  /var/log/nginx.error_log  info;
 
-  autoindex on;
+events {
+    worker_connections   2000;
 
-  index index.html;
+    # use [ kqueue | epoll | /dev/poll | select | poll ];
+    use kqueue;
+}
 
-  listen 0.0.0.0:80;
+http {
+    default_type  application/octet-stream;
 
-  location / {
-    try_files $uri $uri/ =404;
-  }
+    log_format main      '$remote_addr - $remote_user [$time_local] '
+                         '"$request" $status $bytes_sent '
+                         '"$http_referer" "$http_user_agent" '
+                         '"$gzip_ratio"';
 
-  location ~/\.ht {
-    deny all;
-  }
+    log_format download  '$remote_addr - $remote_user [$time_local] '
+                         '"$request" $status $bytes_sent '
+                         '"$http_referer" "$http_user_agent" '
+                         '"$http_range" "$sent_http_content_range"';
+
+    client_header_timeout  3m;
+    client_body_timeout    3m;
+    send_timeout           3m;
+
+    client_header_buffer_size    1k;
+    large_client_header_buffers  4 4k;
+
+    gzip off;
+    # gzip_min_length  1100;
+    # gzip_buffers     4 8k;
+    # gzip_types       text/plain;
+
+    output_buffers   1 32k;
+    postpone_output  1460;
+
+    sendfile         on;
+    tcp_nopush       on;
+    tcp_nodelay      on;
+    send_lowat       12000;
+
+    keepalive_timeout  75 20;
+
+    #lingering_time     30;
+    #lingering_timeout  10;
+    #reset_timedout_connection  on;
+
+    server {
+      root /data;
+
+      autoindex on;
+      listen 0.0.0.0:80;
+
+      location / {
+        try_files $uri $uri/ =404;
+      }
+
+      location ~/\.ht {
+        deny all;
+      }
+    }
 }
         EOH
         destination = "local/nginx-sbws"
