@@ -157,7 +157,7 @@ ORPort {{ env `NOMAD_PORT_orport` }}
 
       resources {
         cpu    = 1000
-        memory = 1500
+        memory = 2500
       }
 
       template {
