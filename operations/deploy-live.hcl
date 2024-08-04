@@ -6,6 +6,18 @@ job "sbws-live" {
   group "sbws-live-group" {
     count = 7
 
+    update {
+      max_parallel      = 1
+      health_check      = "task_states"
+      min_healthy_time  = "1m"
+      healthy_deadline  = "10m"
+      progress_deadline = "15m"
+      auto_revert       = true
+      auto_promote      = false
+      canary            = 0
+      stagger           = "1h"
+    }
+
     spread {
       attribute = "${node.unique.id}"
       weight    = 100
