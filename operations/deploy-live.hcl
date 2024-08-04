@@ -9,13 +9,12 @@ job "sbws-live" {
     update {
       max_parallel      = 1
       health_check      = "task_states"
-      min_healthy_time  = "1m"
-      healthy_deadline  = "10m"
-      progress_deadline = "15m"
+      min_healthy_time  = "60m"
+      healthy_deadline  = "64m"
+      progress_deadline = "70m"
       auto_revert       = true
       auto_promote      = false
       canary            = 0
-      stagger           = "1h"
     }
 
     spread {
@@ -92,7 +91,7 @@ job "sbws-live" {
 
       resources {
         cpu    = 512
-        memory = 1024
+        memory = 2500
       }
 
       template {
