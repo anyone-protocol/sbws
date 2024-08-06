@@ -190,13 +190,13 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
 
       resources {
         cpu    = 128
-        memory = 1500
+        memory = 128
       }
 
       volume_mount {
         volume      = "sbws-destination-stage"
         destination = "/data"
-        read_only   = false
+        read_only   = true
       }
 
       service {
