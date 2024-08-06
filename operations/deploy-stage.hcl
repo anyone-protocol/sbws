@@ -87,9 +87,8 @@ DataDirectory /var/lib/anon/anon-data
 
 ControlPort {{ env `NOMAD_PORT_control_port` }}
 
-SOCKSPort {{ env `NOMAD_IP_socks_port` }}:{{ env `NOMAD_PORT_socks_port` }}
+SocksPort {{ env `NOMAD_PORT_socks_port` }}
 
-SocksPort auto
 SafeLogging 1
 UseEntryGuards 0
 ProtocolWarnings 1
