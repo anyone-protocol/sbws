@@ -37,8 +37,10 @@ job "sbws-stage" {
 
       port "http-port" {
         static = 9177
-        to     = 80
-        #        host_network = "wireguard"
+      }
+
+      port "orport" {
+        static = 19101
       }
 
       port "control-port" {
@@ -46,8 +48,9 @@ job "sbws-stage" {
         host_network = "wireguard"
       }
 
-      port "orport" {
-        static = 19101
+      port "socks-port" {
+        static = 19141
+        host_network = "wireguard"
       }
     }
 
@@ -69,8 +72,8 @@ job "sbws-stage" {
       }
 
       resources {
-        cpu    = 256
-        memory = 2500
+        cpu    = 4096
+        memory = 2560
       }
 
       template {
@@ -83,7 +86,8 @@ Nickname AnonSBWS
 DataDirectory /var/lib/anon/anon-data
 
 ControlPort {{ env `NOMAD_PORT_control_port` }}
-CookieAuthentication 1
+
+SOCKSPort {{ env `NOMAD_IP_socks_port` }}:{{ env `NOMAD_PORT_socks_port` }}
 
 SocksPort auto
 SafeLogging 1
@@ -135,8 +139,8 @@ ORPort {{ env `NOMAD_PORT_orport` }}
       }
 
       resources {
-        cpu    = 1000
-        memory = 2500
+        cpu    = 1024
+        memory = 2560
       }
 
       template {
@@ -223,7 +227,7 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
       root /data;
 
       autoindex on;
-      listen 0.0.0.0:80;
+      listen 0.0.0.0:{{ env `NOMAD_PORT_http_port` }};
 
       location / {
         try_files $uri $uri/ =404;
