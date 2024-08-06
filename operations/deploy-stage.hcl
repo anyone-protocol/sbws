@@ -53,21 +53,17 @@ job "sbws-stage" {
       }
 
       port "control-port" {
-        static = 9151
+        static = 19151
         host_network = "wireguard"
       }
 
       port "orport" {
-        static = 9191
+        static = 19101
       }
     }
 
     task "sbws-relay-stage-task" {
       driver = "docker"
-
-      env {
-        ANON_USER = "root"
-      }
 
       volume_mount {
         volume      = "sbws-stage"
@@ -91,13 +87,14 @@ job "sbws-stage" {
       template {
         change_mode = "noop"
         data        = <<EOH
-User root
+User anond
 
 Nickname AnonSBWS
 
 DataDirectory /var/lib/anon/anon-data
 
 ControlPort {{ env `NOMAD_PORT_control_port` }}
+CookieAuthentication 1
 
 SocksPort auto
 SafeLogging 1
@@ -117,7 +114,7 @@ ORPort {{ env `NOMAD_PORT_orport` }}
 
       service {
         name     = "sbws-relay-stage"
-        tags     = ["sbws", "logging"]
+        tags     = ["logging"]
         port     = "control-port"
       }
     }
