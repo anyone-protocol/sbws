@@ -207,10 +207,6 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
 
       config {
         image   = "nginx:1.27"
-        command = "nginx"
-        args = [
-          "-g", "'daemon off;'"
-        ]
         volumes = [
           "local/nginx-sbws:/etc/nginx/conf.d/default.conf:ro"
         ]
@@ -248,57 +244,6 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
       template {
         change_mode = "noop"
         data        = <<EOH
-user  www www;
-worker_processes  2;
-pid /var/run/nginx.pid;
-error_log  /var/log/nginx.error_log  info;
-
-events {
-    worker_connections   2000;
-
-    # use [ kqueue | epoll | /dev/poll | select | poll ];
-    use kqueue;
-}
-
-http {
-    default_type  application/octet-stream;
-
-    log_format main      '$remote_addr - $remote_user [$time_local] '
-                         '"$request" $status $bytes_sent '
-                         '"$http_referer" "$http_user_agent" '
-                         '"$gzip_ratio"';
-
-    log_format download  '$remote_addr - $remote_user [$time_local] '
-                         '"$request" $status $bytes_sent '
-                         '"$http_referer" "$http_user_agent" '
-                         '"$http_range" "$sent_http_content_range"';
-
-    client_header_timeout  3m;
-    client_body_timeout    3m;
-    send_timeout           3m;
-
-    client_header_buffer_size    1k;
-    large_client_header_buffers  4 4k;
-
-    gzip off;
-    # gzip_min_length  1100;
-    # gzip_buffers     4 8k;
-    # gzip_types       text/plain;
-
-    output_buffers   1 32k;
-    postpone_output  1460;
-
-    sendfile         on;
-    tcp_nopush       on;
-    tcp_nodelay      on;
-    send_lowat       12000;
-
-    keepalive_timeout  75 20;
-
-    #lingering_time     30;
-    #lingering_timeout  10;
-    #reset_timedout_connection  on;
-
     server {
       root /data;
 
@@ -313,7 +258,6 @@ http {
         deny all;
       }
     }
-}
         EOH
         destination = "local/nginx-sbws"
       }
