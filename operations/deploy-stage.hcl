@@ -6,17 +6,6 @@ job "sbws-stage" {
   group "sbws-stage-group" {
     count = 3
 
-    update {
-      max_parallel      = 1
-      health_check      = "task_states"
-      min_healthy_time  = "60m"
-      healthy_deadline  = "64m"
-      progress_deadline = "70m"
-      auto_revert       = true
-      auto_promote      = false
-      canary            = 0
-    }
-
     spread {
       attribute = "${node.unique.id}"
       weight    = 100
