@@ -72,7 +72,7 @@ job "sbws-stage" {
       }
 
       resources {
-        cpu    = 4096
+        cpu    = 2048
         memory = 2560
       }
 
@@ -84,6 +84,7 @@ User anond
 Nickname AnonSBWS
 
 DataDirectory /var/lib/anon/anon-data
+AgreeToTerms 1
 
 ControlPort {{ env `NOMAD_PORT_control_port` }}
 
