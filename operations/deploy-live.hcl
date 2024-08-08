@@ -59,11 +59,6 @@ job "sbws-live" {
         static = 9251
         host_network = "wireguard"
       }
-
-      port "socks-port" {
-        static = 9241
-        host_network = "wireguard"
-      }
     }
 
     task "sbws-relay-live-task" {
@@ -100,9 +95,10 @@ AgreeToTerms 1
 
 ControlPort {{ env `NOMAD_PORT_control_port` }}
 
-SocksPort {{ env `NOMAD_PORT_socks_port` }}
+SocksPort auto
 
-SafeLogging 1
+ConnectionPadding auto
+SafeLogging 0
 UseEntryGuards 0
 ProtocolWarnings 1
 FetchDirInfoEarly 1
