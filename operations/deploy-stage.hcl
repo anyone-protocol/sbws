@@ -194,7 +194,7 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
 
       resources {
         cpu    = 128
-        memory = 128
+        memory = 256
       }
 
       volume_mount {
@@ -205,7 +205,7 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
 
       service {
         name     = "sbws-destination-stage"
-        tags     = ["sbws", "logging"]
+        tags     = ["logging"]
         port     = "http-port"
         check {
           name     = "sbws stage destination nginx alive"

@@ -6,17 +6,6 @@ job "sbws-live" {
   group "sbws-live-group" {
     count = 7
 
-    update {
-      max_parallel      = 1
-      health_check      = "task_states"
-      min_healthy_time  = "60m"
-      healthy_deadline  = "64m"
-      progress_deadline = "70m"
-      auto_revert       = true
-      auto_promote      = false
-      canary            = 0
-    }
-
     spread {
       attribute = "${node.unique.id}"
       weight    = 100
@@ -60,8 +49,10 @@ job "sbws-live" {
 
       port "http-port" {
         static = 9277
-        to     = 80
-        #        host_network = "wireguard"
+      }
+
+      port "orport" {
+        static = 9291
       }
 
       port "control-port" {
@@ -69,17 +60,14 @@ job "sbws-live" {
         host_network = "wireguard"
       }
 
-      port "orport" {
-        static = 9291
+      port "socks-port" {
+        static = 9241
+        host_network = "wireguard"
       }
     }
 
     task "sbws-relay-live-task" {
       driver = "docker"
-
-      env {
-        ANON_USER = "root"
-      }
 
       volume_mount {
         volume      = "sbws-live"
@@ -96,22 +84,24 @@ job "sbws-live" {
       }
 
       resources {
-        cpu    = 512
+        cpu    = 2048
         memory = 2500
       }
 
       template {
         change_mode = "noop"
         data        = <<EOH
-User root
+User anond
 
 Nickname AnonSBWS
 
 DataDirectory /var/lib/anon/anon-data
+AgreeToTerms 1
 
 ControlPort {{ env `NOMAD_PORT_control_port` }}
 
-SocksPort auto
+SocksPort {{ env `NOMAD_PORT_socks_port` }}
+
 SafeLogging 1
 UseEntryGuards 0
 ProtocolWarnings 1
@@ -129,7 +119,7 @@ ORPort {{ env `NOMAD_PORT_orport` }}
 
       service {
         name     = "sbws-relay-live"
-        tags     = ["sbws", "logging"]
+        tags     = ["logging"]
         port     = "control-port"
       }
     }
@@ -161,8 +151,8 @@ ORPort {{ env `NOMAD_PORT_orport` }}
       }
 
       resources {
-        cpu    = 1000
-        memory = 2500
+        cpu    = 1024
+        memory = 2560
       }
 
       template {
@@ -215,7 +205,7 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
 
       resources {
         cpu    = 128
-        memory = 1500
+        memory = 256
       }
 
       volume_mount {
@@ -226,7 +216,7 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
 
       service {
         name     = "sbws-destination-live"
-        tags     = ["sbws", "logging"]
+        tags     = ["logging"]
         port     = "http-port"
         check {
           name     = "sbws live destination nginx alive"
@@ -248,7 +238,7 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
       root /data;
 
       autoindex on;
-      listen 0.0.0.0:80;
+      listen 0.0.0.0:{{ env `NOMAD_PORT_http_port` }};
 
       location / {
         try_files $uri $uri/ =404;
