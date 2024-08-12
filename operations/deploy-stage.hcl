@@ -247,16 +247,16 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
       value    = "true"
     }
 
-    volume "sbws-stage-group-2" {
+    volume "sbws-stage-2" {
       type      = "host"
       read_only = false
-      source    = "sbws-stage-group-2"
+      source    = "sbws-stage-2"
     }
 
-    volume "sbws-destination-stage-group-2" {
+    volume "sbws-destination-stage-2" {
       type      = "host"
       read_only = true
-      source    = "sbws-destination-stage-group-2"
+      source    = "sbws-destination-stage-2"
     }
 
     network {
@@ -280,7 +280,7 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
       driver = "docker"
 
       volume_mount {
-        volume      = "sbws-stage-group-2"
+        volume      = "sbws-stage-2"
         destination = "/var/lib/anon"
         read_only   = false
       }
@@ -343,7 +343,7 @@ ORPort {{ env `NOMAD_PORT_orport` }}
       }
 
       volume_mount {
-        volume      = "sbws-stage-group-2"
+        volume      = "sbws-stage-2"
         destination = "/root/.sbws"
         read_only   = false
       }
@@ -421,7 +421,7 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
       }
 
       volume_mount {
-        volume      = "sbws-destination-stage-group-2"
+        volume      = "sbws-destination-stage-2"
         destination = "/data"
         read_only   = true
       }
@@ -474,16 +474,16 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
       value    = "true"
     }
 
-    volume "sbws-stage-group-3" {
+    volume "sbws-stage-3" {
       type      = "host"
       read_only = false
-      source    = "sbws-stage-group-3"
+      source    = "sbws-stage-3"
     }
 
-    volume "sbws-destination-stage-group-3" {
+    volume "sbws-destination-stage-3" {
       type      = "host"
       read_only = true
-      source    = "sbws-destination-stage-group-3"
+      source    = "sbws-destination-stage-3"
     }
 
     network {
@@ -507,7 +507,7 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
       driver = "docker"
 
       volume_mount {
-        volume      = "sbws-stage-group-3"
+        volume      = "sbws-stage-3"
         destination = "/var/lib/anon"
         read_only   = false
       }
@@ -570,7 +570,7 @@ ORPort {{ env `NOMAD_PORT_orport` }}
       }
 
       volume_mount {
-        volume      = "sbws-stage-group-3"
+        volume      = "sbws-stage-3"
         destination = "/root/.sbws"
         read_only   = false
       }
@@ -648,7 +648,7 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
       }
 
       volume_mount {
-        volume      = "sbws-destination-stage-group-3"
+        volume      = "sbws-destination-stage-3"
         destination = "/data"
         read_only   = true
       }
