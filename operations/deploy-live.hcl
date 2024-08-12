@@ -91,7 +91,6 @@ User anond
 Nickname AnonSBWS
 
 DataDirectory /var/lib/anon/anon-data
-AgreeToTerms 1
 
 ControlPort {{ env `NOMAD_PORT_control_port` }}
 
