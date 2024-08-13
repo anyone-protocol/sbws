@@ -3,22 +3,22 @@ job "sbws-stage" {
   type        = "service"
   namespace   = "ator-network"
 
+  spread {
+    attribute = "${node.unique.id}"
+    weight    = 100
+    target "c8e55509-a756-0aa7-563b-9665aa4915ab" {
+      percent = 14
+    }
+    target "c2adc610-6316-cd9d-c678-cda4b0080b52" {
+      percent = 43
+    }
+    target "4aa61f61-893a-baf4-541b-870e99ac4839" {
+      percent = 43
+    }
+  }
+
   group "sbws-stage-group" {
     count = 3
-
-    spread {
-      attribute = "${node.unique.id}"
-      weight    = 100
-      target "067a42a8-d8fe-8b19-5851-43079e0eabb4" {
-        percent = 34
-      }
-      target "16be0723-edc1-83c4-6c02-193d96ec308a" {
-        percent = 33
-      }
-      target "e6e0baed-8402-fd5c-7a15-8dd49e7b60d9" {
-        percent = 33
-      }
-    }
 
     volume "sbws-stage" {
       type      = "host"
@@ -26,31 +26,31 @@ job "sbws-stage" {
       source    = "sbws-stage"
     }
 
+    volume "sbws-destination-stage" {
+      type      = "host"
+      read_only = true
+      source    = "sbws-destination-stage"
+    }
+
     network {
       mode = "bridge"
 
       port "http-port" {
         static = 9177
-        to     = 80
-        #        host_network = "wireguard"
-      }
-
-      port "control-port" {
-        static = 9151
-        host_network = "wireguard"
       }
 
       port "orport" {
-        static = 9191
+        static = 19101
+      }
+
+      port "control-port" {
+        static = 19151
+        host_network = "wireguard"
       }
     }
 
     task "sbws-relay-stage-task" {
       driver = "docker"
-
-      env {
-        ANON_USER = "root"
-      }
 
       volume_mount {
         volume      = "sbws-stage"
@@ -67,23 +67,26 @@ job "sbws-stage" {
       }
 
       resources {
-        cpu    = 256
-        memory = 512
+        cpu    = 2048
+        memory = 2560
       }
 
       template {
         change_mode = "noop"
         data        = <<EOH
-User root
+User anond
 
 Nickname AnonSBWS
 
 DataDirectory /var/lib/anon/anon-data
+AgreeToTerms 1
 
 ControlPort {{ env `NOMAD_PORT_control_port` }}
 
 SocksPort auto
-SafeLogging 1
+
+ConnectionPadding auto
+SafeLogging 0
 UseEntryGuards 0
 ProtocolWarnings 1
 FetchDirInfoEarly 1
@@ -100,7 +103,7 @@ ORPort {{ env `NOMAD_PORT_orport` }}
 
       service {
         name     = "sbws-relay-stage"
-        tags     = ["sbws", "logging"]
+        tags     = ["logging"]
         port     = "control-port"
       }
     }
@@ -132,8 +135,8 @@ ORPort {{ env `NOMAD_PORT_orport` }}
       }
 
       resources {
-        cpu    = 1000
-        memory = 1500
+        cpu    = 1024
+        memory = 2560
       }
 
       template {
@@ -173,12 +176,12 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
 
     }
 
+
     task "sbws-destination-stage-task" {
       driver = "docker"
 
       config {
-        image   = "svforte/sbws-destination:latest-stage"
-        force_pull = true
+        image   = "nginx:1.27"
         volumes = [
           "local/nginx-sbws:/etc/nginx/conf.d/default.conf:ro"
         ]
@@ -187,21 +190,28 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
 
       resources {
         cpu    = 128
-        memory = 1500
+        memory = 256
+      }
+
+      volume_mount {
+        volume      = "sbws-destination-stage"
+        destination = "/data"
+        read_only   = true
       }
 
       service {
         name     = "sbws-destination-stage"
-        tags     = ["sbws", "logging"]
+        tags     = ["logging"]
         port     = "http-port"
         check {
-          name     = "sbws destination nginx http server alive"
-          type     = "tcp"
+          name     = "sbws stage destination nginx alive"
+          type     = "http"
+          path     = "/"
           interval = "10s"
           timeout  = "10s"
           check_restart {
-            limit = 10
-            grace = "30s"
+            limit = 3
+            grace = "10s"
           }
         }
       }
@@ -209,23 +219,474 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
       template {
         change_mode = "noop"
         data        = <<EOH
-server {
-  root /app/destination/data;
+    server {
+      root /data;
 
-  autoindex on;
+      autoindex on;
+      listen 0.0.0.0:{{ env `NOMAD_PORT_http_port` }};
 
-  index index.html;
+      location / {
+        try_files $uri $uri/ =404;
+      }
 
-  listen 0.0.0.0:80;
-
-  location / {
-    try_files $uri $uri/ =404;
+      location ~/\.ht {
+        deny all;
+      }
+    }
+        EOH
+        destination = "local/nginx-sbws"
+      }
+    }
   }
 
-  location ~/\.ht {
-    deny all;
+  group "sbws-stage-group-2" {
+    count = 2
+
+    constraint {
+      operator = "distinct_hosts"
+      value    = "true"
+    }
+
+    volume "sbws-stage-2" {
+      type      = "host"
+      read_only = false
+      source    = "sbws-stage-2"
+    }
+
+    volume "sbws-destination-stage-2" {
+      type      = "host"
+      read_only = true
+      source    = "sbws-destination-stage-2"
+    }
+
+    network {
+      mode = "bridge"
+
+      port "http-port" {
+        static = 9178
+      }
+
+      port "orport" {
+        static = 19102
+      }
+
+      port "control-port" {
+        static = 19152
+        host_network = "wireguard"
+      }
+    }
+
+    task "sbws-relay-stage-task" {
+      driver = "docker"
+
+      volume_mount {
+        volume      = "sbws-stage-2"
+        destination = "/var/lib/anon"
+        read_only   = false
+      }
+
+      config {
+        image      = "svforte/anon-stage"
+        force_pull = true
+        volumes    = [
+          "local/anonrc:/etc/anon/anonrc"
+        ]
+      }
+
+      resources {
+        cpu    = 2048
+        memory = 2560
+      }
+
+      template {
+        change_mode = "noop"
+        data        = <<EOH
+User anond
+
+Nickname AnonSBWS
+
+DataDirectory /var/lib/anon/anon-data
+AgreeToTerms 1
+
+ControlPort {{ env `NOMAD_PORT_control_port` }}
+
+SocksPort auto
+
+ConnectionPadding auto
+SafeLogging 0
+UseEntryGuards 0
+ProtocolWarnings 1
+FetchDirInfoEarly 1
+LogTimeGranularity 1
+UseMicrodescriptors 0
+FetchDirInfoExtraEarly 1
+FetchUselessDescriptors 1
+LearnCircuitBuildTimeout 0
+
+ORPort {{ env `NOMAD_PORT_orport` }}
+        EOH
+        destination = "local/anonrc"
+      }
+
+      service {
+        name     = "sbws-relay-stage-2"
+        tags     = ["logging"]
+        port     = "control-port"
+      }
+    }
+
+    task "sbws-scanner-stage-task" {
+      driver = "docker"
+
+      env {
+        INTERVAL_MINUTES = "60"
+      }
+
+      volume_mount {
+        volume      = "sbws-stage-2"
+        destination = "/root/.sbws"
+        read_only   = false
+      }
+
+      config {
+        image   = "svforte/sbws-scanner:latest-stage"
+        force_pull = true
+        volumes = [
+          "local/.sbws.ini:/root/.sbws.ini:ro"
+        ]
+      }
+
+      service {
+        name     = "sbws-scanner-stage-task-2"
+        tags     = ["logging"]
+      }
+
+      resources {
+        cpu    = 1024
+        memory = 2560
+      }
+
+      template {
+        change_mode = "noop"
+        data        = <<EOH
+# Minimum configuration that needs to be customized
+[scanner]
+# ISO 3166-1 alpha-2 country code where the scanner is located.
+# Default AA, to detect it was not edited.
+country = ZZ
+# A human-readable string with chars in a-zA-Z0-9 to identify the dirauth
+# nickname that will publish the BandwidthFiles generated from this scanner.
+# Default to a non existing dirauth_nickname to detect it was not edited.
+dirauth_nickname = Anon
+
+[destinations]
+# A destination can be disabled changing `on` by `off`
+dest = on
+
+[destinations.dest]
+# the domain and path to the 1GB file.
+url = http://{{ env `NOMAD_HOST_ADDR_http-port` }}/1GiB
+# Whether to verify or not the TLS certificate. Default True.
+verify = False
+# ISO 3166-1 alpha-2 country code where the Web server destination is located.
+# Default AA, to detect it was not edited.
+# Use ZZ if the location is unknown (for instance, a CDN).
+country = ZZ
+
+[tor]
+datadir = /root/.sbws/anon-data
+external_control_ip = {{ env `NOMAD_IP_control_port` }}
+external_control_port = {{ env `NOMAD_PORT_control_port` }}
+        EOH
+        destination = "local/.sbws.ini"
+      }
+
+    }
+
+
+    task "sbws-destination-stage-task" {
+      driver = "docker"
+
+      config {
+        image   = "nginx:1.27"
+        volumes = [
+          "local/nginx-sbws:/etc/nginx/conf.d/default.conf:ro"
+        ]
+        ports = ["http-port"]
+      }
+
+      resources {
+        cpu    = 128
+        memory = 256
+      }
+
+      volume_mount {
+        volume      = "sbws-destination-stage-2"
+        destination = "/data"
+        read_only   = true
+      }
+
+      service {
+        name     = "sbws-destination-stage-2"
+        tags     = ["logging"]
+        port     = "http-port"
+        check {
+          name     = "sbws stage destination nginx alive"
+          type     = "http"
+          path     = "/"
+          interval = "10s"
+          timeout  = "10s"
+          check_restart {
+            limit = 3
+            grace = "10s"
+          }
+        }
+      }
+
+      template {
+        change_mode = "noop"
+        data        = <<EOH
+    server {
+      root /data;
+
+      autoindex on;
+      listen 0.0.0.0:{{ env `NOMAD_PORT_http_port` }};
+
+      location / {
+        try_files $uri $uri/ =404;
+      }
+
+      location ~/\.ht {
+        deny all;
+      }
+    }
+        EOH
+        destination = "local/nginx-sbws"
+      }
+    }
   }
-}
+
+  group "sbws-stage-group-3" {
+    count = 2
+
+    constraint {
+      operator = "distinct_hosts"
+      value    = "true"
+    }
+
+    volume "sbws-stage-3" {
+      type      = "host"
+      read_only = false
+      source    = "sbws-stage-3"
+    }
+
+    volume "sbws-destination-stage-3" {
+      type      = "host"
+      read_only = true
+      source    = "sbws-destination-stage-3"
+    }
+
+    network {
+      mode = "bridge"
+
+      port "http-port" {
+        static = 9179
+      }
+
+      port "orport" {
+        static = 19103
+      }
+
+      port "control-port" {
+        static = 19153
+        host_network = "wireguard"
+      }
+    }
+
+    task "sbws-relay-stage-task" {
+      driver = "docker"
+
+      volume_mount {
+        volume      = "sbws-stage-3"
+        destination = "/var/lib/anon"
+        read_only   = false
+      }
+
+      config {
+        image      = "svforte/anon-stage"
+        force_pull = true
+        volumes    = [
+          "local/anonrc:/etc/anon/anonrc"
+        ]
+      }
+
+      resources {
+        cpu    = 2048
+        memory = 2560
+      }
+
+      template {
+        change_mode = "noop"
+        data        = <<EOH
+User anond
+
+Nickname AnonSBWS
+
+DataDirectory /var/lib/anon/anon-data
+AgreeToTerms 1
+
+ControlPort {{ env `NOMAD_PORT_control_port` }}
+
+SocksPort auto
+
+ConnectionPadding auto
+SafeLogging 0
+UseEntryGuards 0
+ProtocolWarnings 1
+FetchDirInfoEarly 1
+LogTimeGranularity 1
+UseMicrodescriptors 0
+FetchDirInfoExtraEarly 1
+FetchUselessDescriptors 1
+LearnCircuitBuildTimeout 0
+
+ORPort {{ env `NOMAD_PORT_orport` }}
+        EOH
+        destination = "local/anonrc"
+      }
+
+      service {
+        name     = "sbws-relay-stage-3"
+        tags     = ["logging"]
+        port     = "control-port"
+      }
+    }
+
+    task "sbws-scanner-stage-task" {
+      driver = "docker"
+
+      env {
+        INTERVAL_MINUTES = "60"
+      }
+
+      volume_mount {
+        volume      = "sbws-stage-3"
+        destination = "/root/.sbws"
+        read_only   = false
+      }
+
+      config {
+        image   = "svforte/sbws-scanner:latest-stage"
+        force_pull = true
+        volumes = [
+          "local/.sbws.ini:/root/.sbws.ini:ro"
+        ]
+      }
+
+      service {
+        name     = "sbws-scanner-stage-task-3"
+        tags     = ["logging"]
+      }
+
+      resources {
+        cpu    = 1024
+        memory = 2560
+      }
+
+      template {
+        change_mode = "noop"
+        data        = <<EOH
+# Minimum configuration that needs to be customized
+[scanner]
+# ISO 3166-1 alpha-2 country code where the scanner is located.
+# Default AA, to detect it was not edited.
+country = ZZ
+# A human-readable string with chars in a-zA-Z0-9 to identify the dirauth
+# nickname that will publish the BandwidthFiles generated from this scanner.
+# Default to a non existing dirauth_nickname to detect it was not edited.
+dirauth_nickname = Anon
+
+[destinations]
+# A destination can be disabled changing `on` by `off`
+dest = on
+
+[destinations.dest]
+# the domain and path to the 1GB file.
+url = http://{{ env `NOMAD_HOST_ADDR_http-port` }}/1GiB
+# Whether to verify or not the TLS certificate. Default True.
+verify = False
+# ISO 3166-1 alpha-2 country code where the Web server destination is located.
+# Default AA, to detect it was not edited.
+# Use ZZ if the location is unknown (for instance, a CDN).
+country = ZZ
+
+[tor]
+datadir = /root/.sbws/anon-data
+external_control_ip = {{ env `NOMAD_IP_control_port` }}
+external_control_port = {{ env `NOMAD_PORT_control_port` }}
+        EOH
+        destination = "local/.sbws.ini"
+      }
+
+    }
+
+
+    task "sbws-destination-stage-task" {
+      driver = "docker"
+
+      config {
+        image   = "nginx:1.27"
+        volumes = [
+          "local/nginx-sbws:/etc/nginx/conf.d/default.conf:ro"
+        ]
+        ports = ["http-port"]
+      }
+
+      resources {
+        cpu    = 128
+        memory = 256
+      }
+
+      volume_mount {
+        volume      = "sbws-destination-stage-3"
+        destination = "/data"
+        read_only   = true
+      }
+
+      service {
+        name     = "sbws-destination-stage-3"
+        tags     = ["logging"]
+        port     = "http-port"
+        check {
+          name     = "sbws stage destination nginx alive"
+          type     = "http"
+          path     = "/"
+          interval = "10s"
+          timeout  = "10s"
+          check_restart {
+            limit = 3
+            grace = "10s"
+          }
+        }
+      }
+
+      template {
+        change_mode = "noop"
+        data        = <<EOH
+    server {
+      root /data;
+
+      autoindex on;
+      listen 0.0.0.0:{{ env `NOMAD_PORT_http_port` }};
+
+      location / {
+        try_files $uri $uri/ =404;
+      }
+
+      location ~/\.ht {
+        deny all;
+      }
+    }
         EOH
         destination = "local/nginx-sbws"
       }

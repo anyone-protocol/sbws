@@ -38,31 +38,31 @@ job "sbws-live" {
       source    = "sbws-live"
     }
 
+    volume "sbws-destination-live" {
+      type      = "host"
+      read_only = true
+      source    = "sbws-destination-live"
+    }
+
     network {
       mode = "bridge"
 
       port "http-port" {
         static = 9277
-        to     = 80
-        #        host_network = "wireguard"
+      }
+
+      port "orport" {
+        static = 9291
       }
 
       port "control-port" {
         static = 9251
         host_network = "wireguard"
       }
-
-      port "orport" {
-        static = 9291
-      }
     }
 
     task "sbws-relay-live-task" {
       driver = "docker"
-
-      env {
-        ANON_USER = "root"
-      }
 
       volume_mount {
         volume      = "sbws-live"
@@ -79,14 +79,14 @@ job "sbws-live" {
       }
 
       resources {
-        cpu    = 512
-        memory = 1024
+        cpu    = 2048
+        memory = 2500
       }
 
       template {
         change_mode = "noop"
         data        = <<EOH
-User root
+User anond
 
 Nickname AnonSBWS
 
@@ -95,7 +95,9 @@ DataDirectory /var/lib/anon/anon-data
 ControlPort {{ env `NOMAD_PORT_control_port` }}
 
 SocksPort auto
-SafeLogging 1
+
+ConnectionPadding auto
+SafeLogging 0
 UseEntryGuards 0
 ProtocolWarnings 1
 FetchDirInfoEarly 1
@@ -112,7 +114,7 @@ ORPort {{ env `NOMAD_PORT_orport` }}
 
       service {
         name     = "sbws-relay-live"
-        tags     = ["sbws", "logging"]
+        tags     = ["logging"]
         port     = "control-port"
       }
     }
@@ -144,8 +146,8 @@ ORPort {{ env `NOMAD_PORT_orport` }}
       }
 
       resources {
-        cpu    = 1000
-        memory = 1500
+        cpu    = 1024
+        memory = 2560
       }
 
       template {
@@ -189,8 +191,7 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
       driver = "docker"
 
       config {
-        image   = "svforte/sbws-destination:latest"
-        force_pull = true
+        image   = "nginx:1.27"
         volumes = [
           "local/nginx-sbws:/etc/nginx/conf.d/default.conf:ro"
         ]
@@ -199,21 +200,28 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
 
       resources {
         cpu    = 128
-        memory = 1500
+        memory = 256
+      }
+
+      volume_mount {
+        volume      = "sbws-destination-live"
+        destination = "/data"
+        read_only   = false
       }
 
       service {
         name     = "sbws-destination-live"
-        tags     = ["sbws", "logging"]
+        tags     = ["logging"]
         port     = "http-port"
         check {
-          name     = "sbws destination nginx http server alive"
-          type     = "tcp"
+          name     = "sbws live destination nginx alive"
+          type     = "http"
+          path     = "/"
           interval = "10s"
           timeout  = "10s"
           check_restart {
-            limit = 10
-            grace = "30s"
+            limit = 3
+            grace = "10s"
           }
         }
       }
@@ -221,23 +229,20 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
       template {
         change_mode = "noop"
         data        = <<EOH
-server {
-  root /app/destination/data;
+    server {
+      root /data;
 
-  autoindex on;
+      autoindex on;
+      listen 0.0.0.0:{{ env `NOMAD_PORT_http_port` }};
 
-  index index.html;
+      location / {
+        try_files $uri $uri/ =404;
+      }
 
-  listen 0.0.0.0:80;
-
-  location / {
-    try_files $uri $uri/ =404;
-  }
-
-  location ~/\.ht {
-    deny all;
-  }
-}
+      location ~/\.ht {
+        deny all;
+      }
+    }
         EOH
         destination = "local/nginx-sbws"
       }
