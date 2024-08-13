@@ -9,13 +9,13 @@ job "sbws-dev" {
     spread {
       attribute = "${node.unique.id}"
       weight    = 100
-      target "067a42a8-d8fe-8b19-5851-43079e0eabb4" {
+      target "c8e55509-a756-0aa7-563b-9665aa4915ab" {
         percent = 34
       }
-      target "16be0723-edc1-83c4-6c02-193d96ec308a" {
+      target "c2adc610-6316-cd9d-c678-cda4b0080b52" {
         percent = 33
       }
-      target "e6e0baed-8402-fd5c-7a15-8dd49e7b60d9" {
+      target "4aa61f61-893a-baf4-541b-870e99ac4839" {
         percent = 33
       }
     }
@@ -24,6 +24,12 @@ job "sbws-dev" {
       type      = "host"
       read_only = false
       source    = "sbws-dev"
+    }
+
+    volume "sbws-destination-dev" {
+      type      = "host"
+      read_only = false
+      source    = "sbws-destination-dev"
     }
 
     network {
@@ -59,7 +65,7 @@ job "sbws-dev" {
       }
 
       config {
-        image      = "svforte/anon-dev"
+        image      = "ghcr.io/ator-development/ator-protocol-dev:latest"
         force_pull = true
         volumes    = [
           "local/anonrc:/etc/anon/anonrc"
@@ -67,8 +73,8 @@ job "sbws-dev" {
       }
 
       resources {
-        cpu    = 256
-        memory = 128
+        cpu    = 2048
+        memory = 2560
       }
 
       template {
@@ -77,6 +83,7 @@ job "sbws-dev" {
 User root
 
 Nickname AnonSBWS
+AgreeToTerms 1
 
 DataDirectory /var/lib/anon/anon-data
 
@@ -100,7 +107,7 @@ ORPort {{ env `NOMAD_PORT_orport` }}
 
       service {
         name     = "sbws-relay-dev"
-        tags     = ["sbws", "logging"]
+        tags     = ["logging"]
         port     = "control-port"
       }
     }
@@ -132,8 +139,8 @@ ORPort {{ env `NOMAD_PORT_orport` }}
       }
 
       resources {
-        cpu    = 1000
-        memory = 1000
+        cpu    = 1024
+        memory = 2560
       }
 
       template {
@@ -177,8 +184,7 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
       driver = "docker"
 
       config {
-        image   = "svforte/sbws-destination:latest-dev"
-        force_pull = true
+        image   = "nginx:1.27"
         volumes = [
           "local/nginx-sbws:/etc/nginx/conf.d/default.conf:ro"
         ]
@@ -187,21 +193,28 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
 
       resources {
         cpu    = 128
-        memory = 1500
+        memory = 256
+      }
+
+      volume_mount {
+        volume      = "sbws-destination-stage"
+        destination = "/data"
+        read_only   = true
       }
 
       service {
         name     = "sbws-destination-dev"
-        tags     = ["sbws", "logging"]
+        tags     = ["logging"]
         port     = "http-port"
         check {
-          name     = "sbws destination nginx http server alive"
-          type     = "tcp"
+          name     = "sbws dev destination nginx http alive"
+          type     = "http"
+          path     = "/"
           interval = "10s"
           timeout  = "10s"
           check_restart {
-            limit = 10
-            grace = "30s"
+            limit = 3
+            grace = "10s"
           }
         }
       }
@@ -210,13 +223,10 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
         change_mode = "noop"
         data        = <<EOH
 server {
-  root /app/destination/data;
+  root /data;
 
   autoindex on;
-
-  index index.html;
-
-  listen 0.0.0.0:80;
+  listen 0.0.0.0:{{ env `NOMAD_PORT_http_port` }};
 
   location / {
     try_files $uri $uri/ =404;
