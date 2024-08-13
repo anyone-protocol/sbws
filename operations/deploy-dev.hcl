@@ -197,7 +197,7 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
       }
 
       volume_mount {
-        volume      = "sbws-destination-stage"
+        volume      = "sbws-destination-dev"
         destination = "/data"
         read_only   = true
       }
