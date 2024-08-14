@@ -59,7 +59,7 @@ job "sbws-stage" {
       }
 
       config {
-        image      = "svforte/anon-stage"
+        image      = "ghcr.io/ator-development/ator-protocol-stage:latest"
         force_pull = true
         volumes    = [
           "local/anonrc:/etc/anon/anonrc"
