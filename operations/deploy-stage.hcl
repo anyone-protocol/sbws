@@ -513,7 +513,7 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
       }
 
       config {
-        image      = "sghcr.io/ator-development/ator-protocol-stage:latest"
+        image      = "ghcr.io/ator-development/ator-protocol-stage:latest"
         force_pull = true
         volumes    = [
           "local/anonrc:/etc/anon/anonrc"
