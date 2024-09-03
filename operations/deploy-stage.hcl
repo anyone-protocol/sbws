@@ -673,9 +673,11 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
       template {
         change_mode = "noop"
         data        = <<EOH
+    log_format default '[$time_iso8601] $remote_addr - $remote_user $request $status $body_bytes_sent $http_referer $http_user_agent $http_x_forwarded_for';
     server {
       root /data;
-
+      access_log /dev/stdout default; 
+      error_log /dev/stderr warn;
       autoindex on;
       listen 0.0.0.0:{{ env `NOMAD_PORT_http_port` }};
 
