@@ -47,7 +47,7 @@ job "sbws-dev" {
       }
 
       port "orport" {
-        static = 9091
+        static = 9019
       }
     }
 
