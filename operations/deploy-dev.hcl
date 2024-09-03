@@ -47,7 +47,7 @@ job "sbws-dev" {
       }
 
       port "orport" {
-        static = 9091
+        static = 9019
       }
     }
 
@@ -73,8 +73,8 @@ job "sbws-dev" {
       }
 
       resources {
-        cpu    = 2048
-        memory = 2560
+        cpu    = 512
+        memory = 1024
       }
 
       template {
@@ -128,7 +128,7 @@ ORPort {{ env `NOMAD_PORT_orport` }}
       }
 
       config {
-        image   = "svforte/sbws-scanner:latest-dev"
+        image   = "ghcr.io/ator-development/sbws-scanner:DEPLOY_TAG"
         force_pull = true
         volumes = [
           "local/.sbws.ini:/root/.sbws.ini:ro"

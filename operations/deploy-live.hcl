@@ -133,7 +133,7 @@ ORPort {{ env `NOMAD_PORT_orport` }}
       }
 
       config {
-        image   = "svforte/sbws-scanner:latest"
+        image   = "ghcr.io/ator-development/sbws-scanner:DEPLOY_TAG"
         force_pull = true
         volumes = [
           "local/.sbws.ini:/root/.sbws.ini:ro"
