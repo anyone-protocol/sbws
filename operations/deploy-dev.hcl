@@ -73,8 +73,8 @@ job "sbws-dev" {
       }
 
       resources {
-        cpu    = 2048
-        memory = 2560
+        cpu    = 512
+        memory = 1024
       }
 
       template {
