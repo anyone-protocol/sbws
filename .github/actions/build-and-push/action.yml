@@ -24,12 +24,3 @@ runs:
         file: ./docker/scanner/Dockerfile
         push: true
         tags: ghcr.io/ator-development/sbws-scanner:${{ inputs.docker-tag }}
-
-    - name: Build and push Docker image of destination
-      uses: docker/build-push-action@v2
-      with:
-        context: ./docker/destination
-        file: ./docker/destination/Dockerfile
-        push: true
-        tags: ghcr.io/ator-development/sbws-destination:${{ inputs.docker-tag }}
-
