@@ -59,7 +59,7 @@ job "sbws-stage" {
       }
 
       config {
-        image      = "ghcr.io/ator-development/ator-protocol-stage:latest"
+        image      = "ghcr.io/anyone-protocol/ator-protocol-stage:latest"
         force_pull = true
         volumes    = [
           "local/anonrc:/etc/anon/anonrc"
@@ -122,7 +122,7 @@ ORPort {{ env `NOMAD_PORT_orport` }}
       }
 
       config {
-        image   = "ghcr.io/ator-development/sbws-scanner:DEPLOY_TAG"
+        image   = "ghcr.io/anyone-protocol/sbws-scanner:DEPLOY_TAG"
         force_pull = true
         volumes = [
           "local/.sbws.ini:/root/.sbws.ini:ro"
@@ -286,7 +286,7 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
       }
 
       config {
-        image      = "ghcr.io/ator-development/ator-protocol-stage:latest"
+        image      = "ghcr.io/anyone-protocol/ator-protocol-stage:latest"
         force_pull = true
         volumes    = [
           "local/anonrc:/etc/anon/anonrc"
@@ -349,7 +349,7 @@ ORPort {{ env `NOMAD_PORT_orport` }}
       }
 
       config {
-        image   = "ghcr.io/ator-development/sbws-scanner:DEPLOY_TAG"
+        image   = "ghcr.io/anyone-protocol/sbws-scanner:DEPLOY_TAG"
         force_pull = true
         volumes = [
           "local/.sbws.ini:/root/.sbws.ini:ro"
@@ -513,7 +513,7 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
       }
 
       config {
-        image      = "ghcr.io/ator-development/ator-protocol-stage:latest"
+        image      = "ghcr.io/anyone-protocol/ator-protocol-stage:latest"
         force_pull = true
         volumes    = [
           "local/anonrc:/etc/anon/anonrc"
@@ -576,7 +576,7 @@ ORPort {{ env `NOMAD_PORT_orport` }}
       }
 
       config {
-        image   = "ghcr.io/ator-development/sbws-scanner:DEPLOY_TAG"
+        image   = "ghcr.io/anyone-protocol/sbws-scanner:DEPLOY_TAG"
         force_pull = true
         volumes = [
           "local/.sbws.ini:/root/.sbws.ini:ro"

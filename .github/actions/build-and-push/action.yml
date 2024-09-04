@@ -23,4 +23,4 @@ runs:
         context: .
         file: ./docker/scanner/Dockerfile
         push: true
-        tags: ghcr.io/ator-development/sbws-scanner:${{ inputs.docker-tag }}
+        tags: ghcr.io/anyone-protocol/sbws-scanner:${{ inputs.docker-tag }}
