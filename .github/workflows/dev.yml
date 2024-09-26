@@ -1,9 +1,9 @@
 name: DEV - Build and Deploy
 
 on:
-  push:
+  pull_request:
     branches:
-      - development
+      - main
   workflow_dispatch:
 
 jobs:

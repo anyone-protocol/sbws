@@ -60,7 +60,6 @@ job "sbws-stage" {
 
       config {
         image      = "ghcr.io/anyone-protocol/ator-protocol-stage:latest"
-        force_pull = true
         volumes    = [
           "local/anonrc:/etc/anon/anonrc"
         ]
@@ -123,7 +122,6 @@ ORPort {{ env `NOMAD_PORT_orport` }}
 
       config {
         image   = "ghcr.io/anyone-protocol/sbws-scanner:DEPLOY_TAG"
-        force_pull = true
         volumes = [
           "local/.sbws.ini:/root/.sbws.ini:ro"
         ]
@@ -287,7 +285,6 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
 
       config {
         image      = "ghcr.io/anyone-protocol/ator-protocol-stage:latest"
-        force_pull = true
         volumes    = [
           "local/anonrc:/etc/anon/anonrc"
         ]
@@ -350,7 +347,6 @@ ORPort {{ env `NOMAD_PORT_orport` }}
 
       config {
         image   = "ghcr.io/anyone-protocol/sbws-scanner:DEPLOY_TAG"
-        force_pull = true
         volumes = [
           "local/.sbws.ini:/root/.sbws.ini:ro"
         ]
@@ -514,7 +510,6 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
 
       config {
         image      = "ghcr.io/anyone-protocol/ator-protocol-stage:latest"
-        force_pull = true
         volumes    = [
           "local/anonrc:/etc/anon/anonrc"
         ]
@@ -577,7 +572,6 @@ ORPort {{ env `NOMAD_PORT_orport` }}
 
       config {
         image   = "ghcr.io/anyone-protocol/sbws-scanner:DEPLOY_TAG"
-        force_pull = true
         volumes = [
           "local/.sbws.ini:/root/.sbws.ini:ro"
         ]
@@ -676,7 +670,7 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
     log_format default '[$time_iso8601] $remote_addr - $remote_user $request $status $body_bytes_sent $http_referer $http_user_agent $http_x_forwarded_for';
     server {
       root /data;
-      access_log /dev/stdout default; 
+      access_log /dev/stdout default;
       error_log /dev/stderr warn;
       autoindex on;
       listen 0.0.0.0:{{ env `NOMAD_PORT_http_port` }};
