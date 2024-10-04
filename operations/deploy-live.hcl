@@ -106,6 +106,8 @@ FetchDirInfoExtraEarly 1
 FetchUselessDescriptors 1
 LearnCircuitBuildTimeout 0
 
+AgreeToTerms 1
+
 ORPort {{ env `NOMAD_PORT_orport` }}
         EOH
         destination = "local/anonrc"

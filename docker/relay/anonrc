@@ -2,8 +2,6 @@ User anond
 
 Nickname AnonSBWS
 
-AgreeToTerms 1
-
 DataDirectory /var/lib/anon
 
 ControlPort 0.0.0.0:9051
@@ -19,3 +17,5 @@ UseMicrodescriptors 0
 FetchDirInfoExtraEarly 1
 FetchUselessDescriptors 1
 LearnCircuitBuildTimeout 0
+
+AgreeToTerms 1
