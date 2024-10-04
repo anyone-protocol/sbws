@@ -2,6 +2,8 @@ User anond
 
 Nickname AnonSBWS
 
+AgreeToTerms 1
+
 DataDirectory /var/lib/anon
 
 ControlPort 0.0.0.0:9051

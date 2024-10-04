@@ -1,7 +1,7 @@
 version: '2.2'
 services:
   sbws-relay:
-    image: svforte/anon-dev
+    image: ghcr.io/anyone-protocol/ator-protocol-dev:latest
     restart: always
     expose:
       - "9051"
