@@ -71,7 +71,7 @@ job "sbws-live" {
       }
 
       config {
-        image      = "svforte/anon:v0.4.9.0"
+        image      = "ghcr.io/anyone-protocol/ator-protocol:v0.4.9.7"
         volumes    = [
           "local/anonrc:/etc/anon/anonrc"
         ]
@@ -105,6 +105,8 @@ UseMicrodescriptors 0
 FetchDirInfoExtraEarly 1
 FetchUselessDescriptors 1
 LearnCircuitBuildTimeout 0
+
+AgreeToTerms 1
 
 ORPort {{ env `NOMAD_PORT_orport` }}
         EOH

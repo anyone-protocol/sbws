@@ -82,7 +82,6 @@ job "sbws-dev" {
 User root
 
 Nickname AnonSBWS
-AgreeToTerms 1
 
 DataDirectory /var/lib/anon/anon-data
 
@@ -100,6 +99,8 @@ UseMicrodescriptors 0
 FetchDirInfoExtraEarly 1
 FetchUselessDescriptors 1
 LearnCircuitBuildTimeout 0
+
+AgreeToTerms 1
 
 ORPort {{ env `NOMAD_PORT_orport` }}
         EOH

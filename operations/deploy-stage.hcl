@@ -78,7 +78,6 @@ User anond
 Nickname AnonSBWS
 
 DataDirectory /var/lib/anon/anon-data
-AgreeToTerms 1
 
 ControlPort {{ env `NOMAD_PORT_control_port` }}
 
@@ -94,6 +93,8 @@ UseMicrodescriptors 0
 FetchDirInfoExtraEarly 1
 FetchUselessDescriptors 1
 LearnCircuitBuildTimeout 0
+
+AgreeToTerms 1
 
 ORPort {{ env `NOMAD_PORT_orport` }}
         EOH
