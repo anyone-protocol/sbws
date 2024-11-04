@@ -66,7 +66,7 @@ job "sbws-dev" {
 
       config {
         # todo - use latest commit tag - https://github.com/anyone-protocol/jira-confluence/issues/224
-        image      = "ghcr.io/anyone-protocol/ator-protocol-dev:a72d294467112abb78ad6982259067af4574e88d"
+        image      = "ghcr.io/anyone-protocol/ator-protocol-dev:30f3adebb50d925aceb2fdc8fb3ad44ece92595d"
         volumes    = [
           "local/anonrc:/etc/anon/anonrc"
         ]
