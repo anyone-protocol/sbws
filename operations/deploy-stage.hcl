@@ -3,6 +3,12 @@ job "sbws-stage" {
   type        = "service"
   namespace   = "ator-network"
 
+  update {
+    max_parallel      = 1
+    healthy_deadline  = "15m"
+    progress_deadline = "20m"
+  }
+
   spread {
     attribute = "${node.unique.id}"
     weight    = 100
@@ -61,6 +67,7 @@ job "sbws-stage" {
       config {
         # todo - use latest commit tag - https://github.com/anyone-protocol/jira-confluence/issues/224
         image      = "ghcr.io/anyone-protocol/ator-protocol-stage:30f3adebb50d925aceb2fdc8fb3ad44ece92595d"
+        image_pull_timeout = "15m"
         volumes    = [
           "local/anonrc:/etc/anon/anonrc"
         ]
@@ -124,6 +131,7 @@ ORPort {{ env `NOMAD_PORT_orport` }}
 
       config {
         image   = "ghcr.io/anyone-protocol/sbws-scanner:DEPLOY_TAG"
+        image_pull_timeout = "15m"
         volumes = [
           "local/.sbws.ini:/root/.sbws.ini:ro"
         ]
@@ -286,7 +294,9 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
       }
 
       config {
-        image      = "ghcr.io/anyone-protocol/ator-protocol-stage:latest"
+        # todo - use latest commit tag - https://github.com/anyone-protocol/jira-confluence/issues/224
+        image      = "ghcr.io/anyone-protocol/ator-protocol-stage:30f3adebb50d925aceb2fdc8fb3ad44ece92595d"
+        image_pull_timeout = "15m"
         volumes    = [
           "local/anonrc:/etc/anon/anonrc"
         ]
@@ -349,6 +359,7 @@ ORPort {{ env `NOMAD_PORT_orport` }}
 
       config {
         image   = "ghcr.io/anyone-protocol/sbws-scanner:DEPLOY_TAG"
+        image_pull_timeout = "15m"
         volumes = [
           "local/.sbws.ini:/root/.sbws.ini:ro"
         ]
@@ -511,7 +522,9 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
       }
 
       config {
-        image      = "ghcr.io/anyone-protocol/ator-protocol-stage:latest"
+        # todo - use latest commit tag - https://github.com/anyone-protocol/jira-confluence/issues/224
+        image      = "ghcr.io/anyone-protocol/ator-protocol-stage:30f3adebb50d925aceb2fdc8fb3ad44ece92595d"
+        image_pull_timeout = "15m"
         volumes    = [
           "local/anonrc:/etc/anon/anonrc"
         ]
@@ -574,6 +587,7 @@ ORPort {{ env `NOMAD_PORT_orport` }}
 
       config {
         image   = "ghcr.io/anyone-protocol/sbws-scanner:DEPLOY_TAG"
+        image_pull_timeout = "15m"
         volumes = [
           "local/.sbws.ini:/root/.sbws.ini:ro"
         ]
