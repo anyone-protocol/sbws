@@ -26,6 +26,17 @@ job "sbws-stage" {
   group "sbws-stage-group" {
     count = 3
 
+    constraint {
+      attribute = "${node.unique.id}"
+      operator  = "set_contains_any"
+      value     = "4ca2fc3c-8960-6ae7-d931-c0d6030d506b,232ea736-591c-4753-9dcc-3e815c4326af,f3f664d6-7d65-be58-4a2c-4c66e20f1a9f"
+    }
+
+    constraint {
+      operator = "distinct_hosts"
+      value    = "true"
+    }
+
     volume "sbws-stage" {
       type      = "host"
       read_only = false
@@ -249,6 +260,12 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
 
   group "sbws-stage-group-2" {
     count = 2
+
+    constraint {
+      attribute = "${node.unique.id}"
+      operator  = "set_contains_any"
+      value     = "232ea736-591c-4753-9dcc-3e815c4326af,f3f664d6-7d65-be58-4a2c-4c66e20f1a9f"
+    }
 
     constraint {
       operator = "distinct_hosts"
@@ -478,6 +495,12 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
   group "sbws-stage-group-3" {
     count = 2
 
+     constraint {
+      attribute = "${node.unique.id}"
+      operator  = "set_contains_any"
+      value     = "232ea736-591c-4753-9dcc-3e815c4326af,f3f664d6-7d65-be58-4a2c-4c66e20f1a9f"
+    }
+    
     constraint {
       operator = "distinct_hosts"
       value    = "true"
