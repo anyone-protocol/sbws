@@ -3,6 +3,12 @@ job "sbws-live" {
   type        = "service"
   namespace   = "ator-network"
 
+  update {
+    max_parallel      = 1
+    healthy_deadline  = "15m"
+    progress_deadline = "20m"
+  }
+
   group "sbws-live-group" {
     count = 7
 
@@ -72,6 +78,7 @@ job "sbws-live" {
 
       config {
         image      = "ghcr.io/anyone-protocol/ator-protocol:v0.4.9.7"
+        image_pull_timeout = "15m"
         volumes    = [
           "local/anonrc:/etc/anon/anonrc"
         ]
@@ -135,6 +142,7 @@ ORPort {{ env `NOMAD_PORT_orport` }}
 
       config {
         image   = "ghcr.io/anyone-protocol/sbws-scanner:DEPLOY_TAG"
+        image_pull_timeout = "15m"
         volumes = [
           "local/.sbws.ini:/root/.sbws.ini:ro"
         ]
