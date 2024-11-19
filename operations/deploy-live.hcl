@@ -208,7 +208,7 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
 
       resources {
         cpu    = 128
-        memory = 512
+        memory = 1024
       }
 
       volume_mount {
