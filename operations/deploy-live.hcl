@@ -77,7 +77,7 @@ job "sbws-live" {
       }
 
       config {
-        image      = "ghcr.io/anyone-protocol/ator-protocol:5ef03ae3ddb9efe2ece3b1ec378292a8ea1bc7a3" // v0.4.9.8
+        image      = "ghcr.io/anyone-protocol/ator-protocol:d903d014fe7d77a113791e27629e6f22380d9e57" // v0.4.9.10
         image_pull_timeout = "15m"
         volumes    = [
           "local/anonrc:/etc/anon/anonrc"

@@ -77,7 +77,7 @@ job "sbws-stage" {
 
       config {
         # todo - use latest commit tag - https://github.com/anyone-protocol/jira-confluence/issues/224
-        image      = "ghcr.io/anyone-protocol/ator-protocol-stage:30f3adebb50d925aceb2fdc8fb3ad44ece92595d"
+        image      = "ghcr.io/anyone-protocol/ator-protocol-stage:d903d014fe7d77a113791e27629e6f22380d9e57"
         image_pull_timeout = "15m"
         volumes    = [
           "local/anonrc:/etc/anon/anonrc"
@@ -500,7 +500,7 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
       operator  = "set_contains_any"
       value     = "232ea736-591c-4753-9dcc-3e815c4326af,f3f664d6-7d65-be58-4a2c-4c66e20f1a9f"
     }
-    
+
     constraint {
       operator = "distinct_hosts"
       value    = "true"
