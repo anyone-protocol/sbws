@@ -20,6 +20,6 @@ runs:
         NOMAD_ADDR: ${{ inputs.nomad-addr }}
       run: |
         sed -i 's/DEPLOY_TAG/${{ inputs.docker-tag }}/g' operations/deploy-${{ inputs.environment }}.hcl
-        curl -L https://releases.hashicorp.com/nomad/1.6.3/nomad_1.6.3_linux_amd64.zip -o nomad.zip
+        curl -L https://releases.hashicorp.com/nomad/1.8.3/nomad_1.8.3_linux_amd64.zip -o nomad.zip
         unzip nomad.zip
         ./nomad job run operations/deploy-${{ inputs.environment }}.hcl

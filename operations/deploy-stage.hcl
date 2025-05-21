@@ -1,7 +1,7 @@
 job "sbws-stage" {
   datacenters = ["ator-fin"]
   type        = "service"
-  namespace   = "ator-network"
+  namespace   = "stage-network"
 
   update {
     max_parallel      = 1
