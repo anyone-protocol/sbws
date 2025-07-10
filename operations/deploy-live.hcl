@@ -4,12 +4,9 @@ job "sbws-live" {
   namespace   = "live-network"
 
   update {
-    max_parallel     = 1
-    canary           = 1
-    min_healthy_time = "30s"
-    healthy_deadline = "5m"
-    auto_revert      = true
-    auto_promote     = true
+    max_parallel      = 1
+    healthy_deadline  = "15m"
+    progress_deadline = "20m"
   }
 
   group "sbws-live-group" {
