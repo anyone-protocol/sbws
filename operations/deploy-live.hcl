@@ -104,7 +104,7 @@ job "sbws-live" {
       }
 
       resources {
-        cpu    = 2048
+        cpu    = 512
         memory = 2500
       }
 
@@ -173,7 +173,7 @@ ORPort {{ env `NOMAD_PORT_orport` }}
       }
 
       resources {
-        cpu    = 1024
+        cpu    = 512
         memory = 3072
       }
 
