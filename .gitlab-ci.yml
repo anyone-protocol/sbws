@@ -1,119 +1,119 @@
-# core/tor releases:
-# https://gitlab.torproject.org/tpo/core/team/-/wikis/NetworkTeam/CoreTorReleases
-# 0.4.8 Feature freeze, June 1st, 2023
-# 0.4.7 stable by March 15, 2022
-# Python stable releases: https://www.python.org/downloads/
-# 3.12 EOL 2028-10, PEP 693
-# 3.11 EOL 2027-10, PEP 664
-# 3.10 EOL 2026-10, PEP 619
-# 3.9 EOL 2025-10, PEP 596
-# 3.8 EOL 2024-10, PEP 569
+# # core/tor releases:
+# # https://gitlab.torproject.org/tpo/core/team/-/wikis/NetworkTeam/CoreTorReleases
+# # 0.4.8 Feature freeze, June 1st, 2023
+# # 0.4.7 stable by March 15, 2022
+# # Python stable releases: https://www.python.org/downloads/
+# # 3.12 EOL 2028-10, PEP 693
+# # 3.11 EOL 2027-10, PEP 664
+# # 3.10 EOL 2026-10, PEP 619
+# # 3.9 EOL 2025-10, PEP 596
+# # 3.8 EOL 2024-10, PEP 569
 
-variables:
-  BASE_IMAGE: python:3.11
-  RELEASE: tor-nightly-main-bookworm
-  # Without version, the default available in the Debian repository will be
-  # installed.
-  # Specifying which version starts with will install the highest that start
-  # with that version.
-  TOR: tor/tor-nightly-main-bookworm
-  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+# variables:
+#   BASE_IMAGE: python:3.11
+#   RELEASE: tor-nightly-main-bookworm
+#   # Without version, the default available in the Debian repository will be
+#   # installed.
+#   # Specifying which version starts with will install the highest that start
+#   # with that version.
+#   TOR: tor/tor-nightly-main-bookworm
+#   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
 
-cache:
-  paths:
-    - .cache/pip
+# cache:
+#   paths:
+#     - .cache/pip
 
-image: $BASE_IMAGE
+# image: $BASE_IMAGE
 
-before_script:
-  - "wget https://deb.torproject.org/torproject.org/\
-    A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89.asc"
-  - cat A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89.asc  | apt-key add -
-  - echo deb [signed-by=A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89]
-    http://deb.torproject.org/torproject.org $RELEASE
-    main >> /etc/apt/sources.list
-  - apt update -yqq
-  - apt install -yqq $TOR
-  - pip install tox
-  - python --version
-  - tor --version
+# before_script:
+#   - "wget https://deb.torproject.org/torproject.org/\
+#     A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89.asc"
+#   - cat A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89.asc  | apt-key add -
+#   - echo deb [signed-by=A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89]
+#     http://deb.torproject.org/torproject.org $RELEASE
+#     main >> /etc/apt/sources.list
+#   - apt update -yqq
+#   - apt install -yqq $TOR
+#   - pip install tox
+#   - python --version
+#   - tor --version
 
-after_script:
-  - tox -e stats
+# after_script:
+#   - tox -e stats
 
-python38:
-  variables:
-    BASE_IMAGE: python:3.8
-  script:
-    - tox -e py38
-    - tox -e integration
+# python38:
+#   variables:
+#     BASE_IMAGE: python:3.8
+#   script:
+#     - tox -e py38
+#     - tox -e integration
 
-python39:
-  variables:
-    BASE_IMAGE: python:3.9
-  script:
-    - tox -e py39
-    - tox -e integration
+# python39:
+#   variables:
+#     BASE_IMAGE: python:3.9
+#   script:
+#     - tox -e py39
+#     - tox -e integration
 
-python310:
-  variables:
-    BASE_IMAGE: python:3.10
-  script:
-    - tox -e py310
-    - tox -e integration
+# python310:
+#   variables:
+#     BASE_IMAGE: python:3.10
+#   script:
+#     - tox -e py310
+#     - tox -e integration
 
-python311tormain:
-  # This will overwrite the default before_script, so need to repeat the
-  # commands
-  before_script:
-    - "wget https://deb.torproject.org/torproject.org/\
-      A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89.asc"
-    - cat A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89.asc  | apt-key add -
-    - echo deb [signed-by=A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89]
-      http://deb.torproject.org/torproject.org $RELEASE
-      main >> /etc/apt/sources.list
-    - apt update -yqq
-    - apt install -yqq $TOR
-    - pip install tox
-    - python --version
-    - tor --version
-    # To build the docs
-    - apt install -yqq texlive-latex-extra
-    - apt install -yqq dvipng
-  script:
-    - tox
+# python311tormain:
+#   # This will overwrite the default before_script, so need to repeat the
+#   # commands
+#   before_script:
+#     - "wget https://deb.torproject.org/torproject.org/\
+#       A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89.asc"
+#     - cat A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89.asc  | apt-key add -
+#     - echo deb [signed-by=A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89]
+#       http://deb.torproject.org/torproject.org $RELEASE
+#       main >> /etc/apt/sources.list
+#     - apt update -yqq
+#     - apt install -yqq $TOR
+#     - pip install tox
+#     - python --version
+#     - tor --version
+#     # To build the docs
+#     - apt install -yqq texlive-latex-extra
+#     - apt install -yqq dvipng
+#   script:
+#     - tox
 
-python311torstable:
-  variables:
-    RELEASE: bookworm
-    TOR: tor/bookworm
-  script:
-    - tox -e py311
-    - tox -e integration
+# python311torstable:
+#   variables:
+#     RELEASE: bookworm
+#     TOR: tor/bookworm
+#   script:
+#     - tox -e py311
+#     - tox -e integration
 
-release_job:
-  before_script:
-    - echo "Nothing"
-  after_script:
-    - echo "Nothing"
-  image: registry.gitlab.com/gitlab-org/release-cli:latest
-  only: [tags]
-  script:
-    - echo "Running release job."
-  release:
-    name: "Release $CI_COMMIT_TAG"
-    description: "Created using release-cli"
-    tag_name: "$CI_COMMIT_TAG"
-    ref: "$CI_COMMIT_TAG"
-    milestones:
-      - "sbws: 1.9.x-final"
+# release_job:
+#   before_script:
+#     - echo "Nothing"
+#   after_script:
+#     - echo "Nothing"
+#   image: registry.gitlab.com/gitlab-org/release-cli:latest
+#   only: [tags]
+#   script:
+#     - echo "Running release job."
+#   release:
+#     name: "Release $CI_COMMIT_TAG"
+#     description: "Created using release-cli"
+#     tag_name: "$CI_COMMIT_TAG"
+#     ref: "$CI_COMMIT_TAG"
+#     milestones:
+#       - "sbws: 1.9.x-final"
 
-pages:
-  stage: deploy
-  before_script:
-    - pip install .[doc]
-  script:
-    - cd docs && sphinx-build source ../public
-  artifacts:
-    paths:
-      - public
+# pages:
+#   stage: deploy
+#   before_script:
+#     - pip install .[doc]
+#   script:
+#     - cd docs && sphinx-build source ../public
+#   artifacts:
+#     paths:
+#       - public
