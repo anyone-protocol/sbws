@@ -8,35 +8,17 @@ job "sbws-live" {
     healthy_deadline  = "15m"
     progress_deadline = "20m"
   }
+  
+  constraint {
+    attribute = "${meta.pool}"
+    value = "live-network-authorities"
+  }
+  constraint {
+    distinct_hosts = true
+  }
 
   group "sbws-live-group" {
     count = 7
-
-    spread {
-      attribute = "${node.unique.id}"
-      weight    = 100
-      target "ee5aa04f-1ec2-832e-e706-4b3d996429f4" {
-        percent = 14
-      }
-      target "c5c9db77-6779-bcd7-8aa5-559f03254e7f" {
-        percent = 14
-      }
-      target "e8c69a64-abee-23b0-8a27-04d5de1c0125" {
-        percent = 14
-      }
-      target "fd1258af-0be7-7946-bccf-565243a753db" {
-        percent = 14
-      }
-      target "e5e906fa-af5a-bff1-e0c5-f8e12bb385f7" {
-        percent = 14
-      }
-      target "ababa2ce-7129-d4b9-f9c4-b0e6f9d80f7f" {
-        percent = 15
-      }
-      target "63fdf9a5-4ea8-4c12-5f6b-b59479d95d12" {
-        percent = 15
-      }
-    }
 
     volume "sbws-live" {
       type      = "host"
@@ -53,54 +35,40 @@ job "sbws-live" {
     network {
       mode = "bridge"
 
-      port "http-port" {
-        static = 9277
-      }
+      port "http-port" {}
 
-      port "orport" {
+      port "or-port" {
         static = 9291
       }
 
       port "control-port" {
-        static = 9251
         host_network = "wireguard"
       }
     }
 
-
-    service {
-      name     = "sbws-destination-live"
-      tags     = ["logging"]
-      port     = "http-port"
-      check {
-        name     = "sbws live destination nginx alive"
-        type     = "http"
-        path     = "/"
-        interval = "10s"
-        timeout  = "10s"
-        address_mode = "alloc"
-        check_restart {
-          limit = 3
-          grace = "10s"
-        }
-      }
-    }
-
     task "sbws-relay-live-task" {
+      
+      lifecycle {
+        hook = "prestart"
+        sidecar = true
+      }
+      
       driver = "docker"
+
+      config {
+        image      = "ghcr.io/anyone-protocol/ator-protocol:bd506a47f917355bbe2742418481ec53bb89b261" // v0.4.9.11
+        image_pull_timeout = "45m"
+        volumes    = [
+          "local/anonrc:/etc/anon/anonrc"
+        ]
+      }
+      
+      consul {}
 
       volume_mount {
         volume      = "sbws-live"
         destination = "/var/lib/anon"
         read_only   = false
-      }
-
-      config {
-        image      = "ghcr.io/anyone-protocol/ator-protocol:bd506a47f917355bbe2742418481ec53bb89b261" // v0.4.9.11
-        image_pull_timeout = "15m"
-        volumes    = [
-          "local/anonrc:/etc/anon/anonrc"
-        ]
       }
 
       resources {
@@ -134,7 +102,7 @@ LearnCircuitBuildTimeout 0
 
 AgreeToTerms 1
 
-ORPort {{ env `NOMAD_PORT_orport` }}
+ORPort {{ env `NOMAD_PORT_or_port` }}
         EOH
         destination = "local/anonrc"
       }
@@ -143,11 +111,102 @@ ORPort {{ env `NOMAD_PORT_orport` }}
         name     = "sbws-relay-live"
         tags     = ["logging"]
         port     = "control-port"
+        check {
+          name     = "SBWS live relay or-port alive"
+          port     = "or-port"
+          type     = "tcp"
+          interval = "10s"
+          timeout  = "10s"
+        }
+        check {
+          name     = "SBWS live relay control-port alive"
+          port     = "control-port"
+          type     = "tcp"
+          interval = "10s"
+          timeout  = "10s"
+        }
+      }
+    }
+
+    task "sbws-destination-live-task" {
+      
+      lifecycle {
+        hook = "prestart"
+        sidecar = true
+      }
+
+      driver = "docker"
+
+      config {
+        image   = "nginx:1.29"
+        volumes = [
+          "local/nginx-sbws:/etc/nginx/conf.d/default.conf:ro"
+        ]
+        ports = ["http-port"]
+      }
+
+      consul {}
+
+      resources {
+        cpu    = 128
+        memory = 256
+      }
+
+      volume_mount {
+        volume      = "sbws-destination-live"
+        destination = "/data"
+        read_only   = false
+      }
+
+      template {
+        change_mode = "noop"
+        data        = <<EOH
+log_format default '[$time_iso8601] $remote_addr - $remote_user $request $status $body_bytes_sent $http_referer $http_user_agent $http_x_forwarded_for';
+server {
+  root /data;
+  access_log /dev/stdout default;
+  error_log /dev/stderr warn;
+  autoindex on;
+  listen 0.0.0.0:{{ env `NOMAD_PORT_http_port` }};
+
+  location / {
+    try_files $uri $uri/ =404;
+  }
+
+  location ~/\.ht {
+    deny all;
+  }
+}
+        EOH
+        destination = "local/nginx-sbws"
+      }
+
+      service {
+        name     = "sbws-destination-live"
+        tags     = ["logging"]
+        port     = "http-port"
+        check {
+          name     = "sbws live destination nginx alive"
+          type     = "http"
+          path     = "/"
+          interval = "10s"
+          timeout  = "10s"
+        }
       }
     }
 
     task "sbws-scanner-live-task" {
       driver = "docker"
+
+      config {
+        image   = "ghcr.io/anyone-protocol/sbws-scanner:DEPLOY_TAG"
+        image_pull_timeout = "45m"
+        volumes = [
+          "local/.sbws.ini:/root/.sbws.ini:ro"
+        ]
+      }
+
+      consul {}
 
       env {
         INTERVAL_MINUTES = "60"
@@ -157,14 +216,6 @@ ORPort {{ env `NOMAD_PORT_orport` }}
         volume      = "sbws-live"
         destination = "/root/.sbws"
         read_only   = false
-      }
-
-      config {
-        image   = "ghcr.io/anyone-protocol/sbws-scanner:DEPLOY_TAG"
-        image_pull_timeout = "15m"
-        volumes = [
-          "local/.sbws.ini:/root/.sbws.ini:ro"
-        ]
       }
 
       service {
@@ -212,52 +263,6 @@ external_control_port = {{ env `NOMAD_PORT_control_port` }}
         destination = "local/.sbws.ini"
       }
 
-    }
-
-    task "sbws-destination-live-task" {
-      driver = "docker"
-
-      config {
-        image   = "nginx:1.27"
-        volumes = [
-          "local/nginx-sbws:/etc/nginx/conf.d/default.conf:ro"
-        ]
-        ports = ["http-port"]
-      }
-
-      resources {
-        cpu    = 128
-        memory = 2048
-      }
-
-      volume_mount {
-        volume      = "sbws-destination-live"
-        destination = "/data"
-        read_only   = false
-      }
-
-      template {
-        change_mode = "noop"
-        data        = <<EOH
-    log_format default '[$time_iso8601] $remote_addr - $remote_user $request $status $body_bytes_sent $http_referer $http_user_agent $http_x_forwarded_for';
-    server {
-      root /data;
-      access_log /dev/stdout default;
-      error_log /dev/stderr warn;
-      autoindex on;
-      listen 0.0.0.0:{{ env `NOMAD_PORT_http_port` }};
-
-      location / {
-        try_files $uri $uri/ =404;
-      }
-
-      location ~/\.ht {
-        deny all;
-      }
-    }
-        EOH
-        destination = "local/nginx-sbws"
-      }
     }
   }
 }
