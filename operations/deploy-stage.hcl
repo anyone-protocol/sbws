@@ -5,8 +5,8 @@ job "sbws-stage" {
 
   update {
     max_parallel      = 1
-    healthy_deadline  = "15m"
-    progress_deadline = "20m"
+    healthy_deadline  = "120m"
+    progress_deadline = "60m"
   }
   
   constraint {

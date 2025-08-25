@@ -4,9 +4,9 @@ job "sbws-live" {
   namespace   = "live-network"
 
   update {
-    max_parallel      = 1
-    healthy_deadline  = "15m"
-    progress_deadline = "20m"
+    max_parallel      = 2
+    healthy_deadline  = "120m"
+    progress_deadline = "60m"
   }
   
   constraint {
