@@ -5,7 +5,7 @@ job "sbws-live" {
 
   update {
     max_parallel      = 2
-    healthy_deadline  = "120m"
+    healthy_deadline  = "10m"
     progress_deadline = "60m"
   }
   
