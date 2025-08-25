@@ -110,17 +110,10 @@ ORPort {{ env `NOMAD_PORT_or_port` }}
       service {
         name     = "sbws-relay-stage"
         tags     = ["logging"]
-        port     = "control-port"
+        port     = "or-port"
         check {
           name     = "SBWS stage relay or-port alive"
           port     = "or-port"
-          type     = "tcp"
-          interval = "10s"
-          timeout  = "10s"
-        }
-        check {
-          name     = "SBWS stage relay control-port alive"
-          port     = "control-port"
           type     = "tcp"
           interval = "10s"
           timeout  = "10s"
