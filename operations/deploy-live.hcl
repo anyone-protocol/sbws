@@ -218,7 +218,7 @@ server {
 
       resources {
         cpu    = 512
-        memory = 3072
+        memory = 5120
       }
 
       template {
