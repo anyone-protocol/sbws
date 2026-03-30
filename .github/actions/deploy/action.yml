@@ -1,4 +1,5 @@
 name: 'Deploy new version'
+description: Deploy the new version of sbws to the specified environment using Nomad.
 inputs:
   environment:
     required: true

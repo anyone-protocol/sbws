@@ -1,4 +1,5 @@
 name: Build and Push Docker Image
+description: Build and push the Docker image for sbws to GitHub Container Registry.
 inputs:
   docker-username:
     required: true
@@ -10,7 +11,7 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Log in to Docker Hub
+    - name: Log in to GitHub Container Registry
       uses: docker/login-action@v1
       with:
         registry: ghcr.io

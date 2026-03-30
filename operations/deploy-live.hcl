@@ -78,31 +78,31 @@ job "sbws-live" {
 
       template {
         change_mode = "noop"
-        data        = <<EOH
-User anond
+        data        = <<-EOH
+        User anond
 
-Nickname AnonSBWS
+        Nickname AnonSBWS
 
-DataDirectory /var/lib/anon/anon-data
+        DataDirectory /var/lib/anon/anon-data
 
-ControlPort {{ env `NOMAD_PORT_control_port` }}
+        ControlPort {{ env `NOMAD_PORT_control_port` }}
 
-SocksPort auto
+        SocksPort auto
 
-ConnectionPadding auto
-SafeLogging 0
-UseEntryGuards 0
-ProtocolWarnings 1
-FetchDirInfoEarly 1
-LogTimeGranularity 1
-UseMicrodescriptors 0
-FetchDirInfoExtraEarly 1
-FetchUselessDescriptors 1
-LearnCircuitBuildTimeout 0
+        ConnectionPadding auto
+        SafeLogging 0
+        UseEntryGuards 0
+        ProtocolWarnings 1
+        FetchDirInfoEarly 1
+        LogTimeGranularity 1
+        UseMicrodescriptors 0
+        FetchDirInfoExtraEarly 1
+        FetchUselessDescriptors 1
+        LearnCircuitBuildTimeout 0
 
-AgreeToTerms 1
+        AgreeToTerms 1
 
-ORPort {{ env `NOMAD_PORT_or_port` }}
+        ORPort {{ env `NOMAD_PORT_or_port` }}
         EOH
         destination = "local/anonrc"
       }
@@ -153,23 +153,23 @@ ORPort {{ env `NOMAD_PORT_or_port` }}
 
       template {
         change_mode = "noop"
-        data        = <<EOH
-log_format default '[$time_iso8601] $remote_addr - $remote_user $request $status $body_bytes_sent $http_referer $http_user_agent $http_x_forwarded_for';
-server {
-  root /data;
-  access_log /dev/stdout default;
-  error_log /dev/stderr warn;
-  autoindex on;
-  listen 0.0.0.0:{{ env `NOMAD_PORT_http_port` }};
+        data        = <<-EOH
+        log_format default '[$time_iso8601] $remote_addr - $remote_user $request $status $body_bytes_sent $http_referer $http_user_agent $http_x_forwarded_for';
+        server {
+          root /data;
+          access_log /dev/stdout default;
+          error_log /dev/stderr warn;
+          autoindex on;
+          listen 0.0.0.0:{{ env `NOMAD_PORT_http_port` }};
 
-  location / {
-    try_files $uri $uri/ =404;
-  }
+          location / {
+            try_files $uri $uri/ =404;
+          }
 
-  location ~/\.ht {
-    deny all;
-  }
-}
+          location ~/\.ht {
+            deny all;
+          }
+        }
         EOH
         destination = "local/nginx-sbws"
       }
@@ -223,39 +223,38 @@ server {
 
       template {
         change_mode = "noop"
-        data        = <<EOH
-# Minimum configuration that needs to be customized
-[scanner]
-# ISO 3166-1 alpha-2 country code where the scanner is located.
-# Default AA, to detect it was not edited.
-country = ZZ
-# A human-readable string with chars in a-zA-Z0-9 to identify the dirauth
-# nickname that will publish the BandwidthFiles generated from this scanner.
-# Default to a non existing dirauth_nickname to detect it was not edited.
-dirauth_nickname = Anon
+        data        = <<-EOH
+        # Minimum configuration that needs to be customized
+        [scanner]
+        # ISO 3166-1 alpha-2 country code where the scanner is located.
+        # Default AA, to detect it was not edited.
+        country = ZZ
+        # A human-readable string with chars in a-zA-Z0-9 to identify the dirauth
+        # nickname that will publish the BandwidthFiles generated from this scanner.
+        # Default to a non existing dirauth_nickname to detect it was not edited.
+        dirauth_nickname = Anon
 
-[destinations]
-# A destination can be disabled changing `on` by `off`
-dest = on
+        [destinations]
+        # A destination can be disabled changing `on` by `off`
+        dest = on
 
-[destinations.dest]
-# the domain and path to the 1GB file.
-url = http://{{ env `NOMAD_HOST_ADDR_http-port` }}/1GiB
-# Whether to verify or not the TLS certificate. Default True.
-verify = False
-# ISO 3166-1 alpha-2 country code where the Web server destination is located.
-# Default AA, to detect it was not edited.
-# Use ZZ if the location is unknown (for instance, a CDN).
-country = ZZ
+        [destinations.dest]
+        # the domain and path to the 1GB file.
+        url = http://{{ env `NOMAD_HOST_ADDR_http-port` }}/1GiB
+        # Whether to verify or not the TLS certificate. Default True.
+        verify = False
+        # ISO 3166-1 alpha-2 country code where the Web server destination is located.
+        # Default AA, to detect it was not edited.
+        # Use ZZ if the location is unknown (for instance, a CDN).
+        country = ZZ
 
-[tor]
-datadir = /root/.sbws/anon-data
-external_control_ip = {{ env `NOMAD_IP_control_port` }}
-external_control_port = {{ env `NOMAD_PORT_control_port` }}
+        [tor]
+        datadir = /root/.sbws/anon-data
+        external_control_ip = {{ env `NOMAD_IP_control_port` }}
+        external_control_port = {{ env `NOMAD_PORT_control_port` }}
         EOH
         destination = "local/.sbws.ini"
       }
-
     }
   }
 }
