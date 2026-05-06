@@ -202,7 +202,7 @@ job "sbws-live" {
       consul {}
 
       env {
-        INTERVAL_MINUTES = "60"
+        INTERVAL_MINUTES = "300" # NB: originally 60m, increased to 300m due to netscan rate limiting
       }
 
       volume_mount {
