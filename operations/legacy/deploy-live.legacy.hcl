@@ -14,6 +14,10 @@ job "sbws-live" {
     value = "live-network-authorities"
   }
   constraint {
+    attribute = "${meta.role}"
+    value = "directory-authority"
+  }
+  constraint {
     distinct_hosts = true
   }
 
