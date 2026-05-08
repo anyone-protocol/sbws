@@ -158,7 +158,7 @@ job "sbws-regional-live" {
       volume_mount {
         volume      = "sbws-destination-live"
         destination = "/data"
-        read_only   = false
+        read_only   = true
       }
 
       template {
@@ -474,7 +474,7 @@ job "sbws-regional-live" {
       volume_mount {
         volume      = "sbws-destination-live"
         destination = "/data"
-        read_only   = false
+        read_only   = true
       }
 
       template {
