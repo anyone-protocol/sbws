@@ -1,11 +1,13 @@
 variable "anyone_client_tag" {
   type        = string
   description = "The anyone client container image tag to deploy for the sbws regional live relay task"
+  default     = "b0745662741bb2ab7cd6cbbcae6382e2fabf9e7b" // v0.4.9.13
 }
 
 variable "sbws_tag" {
   type        = string
   description = "The sbws container image tag to deploy for the sbws regional live scanner task"
+  default     = "a39f9119e2d50cc27ff4cf5326f0f3b7c252ff59"
 }
 
 job "sbws-regional-live" {
@@ -53,7 +55,7 @@ job "sbws-regional-live" {
     network {
       mode = "bridge"
       port "http_dest_port" {}
-      port "http_file_port" {}
+      port "http_file_port" { host_network = "wireguard" }
       port "or_port" { static = 9291 }
       port "control_port" { host_network = "wireguard" }
     }
@@ -306,7 +308,7 @@ job "sbws-regional-live" {
 
                 # === ONLY allow the exact bandwidth file ===
                 location = /latest.v3bw {
-                    root /source;
+                    root /source/v3bw;
                     try_files $uri =404;       # serve if it exists, else 404
 
                     # Optional: extra headers for the puller (no caching)
@@ -622,7 +624,7 @@ job "sbws-regional-live" {
 
                 # === ONLY allow the exact bandwidth file ===
                 location = /latest.v3bw {
-                    root /source;
+                    root /source/v3bw;
                     try_files $uri =404;       # serve if it exists, else 404
 
                     # Optional: extra headers for the puller (no caching)
