@@ -371,7 +371,7 @@ job "sbws-regional-live" {
     network {
       mode = "bridge"
       port "http_dest_port" {}
-      port "http_file_port" {}
+      port "http_file_port" { host_network = "wireguard" }
       port "or_port" { static = 9291 }
       port "control_port" { host_network = "wireguard" }
     }
