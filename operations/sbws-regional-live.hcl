@@ -92,8 +92,8 @@ job "sbws-regional-live" {
         change_mode = "noop"
         data        = <<-EOH
         User anond
-
-        Nickname AnonSBWS
+        ContactInfo ops@anyone.io
+        Nickname AnonSBWS-us-central
 
         DataDirectory /var/lib/anon/anon-data
 
@@ -111,6 +111,7 @@ job "sbws-regional-live" {
         FetchDirInfoExtraEarly 1
         FetchUselessDescriptors 1
         LearnCircuitBuildTimeout 0
+        AddressDisableIPv6 1
 
         AgreeToTerms 1
 
@@ -212,7 +213,7 @@ job "sbws-regional-live" {
       consul {}
 
       env {
-        INTERVAL_MINUTES = "300" # NB: originally 60m, increased to 300m due to netscan rate limiting
+        INTERVAL_MINUTES = "60" # NB: originally 60m, increased to 300m due to netscan rate limiting
       }
 
       volume_mount {
@@ -238,11 +239,11 @@ job "sbws-regional-live" {
         [scanner]
         # ISO 3166-1 alpha-2 country code where the scanner is located.
         # Default AA, to detect it was not edited.
-        country = ZZ
+        country = US
         # A human-readable string with chars in a-zA-Z0-9 to identify the dirauth
         # nickname that will publish the BandwidthFiles generated from this scanner.
         # Default to a non existing dirauth_nickname to detect it was not edited.
-        dirauth_nickname = Anon
+        dirauth_nickname = AnyoneChiBandwidthAuthority
 
         [destinations]
         # A destination can be disabled changing `on` by `off`
@@ -256,7 +257,7 @@ job "sbws-regional-live" {
         # ISO 3166-1 alpha-2 country code where the Web server destination is located.
         # Default AA, to detect it was not edited.
         # Use ZZ if the location is unknown (for instance, a CDN).
-        country = ZZ
+        country = US
 
         [tor]
         datadir = /root/.sbws/anon-data
@@ -408,8 +409,8 @@ job "sbws-regional-live" {
         change_mode = "noop"
         data        = <<-EOH
         User anond
-
-        Nickname AnonSBWS
+        ContactInfo ops@anyone.io
+        Nickname AnonSBWS-eu-central
 
         DataDirectory /var/lib/anon/anon-data
 
@@ -427,6 +428,7 @@ job "sbws-regional-live" {
         FetchDirInfoExtraEarly 1
         FetchUselessDescriptors 1
         LearnCircuitBuildTimeout 0
+        AddressDisableIPv6 1
 
         AgreeToTerms 1
 
@@ -528,7 +530,7 @@ job "sbws-regional-live" {
       consul {}
 
       env {
-        INTERVAL_MINUTES = "300" # NB: originally 60m, increased to 300m due to netscan rate limiting
+        INTERVAL_MINUTES = "60" # NB: originally 60m, increased to 300m due to netscan rate limiting
       }
 
       volume_mount {
@@ -554,11 +556,11 @@ job "sbws-regional-live" {
         [scanner]
         # ISO 3166-1 alpha-2 country code where the scanner is located.
         # Default AA, to detect it was not edited.
-        country = ZZ
+        country = DE
         # A human-readable string with chars in a-zA-Z0-9 to identify the dirauth
         # nickname that will publish the BandwidthFiles generated from this scanner.
         # Default to a non existing dirauth_nickname to detect it was not edited.
-        dirauth_nickname = Anon
+        dirauth_nickname = AnyoneLimBandwidthAuthority
 
         [destinations]
         # A destination can be disabled changing `on` by `off`
@@ -572,7 +574,7 @@ job "sbws-regional-live" {
         # ISO 3166-1 alpha-2 country code where the Web server destination is located.
         # Default AA, to detect it was not edited.
         # Use ZZ if the location is unknown (for instance, a CDN).
-        country = ZZ
+        country = DE
 
         [tor]
         datadir = /root/.sbws/anon-data
