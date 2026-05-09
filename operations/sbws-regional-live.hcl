@@ -93,7 +93,7 @@ job "sbws-regional-live" {
         data        = <<-EOH
         User anond
         ContactInfo ops@anyone.io
-        Nickname AnonSBWS-us-central
+        Nickname AnyoneChiSBWS
 
         DataDirectory /var/lib/anon/anon-data
 
@@ -243,7 +243,7 @@ job "sbws-regional-live" {
         # A human-readable string with chars in a-zA-Z0-9 to identify the dirauth
         # nickname that will publish the BandwidthFiles generated from this scanner.
         # Default to a non existing dirauth_nickname to detect it was not edited.
-        dirauth_nickname = AnyoneChiBandwidthAuthority
+        dirauth_nickname = Anon
 
         [destinations]
         # A destination can be disabled changing `on` by `off`
@@ -410,7 +410,7 @@ job "sbws-regional-live" {
         data        = <<-EOH
         User anond
         ContactInfo ops@anyone.io
-        Nickname AnonSBWS-eu-central
+        Nickname AnyoneLimSBWS
 
         DataDirectory /var/lib/anon/anon-data
 
@@ -560,7 +560,7 @@ job "sbws-regional-live" {
         # A human-readable string with chars in a-zA-Z0-9 to identify the dirauth
         # nickname that will publish the BandwidthFiles generated from this scanner.
         # Default to a non existing dirauth_nickname to detect it was not edited.
-        dirauth_nickname = AnyoneLimBandwidthAuthority
+        dirauth_nickname = Anon
 
         [destinations]
         # A destination can be disabled changing `on` by `off`
