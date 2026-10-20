@@ -23,6 +23,7 @@ from sbws.globals import (
     SBWS_SCALING,
     SPEC_VERSION,
     TORFLOW_BW_MARGIN,
+    TORFLOW_DESC_BW_CAP,
     TORFLOW_OBS_LAST,
     TORFLOW_OBS_MEAN,
     TORFLOW_SCALING,
@@ -1144,6 +1145,7 @@ class V3BWFile(object):
         consensus_path=None,
         max_bw_diff_perc=MAX_BW_DIFF_PERC,
         reverse=False,
+        torflow_desc_bw_cap=TORFLOW_DESC_BW_CAP,
     ):
         """Create V3BWFile class from sbws Results.
 
@@ -1228,6 +1230,7 @@ class V3BWFile(object):
                 torflow_cap,
                 round_digs,
                 router_statuses_d=router_statuses_d,
+                desc_bw_cap=torflow_desc_bw_cap,
             )
             header.add_net_bw_avgs(mu, muf)
             # log.debug(bw_lines[-1])
@@ -1393,6 +1396,7 @@ class V3BWFile(object):
         num_round_dig=PROP276_ROUND_DIG,
         reverse=False,
         router_statuses_d=None,
+        desc_bw_cap=TORFLOW_DESC_BW_CAP,
     ):
         """
         Obtain final bandwidth measurements applying Torflow's scaling
@@ -1452,6 +1456,11 @@ class V3BWFile(object):
             else:
                 log.warning("Can not scale relay missing descriptor.")
                 continue
+
+            if desc_bw_cap:
+                desc_bw = min(
+                    desc_bw, desc_bw_cap * max(l.bw_mean, l.bw_filt)
+                )
 
             # Torflow's scaling
             l.r_strm = l.bw_mean / mu
