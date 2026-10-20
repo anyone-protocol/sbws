@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Test generation of bandwidth measurements document (v3bw)"""
+
 import json
 import logging
 import math
@@ -26,6 +27,7 @@ from sbws.lib.v3bwfile import (
     V3BWFile,
     V3BWHeader,
     V3BWLine,
+    kb_round_x_sig_dig,
     num_results_of_type,
     round_sig_dig,
 )
@@ -410,6 +412,32 @@ def test_torflow_scale(mock_consensus, datadir, tmpdir, conf):
         round_digs=PROP276_ROUND_DIG,
     )
     assert v3bwfile.bw_lines[0].bw == 120
+
+
+@mock.patch.object(V3BWFile, "read_number_consensus_relays")
+def test_torflow_scale_desc_bw_cap(mock_consensus, datadir, tmpdir, conf):
+    mock_consensus.return_value = 1
+    state_fpath = conf["paths"]["state_fpath"]
+    results = load_result_file(str(datadir.join("results.txt")))
+    kwargs = dict(
+        state_fpath=state_fpath,
+        scaling_method=TORFLOW_SCALING,
+        torflow_cap=1,
+        round_digs=TORFLOW_ROUND_DIG,
+    )
+    uncapped = V3BWFile.from_results(results, **kwargs).bw_lines[0]
+    assert uncapped.bw == 123
+    above = V3BWFile.from_results(
+        results, torflow_desc_bw_cap=1000, **kwargs
+    ).bw_lines[0]
+    assert above.bw == uncapped.bw
+    below = V3BWFile.from_results(
+        results, torflow_desc_bw_cap=0.5, **kwargs
+    ).bw_lines[0]
+    assert below.bw == kb_round_x_sig_dig(
+        0.5 * max(below.bw_mean, below.bw_filt), digits=TORFLOW_ROUND_DIG
+    )
+    assert below.bw < uncapped.bw
 
 
 def test_torflow_scale_no_desc_bw_avg(datadir, conf, caplog):

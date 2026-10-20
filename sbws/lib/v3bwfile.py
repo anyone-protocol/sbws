@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Classes and functions that create the bandwidth measurements document
 (v3bw) used by bandwidth authorities."""
+
 # flake8: noqa: E741
 # (E741 ambiguous variable name), when using l.
 
@@ -23,6 +24,7 @@ from sbws.globals import (
     SBWS_SCALING,
     SPEC_VERSION,
     TORFLOW_BW_MARGIN,
+    TORFLOW_DESC_BW_CAP,
     TORFLOW_OBS_LAST,
     TORFLOW_OBS_MEAN,
     TORFLOW_SCALING,
@@ -821,9 +823,9 @@ class V3BWLine(object):
         number_excluded_error = len(results) - len(success_results)
         if number_excluded_error > 0:
             # then the number of error results is the number of results
-            kwargs[
-                "relay_recent_measurements_excluded_error_count"
-            ] = number_excluded_error
+            kwargs["relay_recent_measurements_excluded_error_count"] = (
+                number_excluded_error
+            )
         if not success_results:
             exclusion_reason = "recent_measurements_excluded_error_count"
             return (cls(node_id, 1, **kwargs), exclusion_reason)
@@ -831,9 +833,9 @@ class V3BWLine(object):
         results_away = cls.results_away_each_other(success_results, secs_away)
         number_excluded_near = len(success_results) - len(results_away)
         if number_excluded_near > 0:
-            kwargs[
-                "relay_recent_measurements_excluded_near_count"
-            ] = number_excluded_near
+            kwargs["relay_recent_measurements_excluded_near_count"] = (
+                number_excluded_near
+            )
         if not results_away:
             exclusion_reason = "recent_measurements_excluded_near_count"
             return (cls(node_id, 1, **kwargs), exclusion_reason)
@@ -843,9 +845,9 @@ class V3BWLine(object):
         results_recent = cls.results_recent_than(results_away, secs_recent)
         number_excluded_old = len(results_away) - len(results_recent)
         if number_excluded_old > 0:
-            kwargs[
-                "relay_recent_measurements_excluded_old_count"
-            ] = number_excluded_old
+            kwargs["relay_recent_measurements_excluded_old_count"] = (
+                number_excluded_old
+            )
         if not results_recent:
             exclusion_reason = "recent_measurements_excluded_old_count"
             return (cls(node_id, 1, **kwargs), exclusion_reason)
@@ -902,9 +904,9 @@ class V3BWLine(object):
         kwargs["desc_bw_avg"] = cls.desc_bw_avg_from_results(results_recent)
         kwargs["desc_bw_bur"] = cls.desc_bw_bur_from_results(results_recent)
         kwargs["consensus_bandwidth"] = consensus_bandwidth
-        kwargs[
-            "consensus_bandwidth_is_unmeasured"
-        ] = consensus_bandwidth_is_unmeasured
+        kwargs["consensus_bandwidth_is_unmeasured"] = (
+            consensus_bandwidth_is_unmeasured
+        )
         kwargs["desc_bw_obs_last"] = desc_bw_obs_last
         kwargs["desc_bw_obs_mean"] = cls.desc_bw_obs_mean_from_results(
             results_recent
@@ -1144,6 +1146,7 @@ class V3BWFile(object):
         consensus_path=None,
         max_bw_diff_perc=MAX_BW_DIFF_PERC,
         reverse=False,
+        torflow_desc_bw_cap=TORFLOW_DESC_BW_CAP,
     ):
         """Create V3BWFile class from sbws Results.
 
@@ -1228,6 +1231,7 @@ class V3BWFile(object):
                 torflow_cap,
                 round_digs,
                 router_statuses_d=router_statuses_d,
+                desc_bw_cap=torflow_desc_bw_cap,
             )
             header.add_net_bw_avgs(mu, muf)
             # log.debug(bw_lines[-1])
@@ -1393,6 +1397,7 @@ class V3BWFile(object):
         num_round_dig=PROP276_ROUND_DIG,
         reverse=False,
         router_statuses_d=None,
+        desc_bw_cap=TORFLOW_DESC_BW_CAP,
     ):
         """
         Obtain final bandwidth measurements applying Torflow's scaling
@@ -1452,6 +1457,9 @@ class V3BWFile(object):
             else:
                 log.warning("Can not scale relay missing descriptor.")
                 continue
+
+            if desc_bw_cap:
+                desc_bw = min(desc_bw, desc_bw_cap * max(l.bw_mean, l.bw_filt))
 
             # Torflow's scaling
             l.r_strm = l.bw_mean / mu

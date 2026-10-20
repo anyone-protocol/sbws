@@ -12,6 +12,7 @@ from sbws.globals import (
     SBWS_SCALE_CONSTANT,
     SBWS_SCALING,
     TORFLOW_BW_MARGIN,
+    TORFLOW_DESC_BW_CAP,
     TORFLOW_SCALING,
     fail_hard,
 )
@@ -94,6 +95,14 @@ def gen_parser(sub):
         help="Cap maximum bw when scaling as Torflow. ",
     )
     p.add_argument(
+        "--torflow-desc-bw-cap",
+        default=TORFLOW_DESC_BW_CAP,
+        type=float,
+        help="Limit the descriptor bandwidth used by Torflow scaling to "
+        "this multiple of the relay's measured bandwidth. 0 disables "
+        "the limit.",
+    )
+    p.add_argument(
         "-r",
         "--round-digs",
         "--torflow-round-digs",
@@ -147,6 +156,8 @@ def main(args, conf):
         fail_hard("--scale-constant must be positive")
     if args.torflow_bw_margin < 0:
         fail_hard("toflow-bw-margin must be major than 0.")
+    if args.torflow_desc_bw_cap < 0:
+        fail_hard("torflow-desc-bw-cap must be 0 or greater.")
     if args.scale_sbws:
         scaling_method = SBWS_SCALING
     elif args.raw:
@@ -197,6 +208,7 @@ def main(args, conf):
         secs_away=args.secs_away,
         min_num=args.min_num,
         consensus_path=consensus_path,
+        torflow_desc_bw_cap=args.torflow_desc_bw_cap,
     )
     bw_file.write(valid_output)
     bw_file.info_stats

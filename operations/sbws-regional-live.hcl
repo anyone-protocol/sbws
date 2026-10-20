@@ -222,6 +222,7 @@ job "sbws-regional-live" {
 
       env {
         INTERVAL_MINUTES = "60" # NB: originally 60m, increased to 300m due to netscan rate limiting
+        TORFLOW_DESC_BW_CAP = "6"
       }
 
       volume_mount {
