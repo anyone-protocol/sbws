@@ -8,6 +8,7 @@ from stem import __version__ as stem_version
 import sbws.core.cleanup
 import sbws.core.flowctrl2
 import sbws.core.generate
+import sbws.core.geocheck
 import sbws.core.scanner
 import sbws.core.stats
 from sbws import __version__ as version
@@ -87,6 +88,11 @@ def main():
         "stats": {"f": sbws.core.stats.main, "a": def_args, "kw": def_kwargs},
         "flowctrl2": {
             "f": sbws.core.flowctrl2.main,
+            "a": def_args,
+            "kw": def_kwargs,
+        },
+        "geocheck": {
+            "f": sbws.core.geocheck.main,
             "a": def_args,
             "kw": def_kwargs,
         },

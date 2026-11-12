@@ -20,6 +20,14 @@ sbws.core.generate module
     :undoc-members:
     :show-inheritance:
 
+sbws.core.geocheck module
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: sbws.core.geocheck
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 sbws.core.scanner module
 ~~~~~~~~~~~~~~~~~~~~~~~~
 

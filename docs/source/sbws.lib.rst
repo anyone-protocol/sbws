@@ -12,6 +12,14 @@ sbws.lib.circuitbuilder module
     :undoc-members:
     :show-inheritance:
 
+sbws.lib.geocheck module
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: sbws.lib.geocheck
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 sbws.lib.relaylist module
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 

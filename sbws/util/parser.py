@@ -4,6 +4,7 @@ from argparse import ArgumentParser, RawTextHelpFormatter
 import sbws.core.cleanup
 import sbws.core.flowctrl2
 import sbws.core.generate
+import sbws.core.geocheck
 import sbws.core.scanner
 import sbws.core.stats
 from sbws import __version__
@@ -34,4 +35,5 @@ def create_parser():
     sbws.core.generate.gen_parser(sub)
     sbws.core.stats.gen_parser(sub)
     sbws.core.flowctrl2.gen_parser(sub)
+    sbws.core.geocheck.gen_parser(sub)
     return p
